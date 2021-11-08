@@ -8,6 +8,8 @@ import (
 )
 
 type BackgroundCheckStatus struct {
+	Email                            string
+	Tier                             string
 	AcceptResult                     internal.AcceptCheckResult
 	ValidateSSNResult                internal.ValidateSSNResult
 	FederalCriminalSearchResult      internal.FederalCriminalSearchResult
@@ -15,12 +17,15 @@ type BackgroundCheckStatus struct {
 	MotorVehicleIncidentSearchResult internal.MotorVehicleIncidentSearchResult
 }
 
-func BackgroundCheck(ctx workflow.Context, email string, tier string) error {
-	status := BackgroundCheckStatus{}
+func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) error {
+	status := BackgroundCheckStatus{
+		Email: input.Email,
+		Tier:  input.Tier,
+	}
 
 	logger := workflow.GetLogger(ctx)
 
-	acceptWF := workflow.ExecuteChildWorkflow(ctx, AcceptCheck, internal.AcceptCheckInput{Email: email})
+	acceptWF := workflow.ExecuteChildWorkflow(ctx, AcceptCheck, internal.AcceptCheckInput{Email: input.Email})
 	err := acceptWF.Get(ctx, &status.AcceptResult)
 	if err != nil {
 		return err
@@ -42,6 +47,10 @@ func BackgroundCheck(ctx workflow.Context, email string, tier string) error {
 	}
 
 	if !status.ValidateSSNResult.Valid {
+		return nil
+	}
+
+	if input.Tier != "full" {
 		return nil
 	}
 

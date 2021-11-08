@@ -1,5 +1,10 @@
 package internal
 
+type BackgroundCheckInput struct {
+	Email string
+	Tier  string
+}
+
 type AcceptCheckInput struct {
 	Email string
 }

@@ -6,6 +6,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func AcceptCheck(ctx workflow.Context, email string) (internal.AcceptCheckResult, error) {
-	return mocks.AcceptCheckResults[email], nil
+func AcceptCheck(ctx workflow.Context, input internal.AcceptCheckInput) (internal.AcceptCheckResult, error) {
+	return mocks.AcceptCheckResults[input.Email], nil
 }
