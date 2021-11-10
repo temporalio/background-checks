@@ -24,11 +24,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/temporalio/background-checks/internal"
+	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/client"
 )
 
+const DefaultEndpoint = "localhost:8081"
 const TaskQueue = "background-checks-main"
 
 type CheckListItem struct {
@@ -43,13 +44,15 @@ type CheckCreateInput struct {
 
 type CheckSaveSearchResultInput struct {
 	Type                             string
-	FederalCriminalSearchResult      internal.FederalCriminalSearchResult
-	StateCriminalSearchResult        internal.StateCriminalSearchResult
-	MotorVehicleIncidentSearchResult internal.MotorVehicleIncidentSearchResult
+	FederalCriminalSearchResult      types.FederalCriminalSearchResult
+	StateCriminalSearchResult        types.StateCriminalSearchResult
+	MotorVehicleIncidentSearchResult types.MotorVehicleIncidentSearchResult
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
 	checks := []CheckListItem{}
+
+	// client.ListOpenWorkflowExecutions
 
 	json.NewEncoder(w).Encode(checks)
 }
@@ -76,7 +79,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 			TaskQueue: TaskQueue,
 		},
 		workflows.BackgroundCheck,
-		internal.BackgroundCheckInput{
+		types.BackgroundCheckInput{
 			Email: input.Email,
 			Tier:  input.Tier,
 		},
@@ -96,7 +99,7 @@ func handleCheckDetails(w http.ResponseWriter, r *http.Request) {
 func handleCheckReport(w http.ResponseWriter, r *http.Request) {
 }
 
-func handleCheckAccept(w http.ResponseWriter, r *http.Request) {
+func handleCheckConsent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	token, err := base64.StdEncoding.DecodeString(vars["token"])
@@ -105,7 +108,7 @@ func handleCheckAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result internal.AcceptCheckResult
+	var result types.ConsentResult
 
 	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
@@ -170,10 +173,10 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleCandidateTasksList(w http.ResponseWriter, r *http.Request) {
+func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
 }
 
-func handleResearcherTasksList(w http.ResponseWriter, r *http.Request) {
+func handleResearcherTodoList(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
@@ -185,10 +188,9 @@ func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result CheckSaveSearchResultInput
-
+	var result types.SearchResult
+	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
-		err = json.NewDecoder(r.Body).Decode(&result)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -200,30 +202,34 @@ func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
 	}
 	defer c.Close()
 
-	err = c.CompleteActivity(context.Background(), token, result, nil)
+	err = c.CompleteActivity(context.Background(), token, result.Result(), nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func Run() {
+func Router() *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/checks", handleCheckList)
-	r.HandleFunc("/checks", handleCheckCreate).Methods("POST")
-	r.HandleFunc("/checks/{id}", handleCheckDetails)
-	r.HandleFunc("/checks/{id}/cancel", handleCheckCancel).Methods("POST")
-	r.HandleFunc("/checks/{id}/report", handleCheckReport)
-	r.HandleFunc("/checks/{token}/accept", handleCheckAccept).Methods("POST")
-	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST")
-	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST")
-	r.HandleFunc("/tasks/candidate/{email}", handleCandidateTasksList)
-	r.HandleFunc("/tasks/researcher/{email}", handleResearcherTasksList)
+	r.HandleFunc("/checks", handleCheckList).Name("checks_list")
+	r.HandleFunc("/checks", handleCheckCreate).Methods("POST").Name("checks_create")
+	r.HandleFunc("/checks/{id}", handleCheckDetails).Name("check")
+	r.HandleFunc("/checks/{id}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
+	r.HandleFunc("/checks/{id}/report", handleCheckReport).Name("check_report")
+	r.HandleFunc("/checks/{token}/consent", handleCheckConsent).Methods("POST").Name("check_consent")
+	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST").Name("check_decline")
+	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
+	r.HandleFunc("/todos/candidate/{email}", handleCandidateTodoList).Name("todos_candidate")
+	r.HandleFunc("/todos/researcher/{email}", handleResearcherTodoList).Name("todos_researcher")
 
+	return r
+}
+
+func Run() {
 	srv := &http.Server{
-		Handler: r,
-		Addr:    "127.0.0.1:8000",
+		Handler: Router(),
+		Addr:    DefaultEndpoint,
 	}
 
 	log.Fatal(srv.ListenAndServe())

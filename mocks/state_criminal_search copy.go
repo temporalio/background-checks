@@ -1,7 +1,7 @@
 package mocks
 
-import "github.com/temporalio/background-checks/internal"
+import "github.com/temporalio/background-checks/types"
 
-var StateCriminalSearchResults = map[internal.StateCriminalSearchInput]internal.StateCriminalSearchResult{
+var StateCriminalSearchResults = map[types.StateCriminalSearchInput]types.StateCriminalSearchResult{
 	{FullName: "John Smith", Address: "1 Chestnut Avenue"}: {},
 }

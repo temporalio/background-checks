@@ -3,21 +3,21 @@ package workflows
 import (
 	"fmt"
 
-	"github.com/temporalio/background-checks/internal"
+	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/workflow"
 )
 
 type BackgroundCheckStatus struct {
 	Email                            string
 	Tier                             string
-	AcceptResult                     internal.AcceptCheckResult
-	ValidateSSNResult                internal.ValidateSSNResult
-	FederalCriminalSearchResult      internal.FederalCriminalSearchResult
-	StateCriminalSearchResult        internal.StateCriminalSearchResult
-	MotorVehicleIncidentSearchResult internal.MotorVehicleIncidentSearchResult
+	ConsentResult                    types.ConsentResult
+	ValidateSSNResult                types.ValidateSSNResult
+	FederalCriminalSearchResult      types.FederalCriminalSearchResult
+	StateCriminalSearchResult        types.StateCriminalSearchResult
+	MotorVehicleIncidentSearchResult types.MotorVehicleIncidentSearchResult
 }
 
-func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) error {
+func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) error {
 	status := BackgroundCheckStatus{
 		Email: input.Email,
 		Tier:  input.Tier,
@@ -25,20 +25,20 @@ func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) 
 
 	logger := workflow.GetLogger(ctx)
 
-	acceptWF := workflow.ExecuteChildWorkflow(ctx, AcceptCheck, internal.AcceptCheckInput{Email: input.Email})
-	err := acceptWF.Get(ctx, &status.AcceptResult)
+	acceptWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentInput{Email: input.Email})
+	err := acceptWF.Get(ctx, &status.ConsentResult)
 	if err != nil {
 		return err
 	}
 
-	if !status.AcceptResult.Accept {
+	if !status.ConsentResult.Accept {
 		return nil
 	}
 
-	ssnInput := internal.ValidateSSNInput{
-		FullName: status.AcceptResult.FullName,
-		Address:  status.AcceptResult.Address,
-		SSN:      status.AcceptResult.SSN,
+	ssnInput := types.ValidateSSNInput{
+		FullName: status.ConsentResult.FullName,
+		Address:  status.ConsentResult.Address,
+		SSN:      status.ConsentResult.SSN,
 	}
 	ssnWF := workflow.ExecuteChildWorkflow(ctx, ValidateSSN, ssnInput)
 	err = ssnWF.Get(ctx, &status.ValidateSSNResult)
@@ -59,7 +59,7 @@ func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) 
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		FederalCriminalSearch,
-		internal.FederalCriminalSearchInput{FullName: status.AcceptResult.FullName, Address: status.AcceptResult.Address},
+		types.FederalCriminalSearchInput{FullName: status.ConsentResult.FullName, Address: status.ConsentResult.Address},
 	)
 	s.AddFuture(federalCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.FederalCriminalSearchResult)
@@ -71,7 +71,7 @@ func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) 
 	stateCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		StateCriminalSearch,
-		internal.StateCriminalSearchInput{FullName: status.AcceptResult.FullName, Address: status.AcceptResult.Address},
+		types.StateCriminalSearchInput{FullName: status.ConsentResult.FullName, Address: status.ConsentResult.Address},
 	)
 	s.AddFuture(stateCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.StateCriminalSearchResult)
@@ -83,7 +83,7 @@ func BackgroundCheck(ctx workflow.Context, input internal.BackgroundCheckInput) 
 	motorVehicleIncidentSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		MotorVehicleIncidentSearch,
-		internal.MotorVehicleIncidentSearchInput{FullName: status.AcceptResult.FullName, Address: status.AcceptResult.Address},
+		types.MotorVehicleIncidentSearchInput{FullName: status.ConsentResult.FullName, Address: status.ConsentResult.Address},
 	)
 	s.AddFuture(motorVehicleIncidentSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.MotorVehicleIncidentSearchResult)

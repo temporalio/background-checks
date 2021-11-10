@@ -6,6 +6,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func ValidateSSN(ctx workflow.Context, input types.ValidateSSNInput) (types.ValidateSSNResult, error) {
-	return mocks.ValidateSSNResults[input], nil
+func Consent(ctx workflow.Context, input types.ConsentInput) (types.ConsentResult, error) {
+	return mocks.ConsentResultConsented, nil
 }

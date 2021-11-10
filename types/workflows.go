@@ -1,15 +1,15 @@
-package internal
+package types
 
 type BackgroundCheckInput struct {
 	Email string
 	Tier  string
 }
 
-type AcceptCheckInput struct {
+type ConsentInput struct {
 	Email string
 }
 
-type AcceptCheckResult struct {
+type ConsentResult struct {
 	Accept   bool
 	FullName string
 	Address  string
@@ -51,4 +51,24 @@ type MotorVehicleIncidentSearchInput struct {
 
 type MotorVehicleIncidentSearchResult struct {
 	Crimes []string
+}
+
+type SearchResult struct {
+	Type                             string
+	FederalCriminalSearchResult      FederalCriminalSearchResult
+	StateCriminalSearchResult        StateCriminalSearchResult
+	MotorVehicleIncidentSearchResult MotorVehicleIncidentSearchResult
+}
+
+func (r SearchResult) Result() interface{} {
+	switch r.Type {
+	case "FederalCriminalSearchResult":
+		return r.FederalCriminalSearchResult
+	case "StateCriminalSearchResult":
+		return r.StateCriminalSearchResult
+	case "MotorVehicleIncidentSearchResult":
+		return r.MotorVehicleIncidentSearchResult
+	}
+
+	return nil
 }
