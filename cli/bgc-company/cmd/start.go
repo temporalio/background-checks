@@ -16,8 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -26,6 +24,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/temporalio/background-checks/api"
+	"github.com/temporalio/background-checks/cli/utils"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -51,18 +50,8 @@ var startCmd = &cobra.Command{
 			Email: email,
 			Tier:  tier,
 		}
-		jsonInput, err := json.Marshal(input)
-		if err != nil {
-			log.Fatalf("unable to encode input: %v", err)
-		}
 
-		req, err := http.NewRequest(http.MethodPost, requestURL.String(), bytes.NewBuffer(jsonInput))
-		if err != nil {
-			log.Fatalf("unable to build request input: %v", err)
-		}
-
-		client := http.Client{}
-		response, err := client.Do(req)
+		response, err := utils.PostJSON(requestURL, input)
 		if err != nil {
 			log.Fatalf("request error: %v", err)
 		}
