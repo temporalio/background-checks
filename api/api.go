@@ -33,23 +33,6 @@ import (
 const DefaultEndpoint = "localhost:8081"
 const TaskQueue = "background-checks-main"
 
-type CheckListItem struct {
-	Email string
-	Tier  string
-}
-
-type CheckCreateInput struct {
-	Email string
-	Tier  string
-}
-
-type CheckSaveSearchResultInput struct {
-	Type                             string
-	FederalCriminalSearchResult      types.FederalCriminalSearchResult
-	StateCriminalSearchResult        types.StateCriminalSearchResult
-	MotorVehicleIncidentSearchResult types.MotorVehicleIncidentSearchResult
-}
-
 func BackgroundCheckWorkflowID(email string) string {
 	return fmt.Sprintf("BackgroundCheck-%s", email)
 }
@@ -63,15 +46,15 @@ func ResearcherWorkflowID(email string) string {
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
-	checks := []CheckListItem{}
+	checks := []types.BackgroundCheckInput{}
 
-	// client.ListOpenWorkflowExecutions
+	// client.ListOpenWorkflowExecutions?
 
 	json.NewEncoder(w).Encode(checks)
 }
 
 func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
-	var input CheckCreateInput
+	var input types.BackgroundCheckInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -93,10 +76,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 			ID:        BackgroundCheckWorkflowID(input.Email),
 		},
 		workflows.BackgroundCheck,
-		types.BackgroundCheckInput{
-			Email: input.Email,
-			Tier:  input.Tier,
-		},
+		input,
 	)
 
 	if err != nil {
