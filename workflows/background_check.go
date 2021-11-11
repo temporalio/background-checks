@@ -23,8 +23,8 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 		return err
 	}
 
-	acceptWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentInput{Email: input.Email})
-	err = acceptWF.Get(ctx, &status.Consent)
+	consentWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentInput{Email: input.Email})
+	err = consentWF.Get(ctx, &status.Consent)
 	if err != nil {
 		return err
 	}

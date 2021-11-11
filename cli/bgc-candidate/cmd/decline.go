@@ -16,18 +16,14 @@ limitations under the License.
 package cmd
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/workflows"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/worker"
 )
 
-// workerCmd represents the worker command
-var workerCmd = &cobra.Command{
-	Use:   "worker",
+// declineCmd represents the decline command
+var declineCmd = &cobra.Command{
+	Use:   "decline",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -36,32 +32,20 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c, err := client.NewClient(client.Options{})
-		if err != nil {
-			log.Fatalf("client error: %v", err)
-		}
-		defer c.Close()
-
-		w := worker.New(c, "background-checks-main", worker.Options{})
-
-		w.RegisterWorkflow(workflows.Candidate)
-		w.RegisterWorkflow(workflows.Researcher)
-
-		w.RegisterWorkflow(workflows.BackgroundCheck)
-		w.RegisterWorkflow(workflows.Consent)
-		w.RegisterActivity(activities.Consent)
-		w.RegisterWorkflow(workflows.ValidateSSN)
-		w.RegisterWorkflow(workflows.FederalCriminalSearch)
-		w.RegisterWorkflow(workflows.StateCriminalSearch)
-		w.RegisterWorkflow(workflows.MotorVehicleIncidentSearch)
-
-		err = w.Run(worker.InterruptCh())
-		if err != nil {
-			log.Fatalf("worker exited: %v", err)
-		}
+		fmt.Println("decline called")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(workerCmd)
+	rootCmd.AddCommand(declineCmd)
+
+	// Here you will define your flags and configuration settings.
+
+	// Cobra supports Persistent Flags which will work for this command
+	// and all subcommands, e.g.:
+	// declineCmd.PersistentFlags().String("foo", "", "A help for foo")
+
+	// Cobra supports local flags which will only run when this command
+	// is called directly, e.g.:
+	// declineCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

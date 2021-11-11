@@ -22,54 +22,42 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
-
 	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
-	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/mocks"
 )
 
-var (
-	tier string
-)
-
-// startCmd represents the start command
-var startCmd = &cobra.Command{
-	Use:   "start [email]",
-	Short: "starts a background check for a candidate",
+// consentCmd represents the consent command
+var consentCmd = &cobra.Command{
+	Use:   "consent [token]",
+	Short: "Consent to a background check",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		email := args[0]
+		token := args[0]
 
 		router := api.Router()
 
-		requestURL, err := router.Get("checks_create").Host(api.DefaultEndpoint).URL()
+		requestURL, err := router.Get("consent").Host(api.DefaultEndpoint).URL("token", token)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		input := types.BackgroundCheckInput{
-			Email: email,
-			Tier:  tier,
-		}
-
-		response, err := utils.PostJSON(requestURL, input)
+		response, err := utils.PostJSON(requestURL, mocks.ConsentResultConsented)
 		if err != nil {
-			log.Fatalf("request error: %v", err)
+			log.Fatalf(err.Error())
 		}
 
 		defer response.Body.Close()
 		body, _ := ioutil.ReadAll(response.Body)
 
-		if response.StatusCode != http.StatusCreated {
+		if response.StatusCode != http.StatusOK {
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
 		}
 
-		fmt.Printf("Created check")
+		fmt.Println("Recorded consent")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(startCmd)
-
-	startCmd.Flags().StringVar(&tier, "tier", "standard", "Tier (which checks to run)")
+	rootCmd.AddCommand(consentCmd)
 }

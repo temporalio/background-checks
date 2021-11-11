@@ -19,32 +19,21 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/temporalio/background-checks/config"
+	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 )
 
 const DefaultEndpoint = "localhost:8081"
-const TaskQueue = "background-checks-main"
-
-func BackgroundCheckWorkflowID(email string) string {
-	return fmt.Sprintf("BackgroundCheck-%s", email)
-}
-
-func CandidateWorkflowID(email string) string {
-	return fmt.Sprintf("Candidate-%s", email)
-}
-
-func ResearcherWorkflowID(email string) string {
-	return fmt.Sprintf("Researcher-%s", email)
-}
 
 func executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, args ...interface{}) (client.WorkflowRun, error) {
 	c, err := client.NewClient(client.Options{})
@@ -53,7 +42,7 @@ func executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, 
 	}
 	defer c.Close()
 
-	options.TaskQueue = TaskQueue
+	options.TaskQueue = config.TaskQueue
 
 	return c.ExecuteWorkflow(
 		context.Background(),
@@ -118,7 +107,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 
 	_, err = executeWorkflow(
 		client.StartWorkflowOptions{
-			ID: BackgroundCheckWorkflowID(input.Email),
+			ID: mappings.BackgroundCheckWorkflowID(input.Email),
 		},
 		workflows.BackgroundCheck,
 		input,
@@ -138,7 +127,7 @@ func handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 	email := vars["email"]
 
 	v, err := queryWorkflow(
-		BackgroundCheckWorkflowID(email),
+		mappings.BackgroundCheckWorkflowID(email),
 		queries.BackgroundCheckStatus,
 	)
 	if err != nil {
@@ -211,15 +200,19 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
+func handleConsentsList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
 
 	v, err := queryWorkflow(
-		CandidateWorkflowID(email),
+		mappings.CandidateWorkflowID(email),
 		queries.CandidateTodosList,
 	)
+	if _, ok := err.(*serviceerror.NotFound); ok {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -236,15 +229,19 @@ func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func handleResearcherTodoList(w http.ResponseWriter, r *http.Request) {
+func handleResearchList(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
 
 	v, err := queryWorkflow(
-		ResearcherWorkflowID(email),
+		mappings.ResearcherWorkflowID(email),
 		queries.ResearcherTodosList,
 	)
+	if _, ok := err.(*serviceerror.NotFound); ok {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -287,16 +284,16 @@ func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
 func Router() *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/checks", handleCheckList).Name("checks_list")
+	r.HandleFunc("/checks", handleCheckList).Methods("GET").Name("checks_list")
 	r.HandleFunc("/checks", handleCheckCreate).Methods("POST").Name("checks_create")
 	r.HandleFunc("/checks/{email}", handleCheckStatus).Name("check")
 	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
-	r.HandleFunc("/checks/{token}/consent", handleCheckConsent).Methods("POST").Name("check_consent")
-	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST").Name("check_decline")
+	r.HandleFunc("/checks/{token}/consent", handleCheckConsent).Methods("POST").Name("consent")
+	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST").Name("decline")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
-	r.HandleFunc("/todos/candidate/{email}", handleCandidateTodoList).Name("todos_candidate")
-	r.HandleFunc("/todos/researcher/{email}", handleResearcherTodoList).Name("todos_researcher")
+	r.HandleFunc("/consents/{email}", handleConsentsList).Name("consents")
+	r.HandleFunc("/research/{email}", handleResearchList).Name("research")
 
 	return r
 }
