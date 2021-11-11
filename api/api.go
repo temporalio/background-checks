@@ -28,6 +28,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/converter"
 )
 
 const DefaultEndpoint = "localhost:8081"
@@ -43,6 +44,59 @@ func CandidateWorkflowID(email string) string {
 
 func ResearcherWorkflowID(email string) string {
 	return fmt.Sprintf("Researcher-%s", email)
+}
+
+func executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, args ...interface{}) (client.WorkflowRun, error) {
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	options.TaskQueue = TaskQueue
+
+	return c.ExecuteWorkflow(
+		context.Background(),
+		options,
+		workflows.BackgroundCheck,
+		args...,
+	)
+}
+
+func cancelWorkflow(wid string) error {
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	return c.CancelWorkflow(context.Background(), wid, "")
+}
+
+func completeActivity(token []byte, result interface{}, activityErr error) error {
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	return c.CompleteActivity(context.Background(), token, result, activityErr)
+}
+
+func queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		return nil, err
+	}
+	defer c.Close()
+
+	return c.QueryWorkflow(
+		context.Background(),
+		wid,
+		"",
+		queryType,
+		args...,
+	)
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
@@ -62,18 +116,9 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	_, err = c.ExecuteWorkflow(
-		context.Background(),
+	_, err = executeWorkflow(
 		client.StartWorkflowOptions{
-			TaskQueue: TaskQueue,
-			ID:        BackgroundCheckWorkflowID(input.Email),
+			ID: BackgroundCheckWorkflowID(input.Email),
 		},
 		workflows.BackgroundCheck,
 		input,
@@ -103,21 +148,13 @@ func handleCheckConsent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result types.ConsentResult
-
 	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	err = c.CompleteActivity(context.Background(), token, result, nil)
+	err = completeActivity(token, result, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -133,15 +170,7 @@ func handleCheckDecline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	// TODO: This needs to be a defined error type so that we don't retry.
-	err = c.CompleteActivity(context.Background(), token, nil, fmt.Errorf("declined"))
+	err = completeActivity(token, types.ConsentResult{Consent: false}, nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -153,14 +182,7 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 
 	id := vars["id"]
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	err = c.CancelWorkflow(context.Background(), id, "")
+	err := cancelWorkflow(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -172,15 +194,7 @@ func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	v, err := c.QueryWorkflow(
-		context.Background(),
+	v, err := queryWorkflow(
 		CandidateWorkflowID(email),
 		"",
 		queries.CandidateTodosList,
@@ -207,15 +221,7 @@ func handleResearcherTodoList(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	v, err := c.QueryWorkflow(
-		context.Background(),
+	v, err := queryWorkflow(
 		ResearcherWorkflowID(email),
 		"",
 		queries.ResearcherTodosList,
@@ -253,14 +259,7 @@ func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := client.NewClient(client.Options{})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer c.Close()
-
-	err = c.CompleteActivity(context.Background(), token, result.Result(), nil)
+	err = completeActivity(token, result.Result(), nil)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
