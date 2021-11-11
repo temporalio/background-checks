@@ -132,7 +132,29 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func handleCheckDetails(w http.ResponseWriter, r *http.Request) {
+func handleCheckStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	email := vars["email"]
+
+	v, err := queryWorkflow(
+		BackgroundCheckWorkflowID(email),
+		queries.BackgroundCheckStatus,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var result types.BackgroundCheckStatus
+	err = v.Get(&result)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 func handleCheckReport(w http.ResponseWriter, r *http.Request) {
@@ -267,9 +289,9 @@ func Router() *mux.Router {
 
 	r.HandleFunc("/checks", handleCheckList).Name("checks_list")
 	r.HandleFunc("/checks", handleCheckCreate).Methods("POST").Name("checks_create")
-	r.HandleFunc("/checks/{id}", handleCheckDetails).Name("check")
-	r.HandleFunc("/checks/{id}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
-	r.HandleFunc("/checks/{id}/report", handleCheckReport).Name("check_report")
+	r.HandleFunc("/checks/{email}", handleCheckStatus).Name("check")
+	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
+	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
 	r.HandleFunc("/checks/{token}/consent", handleCheckConsent).Methods("POST").Name("check_consent")
 	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST").Name("check_decline")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")

@@ -5,6 +5,16 @@ type BackgroundCheckInput struct {
 	Tier  string
 }
 
+type BackgroundCheckStatus struct {
+	Email                      string
+	Tier                       string
+	Consent                    ConsentResult
+	Validate                   ValidateSSNResult
+	FederalCriminalSearch      FederalCriminalSearchResult
+	StateCriminalSearch        StateCriminalSearchResult
+	MotorVehicleIncidentSearch MotorVehicleIncidentSearchResult
+}
+
 type CandidateInput struct {
 	Email string
 }
