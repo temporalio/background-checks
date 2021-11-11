@@ -5,15 +5,49 @@ type BackgroundCheckInput struct {
 	Tier  string
 }
 
+type CandidateInput struct {
+	Email string
+}
+
+type CandidateTodo struct {
+	Token string
+}
+
+type ResearcherInput struct {
+	Email string
+}
+
+type ResearcherTodo struct {
+	Token                           string
+	Type                            string
+	FederalCriminalSearchInput      FederalCriminalSearchInput
+	StateCriminalSearchInput        StateCriminalSearchInput
+	MotorVehicleIncidentSearchInput MotorVehicleIncidentSearchInput
+}
+
+func (r ResearcherTodo) Input() interface{} {
+	switch r.Type {
+	case "FederalCriminalSearch":
+		return r.FederalCriminalSearchInput
+	case "StateCriminalSearch":
+		return r.StateCriminalSearchInput
+	case "MotorVehicleIncidentSearch":
+		return r.MotorVehicleIncidentSearchInput
+	}
+
+	return nil
+}
+
 type ConsentInput struct {
 	Email string
 }
 
 type ConsentResult struct {
-	Accept   bool
+	Consent  bool
 	FullName string
 	Address  string
 	SSN      string
+	DOB      string
 }
 
 type ValidateSSNInput struct {
@@ -62,11 +96,11 @@ type SearchResult struct {
 
 func (r SearchResult) Result() interface{} {
 	switch r.Type {
-	case "FederalCriminalSearchResult":
+	case "FederalCriminalSearch":
 		return r.FederalCriminalSearchResult
-	case "StateCriminalSearchResult":
+	case "StateCriminalSearch":
 		return r.StateCriminalSearchResult
-	case "MotorVehicleIncidentSearchResult":
+	case "MotorVehicleIncidentSearch":
 		return r.MotorVehicleIncidentSearchResult
 	}
 

@@ -31,7 +31,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 		return err
 	}
 
-	if !status.ConsentResult.Accept {
+	if !status.ConsentResult.Consent {
 		return nil
 	}
 

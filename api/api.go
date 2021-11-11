@@ -24,6 +24,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/client"
@@ -47,6 +48,18 @@ type CheckSaveSearchResultInput struct {
 	FederalCriminalSearchResult      types.FederalCriminalSearchResult
 	StateCriminalSearchResult        types.StateCriminalSearchResult
 	MotorVehicleIncidentSearchResult types.MotorVehicleIncidentSearchResult
+}
+
+func BackgroundCheckWorkflowID(email string) string {
+	return fmt.Sprintf("BackgroundCheck-%s", email)
+}
+
+func CandidateWorkflowID(email string) string {
+	return fmt.Sprintf("Candidate-%s", email)
+}
+
+func ResearcherWorkflowID(email string) string {
+	return fmt.Sprintf("Researcher-%s", email)
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
@@ -77,6 +90,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 		context.Background(),
 		client.StartWorkflowOptions{
 			TaskQueue: TaskQueue,
+			ID:        BackgroundCheckWorkflowID(input.Email),
 		},
 		workflows.BackgroundCheck,
 		types.BackgroundCheckInput{
@@ -174,9 +188,73 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	email := vars["email"]
+
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer c.Close()
+
+	v, err := c.QueryWorkflow(
+		context.Background(),
+		CandidateWorkflowID(email),
+		"",
+		queries.CandidateTodosList,
+		nil,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var result []types.CandidateTodo
+	err = v.Get(&result)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 func handleResearcherTodoList(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	email := vars["email"]
+
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer c.Close()
+
+	v, err := c.QueryWorkflow(
+		context.Background(),
+		ResearcherWorkflowID(email),
+		"",
+		queries.ResearcherTodosList,
+		nil,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var result []types.ResearcherTodo
+	err = v.Get(&result)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
