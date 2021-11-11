@@ -54,7 +54,7 @@ var consentCmd = &cobra.Command{
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
 		}
 
-		fmt.Println("Recorded consent")
+		fmt.Println("Consented")
 	},
 }
 

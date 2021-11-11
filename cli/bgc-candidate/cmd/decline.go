@@ -17,35 +17,46 @@ package cmd
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 
 	"github.com/spf13/cobra"
+	"github.com/temporalio/background-checks/api"
+	"github.com/temporalio/background-checks/cli/utils"
 )
 
 // declineCmd represents the decline command
 var declineCmd = &cobra.Command{
-	Use:   "decline",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Use:   "decline [token]",
+	Short: "Decline a background check",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("decline called")
+		token := args[0]
+
+		router := api.Router()
+
+		requestURL, err := router.Get("decline").Host(api.DefaultEndpoint).URL("token", token)
+		if err != nil {
+			log.Fatalf("cannot create URL: %v", err)
+		}
+
+		response, err := utils.PostJSON(requestURL, nil)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		defer response.Body.Close()
+		body, _ := ioutil.ReadAll(response.Body)
+
+		if response.StatusCode != http.StatusOK {
+			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
+		}
+
+		fmt.Println("Declined")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(declineCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// declineCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// declineCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
