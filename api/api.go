@@ -196,9 +196,7 @@ func handleCandidateTodoList(w http.ResponseWriter, r *http.Request) {
 
 	v, err := queryWorkflow(
 		CandidateWorkflowID(email),
-		"",
 		queries.CandidateTodosList,
-		nil,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -223,9 +221,7 @@ func handleResearcherTodoList(w http.ResponseWriter, r *http.Request) {
 
 	v, err := queryWorkflow(
 		ResearcherWorkflowID(email),
-		"",
 		queries.ResearcherTodosList,
-		nil,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
