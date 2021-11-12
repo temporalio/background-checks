@@ -15,12 +15,33 @@ type BackgroundCheckStatus struct {
 	MotorVehicleIncidentSearch MotorVehicleIncidentSearchResult
 }
 
-type CandidateInput struct {
-	Email string
+type CandidateBackgroundCheckStatus struct {
+	ID     string
+	Status string
 }
 
-type CandidateTodo struct {
-	Token string
+type CandidateConsentRequest struct {
+	WorkflowID string
+	RunID      string
+}
+
+type CandidateConsentResponseFromUser struct {
+	WorkflowID string
+	RunID      string
+	Consent    ConsentResult
+}
+
+type CandidateDeclined struct {
+	WorkflowID string
+	RunID      string
+}
+
+type CandidateConsentResponse struct {
+	Consent ConsentResult
+}
+
+type CandidateInput struct {
+	Email string
 }
 
 type ResearcherInput struct {

@@ -1,22 +1,41 @@
 package workflows
 
 import (
-	"time"
-
-	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/workflow"
+
+	"github.com/temporalio/background-checks/mappings"
+	"github.com/temporalio/background-checks/signals"
+	"github.com/temporalio/background-checks/types"
 )
 
 func Consent(ctx workflow.Context, input types.ConsentInput) (types.ConsentResult, error) {
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: time.Hour * 24,
+	info := workflow.GetInfo(ctx)
+
+	f := workflow.SignalExternalWorkflow(
+		ctx,
+		mappings.CandidateWorkflowID(input.Email),
+		"",
+		signals.CandidateConsentRequest,
+		types.CandidateConsentRequest{
+			WorkflowID: info.WorkflowExecution.ID,
+			RunID:      info.WorkflowExecution.RunID,
+		},
+	)
+	err := f.Get(ctx, nil)
+	if err != nil {
+		return types.ConsentResult{}, err
+	}
+
+	var response types.CandidateConsentResponse
+
+	s := workflow.NewSelector(ctx)
+
+	consentCh := workflow.GetSignalChannel(ctx, signals.CandidateConsentFromUser)
+	s.AddReceive(consentCh, func(c workflow.ReceiveChannel, more bool) {
+		c.Receive(ctx, &response)
 	})
 
-	f := workflow.ExecuteActivity(ctx, activities.Consent, input)
+	s.Select(ctx)
 
-	var result types.ConsentResult
-	err := f.Get(ctx, &result)
-
-	return result, err
+	return response.Consent, nil
 }

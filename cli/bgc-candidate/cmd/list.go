@@ -36,25 +36,25 @@ var listCmd = &cobra.Command{
 
 		router := api.Router()
 
-		requestURL, err := router.Get("consents").Host(api.DefaultEndpoint).URL("email", email)
+		requestURL, err := router.Get("candidate").Host(api.DefaultEndpoint).URL("email", email)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		var consents []types.CandidateTodo
-		response, err := utils.GetJSON(requestURL, &consents)
+		var checks []types.CandidateBackgroundCheckStatus
+		response, err := utils.GetJSON(requestURL, &checks)
 
 		if response.StatusCode == http.StatusNotFound {
-			fmt.Printf("No outstanding consents for: %s\n", email)
+			fmt.Printf("No background checks for: %s\n", email)
 			return
 		}
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		fmt.Printf("Consents:\n")
-		for i, consent := range consents {
-			fmt.Printf("%d: token: %s\n", i, consent.Token)
+		fmt.Printf("Background Checks:\n")
+		for _, consent := range checks {
+			fmt.Printf("id: %s status: %s\n", consent.ID, consent.Status)
 		}
 	},
 }

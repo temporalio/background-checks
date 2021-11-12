@@ -8,13 +8,15 @@ import (
 )
 
 func Candidate(ctx workflow.Context, input types.CandidateInput) error {
-	todos := map[string]types.CandidateTodo{}
+	logger := workflow.GetLogger(ctx)
 
-	err := workflow.SetQueryHandler(ctx, queries.CandidateTodosList, func() ([]types.CandidateTodo, error) {
-		result := make([]types.CandidateTodo, 0, len(todos))
+	checks := map[string]types.CandidateBackgroundCheckStatus{}
 
-		for _, todo := range todos {
-			result = append(result, todo)
+	err := workflow.SetQueryHandler(ctx, queries.CandidateBackgroundCheckList, func() ([]types.CandidateBackgroundCheckStatus, error) {
+		result := make([]types.CandidateBackgroundCheckStatus, 0, len(checks))
+
+		for _, check := range checks {
+			result = append(result, check)
 		}
 
 		return result, nil
@@ -25,18 +27,31 @@ func Candidate(ctx workflow.Context, input types.CandidateInput) error {
 
 	s := workflow.NewSelector(ctx)
 
-	createCh := workflow.GetSignalChannel(ctx, signals.CandidateTodoCreate)
+	createCh := workflow.GetSignalChannel(ctx, signals.CandidateBackgroundCheckStatus)
 	s.AddReceive(createCh, func(c workflow.ReceiveChannel, more bool) {
-		var todo types.CandidateTodo
-		c.Receive(ctx, &todo)
-		todos[todo.Token] = todo
+		var bc types.CandidateBackgroundCheckStatus
+		c.Receive(ctx, &bc)
+		checks[bc.ID] = bc
 	})
 
-	completeCh := workflow.GetSignalChannel(ctx, signals.CandidateTodoComplete)
-	s.AddReceive(completeCh, func(c workflow.ReceiveChannel, more bool) {
-		var todo types.CandidateTodo
-		c.Receive(ctx, &todo)
-		delete(todos, todo.Token)
+	consentCh := workflow.GetSignalChannel(ctx, signals.CandidateConsentFromUser)
+	s.AddReceive(consentCh, func(c workflow.ReceiveChannel, more bool) {
+		var consent types.CandidateConsentResponseFromUser
+		c.Receive(ctx, &consent)
+
+		f := workflow.SignalExternalWorkflow(
+			ctx,
+			consent.WorkflowID,
+			consent.RunID,
+			signals.CandidateConsentResponse,
+			types.CandidateConsentResponse{
+				Consent: consent.Consent,
+			},
+		)
+		err := f.Get(ctx, nil)
+		if err != nil {
+			logger.Error("failed to send consent response from user: %v", err)
+		}
 	})
 
 	for {

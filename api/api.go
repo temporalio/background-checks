@@ -26,6 +26,7 @@ import (
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
+	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/api/serviceerror"
@@ -86,6 +87,16 @@ func queryWorkflow(wid string, queryType string, args ...interface{}) (converter
 		queryType,
 		args...,
 	)
+}
+
+func signalWorkflow(wid string, signalName string, signalArg interface{}) error {
+	c, err := client.NewClient(client.Options{})
+	if err != nil {
+		return err
+	}
+	defer c.Close()
+
+	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
@@ -149,39 +160,23 @@ func handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 func handleCheckReport(w http.ResponseWriter, r *http.Request) {
 }
 
-func handleCheckConsent(w http.ResponseWriter, r *http.Request) {
+func handleConsent(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	token, err := base64.StdEncoding.DecodeString(vars["token"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	email := vars["email"]
 
-	var result types.ConsentResult
-	err = json.NewDecoder(r.Body).Decode(&result)
+	var result types.CandidateConsentResponseFromUser
+	err := json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = completeActivity(token, result, nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
-func handleCheckDecline(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	token, err := base64.StdEncoding.DecodeString(vars["token"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = completeActivity(token, types.ConsentResult{Consent: false}, nil)
+	err = signalWorkflow(
+		mappings.CandidateWorkflowID(email),
+		signals.CandidateConsentFromUser,
+		result,
+	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -200,14 +195,14 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleConsentsList(w http.ResponseWriter, r *http.Request) {
+func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
 
 	v, err := queryWorkflow(
 		mappings.CandidateWorkflowID(email),
-		queries.CandidateTodosList,
+		queries.CandidateBackgroundCheckList,
 	)
 	if _, ok := err.(*serviceerror.NotFound); ok {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -218,7 +213,7 @@ func handleConsentsList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []types.CandidateTodo
+	var result []types.CandidateBackgroundCheckStatus
 	err = v.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -229,7 +224,7 @@ func handleConsentsList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func handleResearchList(w http.ResponseWriter, r *http.Request) {
+func handleResearcherStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
@@ -289,11 +284,10 @@ func Router() *mux.Router {
 	r.HandleFunc("/checks/{email}", handleCheckStatus).Name("check")
 	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
-	r.HandleFunc("/checks/{token}/consent", handleCheckConsent).Methods("POST").Name("consent")
-	r.HandleFunc("/checks/{token}/decline", handleCheckDecline).Methods("POST").Name("decline")
+	r.HandleFunc("/checks/{email}/consent", handleConsent).Methods("POST").Name("consent")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
-	r.HandleFunc("/consents/{email}", handleConsentsList).Name("consents")
-	r.HandleFunc("/research/{email}", handleResearchList).Name("research")
+	r.HandleFunc("/candidate/{email}", handleCandidateStatus).Name("candidate")
+	r.HandleFunc("/research/{email}", handleResearcherStatus).Name("research")
 
 	return r
 }
