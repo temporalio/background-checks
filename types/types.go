@@ -93,8 +93,19 @@ type MotorVehicleIncidentSearchInput struct {
 	Address  string
 }
 
+type EmploymentSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type EmploymentSearchResult struct {
+	Companies []string
+}
+
 type MotorVehicleIncidentSearchResult struct {
-	Crimes []string
+	CurrentLicenseState   string
+	LicenseValid          bool
+	MotorVehicleIncidents []string
 }
 
 type SearchResult struct {
