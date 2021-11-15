@@ -16,27 +16,25 @@ type BackgroundCheckStatus struct {
 }
 
 type CandidateBackgroundCheckStatus struct {
-	ID     string
-	Status string
+	ConsentRequired bool
+	Status          string
 }
 
-type CandidateConsentRequest struct {
-	WorkflowID string
-	RunID      string
+type Consent struct {
+	Consent  bool
+	FullName string
+	Address  string
+	SSN      string
+	DOB      string
 }
 
-type CandidateConsentResponseFromUser struct {
-	WorkflowID string
-	RunID      string
-	Consent    ConsentResult
+type ConsentRequest struct{}
+
+type ConsentSubmission struct {
+	Consent ConsentResult
 }
 
-type CandidateDeclined struct {
-	WorkflowID string
-	RunID      string
-}
-
-type CandidateConsentResponse struct {
+type ConsentResponse struct {
 	Consent ConsentResult
 }
 
@@ -73,13 +71,7 @@ type ConsentInput struct {
 	Email string
 }
 
-type ConsentResult struct {
-	Consent  bool
-	FullName string
-	Address  string
-	SSN      string
-	DOB      string
-}
+type ConsentResult Consent
 
 type ValidateSSNInput struct {
 	FullName string

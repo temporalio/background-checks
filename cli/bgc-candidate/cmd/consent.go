@@ -25,24 +25,29 @@ import (
 	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
 	"github.com/temporalio/background-checks/mocks"
+	"github.com/temporalio/background-checks/types"
 )
 
 // consentCmd represents the consent command
 var consentCmd = &cobra.Command{
-	Use:   "consent [token]",
+	Use:   "consent [email]",
 	Short: "Consent to a background check",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		token := args[0]
+		email := args[0]
 
 		router := api.Router()
 
-		requestURL, err := router.Get("consent").Host(api.DefaultEndpoint).URL("token", token)
+		requestURL, err := router.Get("consent").Host(api.DefaultEndpoint).URL("email", email)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		response, err := utils.PostJSON(requestURL, mocks.ConsentResultConsented)
+		submission := types.ConsentSubmission{
+			Consent: mocks.ConsentResultConsented,
+		}
+
+		response, err := utils.PostJSON(requestURL, submission)
 		if err != nil {
 			log.Fatalf(err.Error())
 		}

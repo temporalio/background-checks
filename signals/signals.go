@@ -1,10 +1,10 @@
 package signals
 
 const (
-	CandidateBackgroundCheckStatus = "candidate-background-check-status"
-	CandidateConsentRequest        = "candidate-consent-request"
-	CandidateConsentFromUser       = "candidate-consent-from-user"
-	CandidateConsentResponse       = "candidate-consent-response"
+	BackgroundCheckStatus = "background-check-status"
+	ConsentRequest        = "consent-request"
+	ConsentSubmission     = "consent-submission"
+	ConsentResponse       = "consent-response"
 
 	ResearcherTodoCreate   = "researcher-todo-create"
 	ResearcherTodoComplete = "researcher-todo-complete"

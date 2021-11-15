@@ -26,10 +26,10 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-// listCmd represents the list command
-var listCmd = &cobra.Command{
-	Use:   "list [email]",
-	Short: "List background checks which need consent.",
+// statusCmd represents the status command
+var statusCmd = &cobra.Command{
+	Use:   "status [email]",
+	Short: "show background check status.",
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		email := args[0]
@@ -41,24 +41,21 @@ var listCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		var checks []types.CandidateBackgroundCheckStatus
-		response, err := utils.GetJSON(requestURL, &checks)
+		var check types.CandidateBackgroundCheckStatus
+		response, err := utils.GetJSON(requestURL, &check)
 
 		if response.StatusCode == http.StatusNotFound {
-			fmt.Printf("No background checks for: %s\n", email)
+			fmt.Printf("No background check found for: %s\n", email)
 			return
 		}
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		fmt.Printf("Background Checks:\n")
-		for _, consent := range checks {
-			fmt.Printf("id: %s status: %s\n", consent.ID, consent.Status)
-		}
+		fmt.Printf("Status: %s\n", check.Status)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(listCmd)
+	rootCmd.AddCommand(statusCmd)
 }

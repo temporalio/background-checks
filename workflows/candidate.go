@@ -1,25 +1,33 @@
 package workflows
 
 import (
+	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/workflow"
 )
 
+func sendConsentResponse(ctx workflow.Context, email string, result types.ConsentResponse) error {
+	f := workflow.SignalExternalWorkflow(
+		ctx,
+		mappings.ConsentWorkflowID(email),
+		"",
+		signals.ConsentResponse,
+		types.ConsentResponse(result),
+	)
+	return f.Get(ctx, nil)
+}
+
 func Candidate(ctx workflow.Context, input types.CandidateInput) error {
 	logger := workflow.GetLogger(ctx)
 
-	checks := map[string]types.CandidateBackgroundCheckStatus{}
+	email := input.Email
 
-	err := workflow.SetQueryHandler(ctx, queries.CandidateBackgroundCheckList, func() ([]types.CandidateBackgroundCheckStatus, error) {
-		result := make([]types.CandidateBackgroundCheckStatus, 0, len(checks))
+	var check types.CandidateBackgroundCheckStatus
 
-		for _, check := range checks {
-			result = append(result, check)
-		}
-
-		return result, nil
+	err := workflow.SetQueryHandler(ctx, queries.CandidateBackgroundCheckStatus, func() (types.CandidateBackgroundCheckStatus, error) {
+		return check, nil
 	})
 	if err != nil {
 		return err
@@ -27,31 +35,30 @@ func Candidate(ctx workflow.Context, input types.CandidateInput) error {
 
 	s := workflow.NewSelector(ctx)
 
-	createCh := workflow.GetSignalChannel(ctx, signals.CandidateBackgroundCheckStatus)
+	createCh := workflow.GetSignalChannel(ctx, signals.BackgroundCheckStatus)
 	s.AddReceive(createCh, func(c workflow.ReceiveChannel, more bool) {
 		var bc types.CandidateBackgroundCheckStatus
 		c.Receive(ctx, &bc)
-		checks[bc.ID] = bc
+		check = bc
 	})
 
-	consentCh := workflow.GetSignalChannel(ctx, signals.CandidateConsentFromUser)
-	s.AddReceive(consentCh, func(c workflow.ReceiveChannel, more bool) {
-		var consent types.CandidateConsentResponseFromUser
-		c.Receive(ctx, &consent)
+	consentRequestCh := workflow.GetSignalChannel(ctx, signals.ConsentRequest)
+	s.AddReceive(consentRequestCh, func(c workflow.ReceiveChannel, more bool) {
+		var r types.ConsentRequest
+		c.Receive(ctx, &r)
+		check.ConsentRequired = true
+	})
 
-		f := workflow.SignalExternalWorkflow(
-			ctx,
-			consent.WorkflowID,
-			consent.RunID,
-			signals.CandidateConsentResponse,
-			types.CandidateConsentResponse{
-				Consent: consent.Consent,
-			},
-		)
-		err := f.Get(ctx, nil)
+	submissionCh := workflow.GetSignalChannel(ctx, signals.ConsentSubmission)
+	s.AddReceive(submissionCh, func(c workflow.ReceiveChannel, more bool) {
+		var submission types.ConsentSubmission
+		c.Receive(ctx, &submission)
+
+		err := sendConsentResponse(ctx, email, types.ConsentResponse(submission))
 		if err != nil {
 			logger.Error("failed to send consent response from user: %v", err)
 		}
+		check.ConsentRequired = false
 	})
 
 	for {

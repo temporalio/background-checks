@@ -22,16 +22,13 @@ func createCandidateWorkflow(ctx workflow.Context, email string) error {
 }
 
 func updateCandidateCheckStatus(ctx workflow.Context, email string, status string) error {
-	info := workflow.GetInfo(ctx)
-
 	f := workflow.SignalExternalWorkflow(
 		ctx,
 		mappings.CandidateWorkflowID(email),
 		"",
-		signals.CandidateBackgroundCheckStatus,
+		signals.BackgroundCheckStatus,
 		types.CandidateBackgroundCheckStatus{
-			ID:     info.WorkflowExecution.RunID,
-			Status: "Consent Required",
+			Status: status,
 		},
 	)
 	return f.Get(ctx, nil)
@@ -40,6 +37,9 @@ func updateCandidateCheckStatus(ctx workflow.Context, email string, status strin
 func waitForConsent(ctx workflow.Context, email string) (types.ConsentResult, error) {
 	var r types.ConsentResult
 
+	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		WorkflowID: mappings.ConsentWorkflowID(email),
+	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentInput{Email: email})
 	err := consentWF.Get(ctx, &r)
 
@@ -74,6 +74,11 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 	}
 
 	c, err := waitForConsent(ctx, email)
+	if err != nil {
+		return err
+	}
+
+	err = updateCandidateCheckStatus(ctx, email, "In Progress")
 	if err != nil {
 		return err
 	}

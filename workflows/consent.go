@@ -8,34 +8,44 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-func Consent(ctx workflow.Context, input types.ConsentInput) (types.ConsentResult, error) {
-	info := workflow.GetInfo(ctx)
-
+func requestConsent(ctx workflow.Context, email string) error {
 	f := workflow.SignalExternalWorkflow(
 		ctx,
-		mappings.CandidateWorkflowID(input.Email),
+		mappings.CandidateWorkflowID(email),
 		"",
-		signals.CandidateConsentRequest,
-		types.CandidateConsentRequest{
-			WorkflowID: info.WorkflowExecution.ID,
-			RunID:      info.WorkflowExecution.RunID,
-		},
+		signals.ConsentRequest,
+		types.ConsentRequest{},
 	)
-	err := f.Get(ctx, nil)
-	if err != nil {
-		return types.ConsentResult{}, err
-	}
+	return f.Get(ctx, nil)
+}
 
-	var response types.CandidateConsentResponse
+func waitForResponse(ctx workflow.Context) (types.ConsentResponse, error) {
+	var response types.ConsentResponse
 
 	s := workflow.NewSelector(ctx)
 
-	consentCh := workflow.GetSignalChannel(ctx, signals.CandidateConsentFromUser)
+	consentCh := workflow.GetSignalChannel(ctx, signals.ConsentResponse)
 	s.AddReceive(consentCh, func(c workflow.ReceiveChannel, more bool) {
 		c.Receive(ctx, &response)
 	})
 
 	s.Select(ctx)
+
+	return response, nil
+}
+
+func Consent(ctx workflow.Context, input types.ConsentInput) (types.ConsentResult, error) {
+	result := types.ConsentResult{}
+
+	err := requestConsent(ctx, input.Email)
+	if err != nil {
+		return result, err
+	}
+
+	response, err := waitForResponse(ctx)
+	if err != nil {
+		return result, err
+	}
 
 	return response.Consent, nil
 }

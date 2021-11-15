@@ -7,6 +7,7 @@ import (
 
 	"go.temporal.io/sdk/testsuite"
 
+	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
@@ -30,14 +31,13 @@ func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
 func (s *UnitTestSuite) Test_CandidateBackgroundCheckNeedsConsent() {
 	env := s.env
 
-	// Emulate SignalWithStart
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
-				signals.CandidateBackgroundCheckStatus,
+				signals.BackgroundCheckStatus,
 				types.CandidateBackgroundCheckStatus{
-					ID:     "test",
-					Status: "Awaiting Consent",
+					Status:          "Consent Required",
+					ConsentRequired: true,
 				},
 			)
 		},
@@ -46,16 +46,17 @@ func (s *UnitTestSuite) Test_CandidateBackgroundCheckNeedsConsent() {
 
 	env.ExecuteWorkflow(Candidate, types.CandidateInput{Email: "user@example.com"})
 
-	v, err := s.env.QueryWorkflow(queries.CandidateBackgroundCheckList, nil)
+	v, err := s.env.QueryWorkflow(queries.CandidateBackgroundCheckStatus, nil)
 	s.NoError(err)
 
-	var list []types.CandidateBackgroundCheckStatus
-	err = v.Get(&list)
+	var check types.CandidateBackgroundCheckStatus
+	err = v.Get(&check)
 	s.NoError(err)
 
-	s.Equal([]types.CandidateBackgroundCheckStatus{
-		{ID: "test", Status: "Awaiting Consent"},
-	}, list)
+	s.Equal(
+		types.CandidateBackgroundCheckStatus{Status: "Consent Required", ConsentRequired: true},
+		check,
+	)
 }
 
 func (s *UnitTestSuite) Test_CandidateProvidesConsent() {
@@ -64,14 +65,24 @@ func (s *UnitTestSuite) Test_CandidateProvidesConsent() {
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
-				signals.CandidateConsentRequest,
-				types.CandidateConsentRequest{
-					WorkflowID: "requestor-workflow-id",
-					RunID:      "requestor-run-id",
+				signals.BackgroundCheckStatus,
+				types.CandidateBackgroundCheckStatus{
+					Status:          "Consent Required",
+					ConsentRequired: true,
 				},
 			)
 		},
 		0,
+	)
+
+	env.RegisterDelayedCallback(
+		func() {
+			env.SignalWorkflow(
+				signals.ConsentRequest,
+				types.ConsentRequest{},
+			)
+		},
+		1,
 	)
 
 	// Candidate sees consent is required and provides consent via CLI
@@ -86,23 +97,21 @@ func (s *UnitTestSuite) Test_CandidateProvidesConsent() {
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
-				signals.CandidateConsentFromUser,
-				types.CandidateConsentResponseFromUser{
-					WorkflowID: "requestor-workflow-id",
-					RunID:      "requestor-run-id",
-					Consent:    consent,
+				signals.ConsentSubmission,
+				types.ConsentSubmission{
+					Consent: consent,
 				},
 			)
 		},
-		1,
+		2,
 	)
 
 	env.OnSignalExternalWorkflow(
 		"default-test-namespace",
-		"requestor-workflow-id",
-		"requestor-run-id",
-		signals.CandidateConsentResponse,
-		types.CandidateConsentResponse{
+		mappings.ConsentWorkflowID("user@example.com"),
+		"",
+		signals.ConsentResponse,
+		types.ConsentResponse{
 			Consent: consent,
 		},
 	).Return(nil).Once()

@@ -165,7 +165,7 @@ func handleConsent(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	var result types.CandidateConsentResponseFromUser
+	var result types.ConsentSubmission
 	err := json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -174,7 +174,27 @@ func handleConsent(w http.ResponseWriter, r *http.Request) {
 
 	err = signalWorkflow(
 		mappings.CandidateWorkflowID(email),
-		signals.CandidateConsentFromUser,
+		signals.ConsentSubmission,
+		result,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func handleDecline(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	email := vars["email"]
+
+	result := types.ConsentSubmission{
+		Consent: types.ConsentResult{Consent: false},
+	}
+
+	err := signalWorkflow(
+		mappings.ConsentWorkflowID(email),
+		signals.ConsentSubmission,
 		result,
 	)
 	if err != nil {
@@ -202,7 +222,7 @@ func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
 
 	v, err := queryWorkflow(
 		mappings.CandidateWorkflowID(email),
-		queries.CandidateBackgroundCheckList,
+		queries.CandidateBackgroundCheckStatus,
 	)
 	if _, ok := err.(*serviceerror.NotFound); ok {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -213,7 +233,7 @@ func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result []types.CandidateBackgroundCheckStatus
+	var result types.CandidateBackgroundCheckStatus
 	err = v.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -285,6 +305,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
 	r.HandleFunc("/checks/{email}/consent", handleConsent).Methods("POST").Name("consent")
+	r.HandleFunc("/checks/{email}/decline", handleDecline).Methods("POST").Name("decline")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
 	r.HandleFunc("/candidate/{email}", handleCandidateStatus).Name("candidate")
 	r.HandleFunc("/research/{email}", handleResearcherStatus).Name("research")

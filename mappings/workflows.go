@@ -3,13 +3,17 @@ package mappings
 import "fmt"
 
 func BackgroundCheckWorkflowID(email string) string {
-	return fmt.Sprintf("BackgroundCheck-%s", email)
+	return fmt.Sprintf("BackgroundCheck:%s", email)
 }
 
 func CandidateWorkflowID(email string) string {
-	return fmt.Sprintf("Candidate-%s", email)
+	return fmt.Sprintf("Candidate:%s", email)
+}
+
+func ConsentWorkflowID(email string) string {
+	return fmt.Sprintf("Consent:%s", email)
 }
 
 func ResearcherWorkflowID(email string) string {
-	return fmt.Sprintf("Researcher-%s", email)
+	return fmt.Sprintf("Researcher:%s", email)
 }
