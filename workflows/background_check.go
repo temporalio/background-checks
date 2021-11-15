@@ -78,15 +78,15 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 		return err
 	}
 
-	err = updateCandidateCheckStatus(ctx, email, "In Progress")
-	if err != nil {
-		return err
-	}
-
 	status.Consent = c
 
 	if !c.Consent {
 		return updateCandidateCheckStatus(ctx, email, "Declined")
+	}
+
+	err = updateCandidateCheckStatus(ctx, email, "In Progress")
+	if err != nil {
+		return err
 	}
 
 	err = updateCandidateCheckStatus(ctx, email, "Running")

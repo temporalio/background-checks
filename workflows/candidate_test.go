@@ -1,35 +1,22 @@
-package workflows
+package workflows_test
 
 import (
 	"testing"
 
-	"github.com/stretchr/testify/suite"
-
 	"go.temporal.io/sdk/testsuite"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/workflows"
 )
 
-type UnitTestSuite struct {
-	suite.Suite
-	testsuite.WorkflowTestSuite
-
-	env *testsuite.TestWorkflowEnvironment
-}
-
-func (s *UnitTestSuite) SetupTest() {
-	s.env = s.NewTestWorkflowEnvironment()
-}
-
-func (s *UnitTestSuite) AfterTest(suiteName, testName string) {
-	s.env.AssertExpectations(s.T())
-}
-
-func (s *UnitTestSuite) Test_CandidateBackgroundCheckNeedsConsent() {
-	env := s.env
+func Test_CandidateBackgroundCheckNeedsConsent(t *testing.T) {
+	s := testsuite.WorkflowTestSuite{}
+	env := s.NewTestWorkflowEnvironment()
 
 	env.RegisterDelayedCallback(
 		func() {
@@ -44,23 +31,24 @@ func (s *UnitTestSuite) Test_CandidateBackgroundCheckNeedsConsent() {
 		0,
 	)
 
-	env.ExecuteWorkflow(Candidate, types.CandidateInput{Email: "user@example.com"})
+	env.ExecuteWorkflow(workflows.Candidate, types.CandidateInput{Email: "user@example.com"})
 
-	v, err := s.env.QueryWorkflow(queries.CandidateBackgroundCheckStatus, nil)
-	s.NoError(err)
+	v, err := env.QueryWorkflow(queries.CandidateBackgroundCheckStatus, nil)
+	assert.NoError(t, err)
 
 	var check types.CandidateBackgroundCheckStatus
 	err = v.Get(&check)
-	s.NoError(err)
+	assert.NoError(t, err)
 
-	s.Equal(
+	assert.Equal(t,
 		types.CandidateBackgroundCheckStatus{Status: "Consent Required", ConsentRequired: true},
 		check,
 	)
 }
 
-func (s *UnitTestSuite) Test_CandidateProvidesConsent() {
-	env := s.env
+func Test_CandidateProvidesConsent(t *testing.T) {
+	s := testsuite.WorkflowTestSuite{}
+	env := s.NewTestWorkflowEnvironment()
 
 	env.RegisterDelayedCallback(
 		func() {
@@ -116,9 +104,5 @@ func (s *UnitTestSuite) Test_CandidateProvidesConsent() {
 		},
 	).Return(nil).Once()
 
-	env.ExecuteWorkflow(Candidate, types.CandidateInput{Email: "user@example.com"})
-}
-
-func TestUnitTestSuite(t *testing.T) {
-	suite.Run(t, new(UnitTestSuite))
+	env.ExecuteWorkflow(workflows.Candidate, types.CandidateInput{Email: "user@example.com"})
 }

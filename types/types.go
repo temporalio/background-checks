@@ -20,7 +20,7 @@ type CandidateBackgroundCheckStatus struct {
 	Status          string
 }
 
-type Consent struct {
+type ConsentResult struct {
 	Consent  bool
 	FullName string
 	Address  string
@@ -70,8 +70,6 @@ func (r ResearcherTodo) Input() interface{} {
 type ConsentInput struct {
 	Email string
 }
-
-type ConsentResult Consent
 
 type ValidateSSNInput struct {
 	FullName string
