@@ -180,8 +180,6 @@ func listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecution
 
 	query := strings.Join(q, " AND ")
 
-	fmt.Printf("Query: %s", query)
-
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
 		resp, err := c.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
 			PageSize:      10,
