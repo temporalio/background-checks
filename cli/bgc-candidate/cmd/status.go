@@ -41,7 +41,7 @@ var statusCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		var check types.CandidateBackgroundCheckStatus
+		var check types.BackgroundCheckStatusSignal
 		response, err := utils.GetJSON(requestURL, &check)
 
 		if response.StatusCode == http.StatusNotFound {

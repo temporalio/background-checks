@@ -47,7 +47,7 @@ var startCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		input := types.BackgroundCheckInput{
+		input := types.BackgroundCheckWorkflowInput{
 			Email: email,
 			Tier:  tier,
 		}

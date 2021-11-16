@@ -20,17 +20,17 @@ func TestConsentWorkflowRequestsConsent(t *testing.T) {
 		mappings.CandidateWorkflowID("user@example.com"),
 		"",
 		signals.ConsentRequest,
-		types.ConsentRequest{},
+		types.ConsentRequestSignal{},
 	).Return(nil).Once()
 
-	env.ExecuteWorkflow(workflows.Consent, types.ConsentInput{Email: "user@example.com"})
+	env.ExecuteWorkflow(workflows.Consent, types.ConsentWorkflowInput{Email: "user@example.com"})
 }
 
 func TestReturnsConsentResponse(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
 
-	consent := types.ConsentResult{
+	consent := types.Consent{
 		Consent:  true,
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
@@ -43,22 +43,22 @@ func TestReturnsConsentResponse(t *testing.T) {
 		mappings.CandidateWorkflowID("user@example.com"),
 		"",
 		signals.ConsentRequest,
-		types.ConsentRequest{},
+		types.ConsentRequestSignal{},
 	).Return(nil).Once()
 
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
 				signals.ConsentResponse,
-				types.ConsentResponse{Consent: consent},
+				types.ConsentResponseSignal{Consent: consent},
 			)
 		},
 		0,
 	)
 
-	env.ExecuteWorkflow(workflows.Consent, types.ConsentInput{Email: "user@example.com"})
+	env.ExecuteWorkflow(workflows.Consent, types.ConsentWorkflowInput{Email: "user@example.com"})
 
-	var result types.ConsentResult
+	var result types.Consent
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 

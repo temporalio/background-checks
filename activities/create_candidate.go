@@ -10,7 +10,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-func CreateCandidateWorkflow(ctx context.Context, input types.ConsentInput) error {
+func CreateCandidateWorkflow(ctx context.Context, input types.CandidateWorkflowInput) error {
 	c, err := client.NewClient(client.Options{})
 	if err != nil {
 		return err
@@ -24,7 +24,7 @@ func CreateCandidateWorkflow(ctx context.Context, input types.ConsentInput) erro
 			ID:        mappings.CandidateWorkflowID(input.Email),
 		},
 		"Candidate",
-		types.CandidateInput{
+		types.CandidateWorkflowInput{
 			Email: input.Email,
 		},
 	)

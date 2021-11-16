@@ -43,7 +43,7 @@ var consentCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		submission := types.ConsentSubmission{
+		submission := types.ConsentSubmissionSignal{
 			Consent: mocks.ConsentResultConsented,
 		}
 

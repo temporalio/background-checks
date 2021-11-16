@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func Researcher(ctx workflow.Context, input types.ResearcherInput) error {
+func Researcher(ctx workflow.Context, input types.ResearcherWorkflowInput) error {
 	todos := map[string]types.ResearcherTodo{}
 
 	err := workflow.SetQueryHandler(ctx, queries.ResearcherTodosList, func() ([]types.ResearcherTodo, error) {

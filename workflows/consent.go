@@ -14,13 +14,13 @@ func requestConsent(ctx workflow.Context, email string) error {
 		mappings.CandidateWorkflowID(email),
 		"",
 		signals.ConsentRequest,
-		types.ConsentRequest{},
+		types.ConsentRequestSignal{},
 	)
 	return f.Get(ctx, nil)
 }
 
-func waitForResponse(ctx workflow.Context) (types.ConsentResponse, error) {
-	var response types.ConsentResponse
+func waitForResponse(ctx workflow.Context) (types.ConsentResponseSignal, error) {
+	var response types.ConsentResponseSignal
 
 	s := workflow.NewSelector(ctx)
 
@@ -34,8 +34,8 @@ func waitForResponse(ctx workflow.Context) (types.ConsentResponse, error) {
 	return response, nil
 }
 
-func Consent(ctx workflow.Context, input types.ConsentInput) (types.ConsentResult, error) {
-	result := types.ConsentResult{}
+func Consent(ctx workflow.Context, input types.ConsentWorkflowInput) (types.Consent, error) {
+	result := types.Consent{}
 
 	err := requestConsent(ctx, input.Email)
 	if err != nil {

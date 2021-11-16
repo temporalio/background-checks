@@ -1,6 +1,6 @@
 package types
 
-type BackgroundCheckInput struct {
+type BackgroundCheckWorkflowInput struct {
 	Email string
 	Tier  string
 }
@@ -8,19 +8,19 @@ type BackgroundCheckInput struct {
 type BackgroundCheckStatus struct {
 	Email                      string
 	Tier                       string
-	Consent                    ConsentResult
-	Validate                   ValidateSSNResult
-	FederalCriminalSearch      FederalCriminalSearchResult
-	StateCriminalSearch        StateCriminalSearchResult
-	MotorVehicleIncidentSearch MotorVehicleIncidentSearchResult
+	Consent                    Consent
+	Validate                   ValidateSSNWorkflowResult
+	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
+	StateCriminalSearch        StateCriminalSearchWorkflowResult
+	MotorVehicleIncidentSearch MotorVehicleIncidentSearchWorkflowResult
 }
 
-type CandidateBackgroundCheckStatus struct {
+type BackgroundCheckStatusSignal struct {
 	ConsentRequired bool
 	Status          string
 }
 
-type ConsentResult struct {
+type Consent struct {
 	Consent  bool
 	FullName string
 	Address  string
@@ -28,30 +28,34 @@ type ConsentResult struct {
 	DOB      string
 }
 
-type ConsentRequest struct{}
-
-type ConsentSubmission struct {
-	Consent ConsentResult
+type ConsentWorkflowResult struct {
+	Consent
 }
 
-type ConsentResponse struct {
-	Consent ConsentResult
+type ConsentRequestSignal struct{}
+
+type ConsentSubmissionSignal struct {
+	Consent Consent
 }
 
-type CandidateInput struct {
+type ConsentResponseSignal struct {
+	Consent Consent
+}
+
+type CandidateWorkflowInput struct {
 	Email string
 }
 
-type ResearcherInput struct {
+type ResearcherWorkflowInput struct {
 	Email string
 }
 
 type ResearcherTodo struct {
 	Token                           string
 	Type                            string
-	FederalCriminalSearchInput      FederalCriminalSearchInput
-	StateCriminalSearchInput        StateCriminalSearchInput
-	MotorVehicleIncidentSearchInput MotorVehicleIncidentSearchInput
+	FederalCriminalSearchInput      FederalCriminalSearchWorkflowInput
+	StateCriminalSearchInput        StateCriminalSearchWorkflowInput
+	MotorVehicleIncidentSearchInput MotorVehicleIncidentSearchWorkflowInput
 }
 
 func (r ResearcherTodo) Input() interface{} {
@@ -67,53 +71,53 @@ func (r ResearcherTodo) Input() interface{} {
 	return nil
 }
 
-type ConsentInput struct {
+type ConsentWorkflowInput struct {
 	Email string
 }
 
-type ValidateSSNInput struct {
+type ValidateSSNWorkflowInput struct {
 	FullName string
 	Address  string
 	SSN      string
 }
 
-type ValidateSSNResult struct {
+type ValidateSSNWorkflowResult struct {
 	Valid bool
 }
 
-type FederalCriminalSearchInput struct {
+type FederalCriminalSearchWorkflowInput struct {
 	FullName string
 	Address  string
 }
 
-type FederalCriminalSearchResult struct {
+type FederalCriminalSearchWorkflowResult struct {
 	Crimes []string
 }
 
-type StateCriminalSearchInput struct {
+type StateCriminalSearchWorkflowInput struct {
 	FullName string
 	Address  string
 }
 
-type StateCriminalSearchResult struct {
+type StateCriminalSearchWorkflowResult struct {
 	Crimes []string
 }
 
-type MotorVehicleIncidentSearchInput struct {
+type MotorVehicleIncidentSearchWorkflowInput struct {
 	FullName string
 	Address  string
 }
 
-type EmploymentSearchInput struct {
+type EmploymentSearchWorkflowInput struct {
 	FullName string
 	Address  string
 }
 
-type EmploymentSearchResult struct {
+type EmploymentSearchWorkflowResult struct {
 	Companies []string
 }
 
-type MotorVehicleIncidentSearchResult struct {
+type MotorVehicleIncidentSearchWorkflowResult struct {
 	CurrentLicenseState   string
 	LicenseValid          bool
 	MotorVehicleIncidents []string
@@ -121,9 +125,9 @@ type MotorVehicleIncidentSearchResult struct {
 
 type SearchResult struct {
 	Type                             string
-	FederalCriminalSearchResult      FederalCriminalSearchResult
-	StateCriminalSearchResult        StateCriminalSearchResult
-	MotorVehicleIncidentSearchResult MotorVehicleIncidentSearchResult
+	FederalCriminalSearchResult      FederalCriminalSearchWorkflowResult
+	StateCriminalSearchResult        StateCriminalSearchWorkflowResult
+	MotorVehicleIncidentSearchResult MotorVehicleIncidentSearchWorkflowResult
 }
 
 func (r SearchResult) Result() interface{} {

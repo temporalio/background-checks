@@ -6,6 +6,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func MotorVehicleIncidentSearch(ctx workflow.Context, input types.MotorVehicleIncidentSearchInput) (types.MotorVehicleIncidentSearchResult, error) {
+func MotorVehicleIncidentSearch(ctx workflow.Context, input types.MotorVehicleIncidentSearchWorkflowInput) (types.MotorVehicleIncidentSearchWorkflowResult, error) {
 	return mocks.MotorVehicleIncidentSearchResults[input], nil
 }

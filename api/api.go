@@ -100,7 +100,7 @@ func signalWorkflow(wid string, signalName string, signalArg interface{}) error 
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
-	checks := []types.BackgroundCheckInput{}
+	checks := []types.BackgroundCheckWorkflowInput{}
 
 	// client.ListOpenWorkflowExecutions?
 
@@ -108,7 +108,7 @@ func handleCheckList(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
-	var input types.BackgroundCheckInput
+	var input types.BackgroundCheckWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -165,7 +165,7 @@ func handleConsent(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	var result types.ConsentSubmission
+	var result types.ConsentSubmissionSignal
 	err := json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -188,8 +188,8 @@ func handleDecline(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	result := types.ConsentSubmission{
-		Consent: types.ConsentResult{Consent: false},
+	result := types.ConsentSubmissionSignal{
+		Consent: types.Consent{Consent: false},
 	}
 
 	err := signalWorkflow(
@@ -233,7 +233,7 @@ func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.CandidateBackgroundCheckStatus
+	var result types.BackgroundCheckStatusSignal
 	err = v.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

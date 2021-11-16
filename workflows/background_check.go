@@ -17,7 +17,7 @@ func createCandidateWorkflow(ctx workflow.Context, email string) error {
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, activities.CreateCandidateWorkflow, types.CandidateInput{Email: email})
+	f := workflow.ExecuteActivity(ctx, activities.CreateCandidateWorkflow, types.CandidateWorkflowInput{Email: email})
 	return f.Get(ctx, nil)
 }
 
@@ -27,26 +27,26 @@ func updateCandidateCheckStatus(ctx workflow.Context, email string, status strin
 		mappings.CandidateWorkflowID(email),
 		"",
 		signals.BackgroundCheckStatus,
-		types.CandidateBackgroundCheckStatus{
+		types.BackgroundCheckStatusSignal{
 			Status: status,
 		},
 	)
 	return f.Get(ctx, nil)
 }
 
-func waitForConsent(ctx workflow.Context, email string) (types.ConsentResult, error) {
-	var r types.ConsentResult
+func waitForConsent(ctx workflow.Context, email string) (types.Consent, error) {
+	var r types.Consent
 
 	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 		WorkflowID: mappings.ConsentWorkflowID(email),
 	})
-	consentWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentInput{Email: email})
+	consentWF := workflow.ExecuteChildWorkflow(ctx, Consent, types.ConsentWorkflowInput{Email: email})
 	err := consentWF.Get(ctx, &r)
 
 	return r, err
 }
 
-func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) error {
+func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	email := input.Email
 
 	status := types.BackgroundCheckStatus{
@@ -94,7 +94,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 		return err
 	}
 
-	ssnInput := types.ValidateSSNInput{
+	ssnInput := types.ValidateSSNWorkflowInput{
 		FullName: status.Consent.FullName,
 		Address:  status.Consent.Address,
 		SSN:      status.Consent.SSN,
@@ -118,7 +118,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		FederalCriminalSearch,
-		types.FederalCriminalSearchInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
+		types.FederalCriminalSearchWorkflowInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
 	)
 	s.AddFuture(federalCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.FederalCriminalSearch)
@@ -130,7 +130,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 	stateCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		StateCriminalSearch,
-		types.StateCriminalSearchInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
+		types.StateCriminalSearchWorkflowInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
 	)
 	s.AddFuture(stateCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.StateCriminalSearch)
@@ -142,7 +142,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckInput) err
 	motorVehicleIncidentSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		MotorVehicleIncidentSearch,
-		types.MotorVehicleIncidentSearchInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
+		types.MotorVehicleIncidentSearchWorkflowInput{FullName: status.Consent.FullName, Address: status.Consent.Address},
 	)
 	s.AddFuture(motorVehicleIncidentSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.MotorVehicleIncidentSearch)

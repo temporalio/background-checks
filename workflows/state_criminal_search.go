@@ -6,6 +6,6 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchInput) (types.StateCriminalSearchResult, error) {
+func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWorkflowInput) (types.StateCriminalSearchWorkflowResult, error) {
 	return mocks.StateCriminalSearchResults[input], nil
 }

@@ -22,7 +22,7 @@ func Test_CandidateBackgroundCheckNeedsConsent(t *testing.T) {
 		func() {
 			env.SignalWorkflow(
 				signals.BackgroundCheckStatus,
-				types.CandidateBackgroundCheckStatus{
+				types.BackgroundCheckStatusSignal{
 					Status:          "Consent Required",
 					ConsentRequired: true,
 				},
@@ -31,17 +31,17 @@ func Test_CandidateBackgroundCheckNeedsConsent(t *testing.T) {
 		0,
 	)
 
-	env.ExecuteWorkflow(workflows.Candidate, types.CandidateInput{Email: "user@example.com"})
+	env.ExecuteWorkflow(workflows.Candidate, types.CandidateWorkflowInput{Email: "user@example.com"})
 
 	v, err := env.QueryWorkflow(queries.CandidateBackgroundCheckStatus, nil)
 	assert.NoError(t, err)
 
-	var check types.CandidateBackgroundCheckStatus
+	var check types.BackgroundCheckStatusSignal
 	err = v.Get(&check)
 	assert.NoError(t, err)
 
 	assert.Equal(t,
-		types.CandidateBackgroundCheckStatus{Status: "Consent Required", ConsentRequired: true},
+		types.BackgroundCheckStatusSignal{Status: "Consent Required", ConsentRequired: true},
 		check,
 	)
 }
@@ -54,7 +54,7 @@ func Test_CandidateProvidesConsent(t *testing.T) {
 		func() {
 			env.SignalWorkflow(
 				signals.BackgroundCheckStatus,
-				types.CandidateBackgroundCheckStatus{
+				types.BackgroundCheckStatusSignal{
 					Status:          "Consent Required",
 					ConsentRequired: true,
 				},
@@ -67,14 +67,14 @@ func Test_CandidateProvidesConsent(t *testing.T) {
 		func() {
 			env.SignalWorkflow(
 				signals.ConsentRequest,
-				types.ConsentRequest{},
+				types.ConsentRequestSignal{},
 			)
 		},
 		1,
 	)
 
 	// Candidate sees consent is required and provides consent via CLI
-	consent := types.ConsentResult{
+	consent := types.Consent{
 		Consent:  true,
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
@@ -86,7 +86,7 @@ func Test_CandidateProvidesConsent(t *testing.T) {
 		func() {
 			env.SignalWorkflow(
 				signals.ConsentSubmission,
-				types.ConsentSubmission{
+				types.ConsentSubmissionSignal{
 					Consent: consent,
 				},
 			)
@@ -99,10 +99,10 @@ func Test_CandidateProvidesConsent(t *testing.T) {
 		mappings.ConsentWorkflowID("user@example.com"),
 		"",
 		signals.ConsentResponse,
-		types.ConsentResponse{
+		types.ConsentResponseSignal{
 			Consent: consent,
 		},
 	).Return(nil).Once()
 
-	env.ExecuteWorkflow(workflows.Candidate, types.CandidateInput{Email: "user@example.com"})
+	env.ExecuteWorkflow(workflows.Candidate, types.CandidateWorkflowInput{Email: "user@example.com"})
 }

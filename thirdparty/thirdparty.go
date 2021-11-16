@@ -27,7 +27,7 @@ import (
 const DefaultEndpoint = "localhost:8082"
 
 func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
-	var input types.ValidateSSNInput
+	var input types.ValidateSSNWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -37,7 +37,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"SSN" : "123-45-6789", "Address" : "123 Main St", "FullName" : "Joe Bloggs"}
 
-	var result types.ValidateSSNResult
+	var result types.ValidateSSNWorkflowResult
 	result.Valid = false
 	if input.SSN == "123-45-6789" {
 		result.Valid = true
@@ -49,7 +49,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.MotorVehicleIncidentSearchInput
+	var input types.MotorVehicleIncidentSearchWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -59,7 +59,7 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
 
-	var result types.MotorVehicleIncidentSearchResult
+	var result types.MotorVehicleIncidentSearchWorkflowResult
 	result.LicenseValid = false
 	if input.FullName == "Joe Bloggs" {
 		result.LicenseValid = true
@@ -74,7 +74,7 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleEmploymentSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.EmploymentSearchInput
+	var input types.EmploymentSearchWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -84,7 +84,7 @@ func handleEmploymentSearch(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
 
-	var result types.EmploymentSearchResult
+	var result types.EmploymentSearchWorkflowResult
 	if input.FullName == "Joe Bloggs" {
 		companies := []string{"Buy n Large, Inc.", "Acme, Co."}
 		result.Companies = companies
@@ -96,7 +96,7 @@ func handleEmploymentSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.FederalCriminalSearchInput
+	var input types.FederalCriminalSearchWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -106,7 +106,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
 
-	var result types.FederalCriminalSearchResult
+	var result types.FederalCriminalSearchWorkflowResult
 	if input.FullName == "Joe Bloggs" {
 		crimes := []string{"Money Laundering", "Pick-pocketing"}
 		result.Crimes = crimes
@@ -118,7 +118,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.StateCriminalSearchInput
+	var input types.StateCriminalSearchWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -128,7 +128,7 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
 
-	var result types.StateCriminalSearchResult
+	var result types.StateCriminalSearchWorkflowResult
 	if input.FullName == "Joe Bloggs" {
 		crimes := []string{"Jay-walking", "Littering"}
 		result.Crimes = crimes
