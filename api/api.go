@@ -25,6 +25,7 @@ import (
 
 	"github.com/gorilla/mux"
 
+	"go.temporal.io/api/enums/v1"
 	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
@@ -120,10 +121,24 @@ func presentBackgroundCheck(we *workflowpb.WorkflowExecutionInfo) (BackgroundChe
 
 	result.ID = we.Execution.RunId
 
-	attrs := we.GetSearchAttributes().GetIndexedFields()
-	err := converter.GetDefaultDataConverter().FromPayload(attrs["BackgroundCheckStatus"], &result.Status)
-	if err != nil {
-		return result, err
+	switch we.Status {
+	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
+		attrs := we.GetSearchAttributes().GetIndexedFields()
+		err := converter.GetDefaultDataConverter().FromPayload(attrs["BackgroundCheckStatus"], &result.Status)
+		if err != nil {
+			return result, err
+		}
+	case enums.WORKFLOW_EXECUTION_STATUS_TIMED_OUT,
+		enums.WORKFLOW_EXECUTION_STATUS_FAILED:
+		result.Status = "failed"
+	case enums.WORKFLOW_EXECUTION_STATUS_COMPLETED:
+		result.Status = "completed"
+	case enums.WORKFLOW_EXECUTION_STATUS_TERMINATED:
+		result.Status = "terminated"
+	case enums.WORKFLOW_EXECUTION_STATUS_CANCELED:
+		result.Status = "cancelled"
+	default:
+		result.Status = "unknown"
 	}
 
 	return result, nil
