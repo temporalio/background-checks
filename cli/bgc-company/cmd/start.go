@@ -29,14 +29,15 @@ import (
 )
 
 var (
-	tier string
+	email string
+	pkg   string
 )
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
-	Use:   "start [email]",
+	Use:   "start",
 	Short: "starts a background check for a candidate",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		email := args[0]
 
@@ -48,8 +49,8 @@ var startCmd = &cobra.Command{
 		}
 
 		input := types.BackgroundCheckWorkflowInput{
-			Email: email,
-			Tier:  tier,
+			Email:   email,
+			Package: pkg,
 		}
 
 		response, err := utils.PostJSON(requestURL, input)
@@ -71,5 +72,8 @@ var startCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(startCmd)
 
-	startCmd.Flags().StringVar(&tier, "tier", "standard", "Tier (which checks to run)")
+	startCmd.Flags().StringVar(&email, "email", "", "Candidate's email address")
+	startCmd.MarkFlagRequired("email")
+	startCmd.Flags().StringVar(&pkg, "package", "standard", "Check package (standard/full)")
+	startCmd.MarkFlagRequired("package")
 }

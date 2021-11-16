@@ -51,7 +51,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	status := types.BackgroundCheckStatus{
 		Email: email,
-		Tier:  input.Tier,
+		Tier:  input.Package,
 	}
 
 	logger := workflow.GetLogger(ctx)
@@ -109,7 +109,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return nil
 	}
 
-	if input.Tier != "full" {
+	if input.Package != "full" {
 		return nil
 	}
 
