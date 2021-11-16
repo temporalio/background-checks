@@ -17,27 +17,17 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
-	"net/http"
 
 	"github.com/spf13/cobra"
-
 	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
-	"github.com/temporalio/background-checks/types"
 )
 
-var (
-	email string
-	pkg   string
-)
-
-// startCmd represents the start command
-var startCmd = &cobra.Command{
-	Use:   "start",
-	Short: "starts a background check for a candidate",
-	Args:  cobra.NoArgs,
+// listCmd represents the list command
+var listCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List background checks",
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router()
 
@@ -46,32 +36,19 @@ var startCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		input := types.BackgroundCheckWorkflowInput{
-			Email:   email,
-			Package: pkg,
-		}
-
-		response, err := utils.PostJSON(requestURL, input)
+		var checks []api.BackgroundCheck
+		_, err = utils.GetJSON(requestURL, &checks)
 		if err != nil {
 			log.Fatalf("request error: %v", err)
 		}
 
-		defer response.Body.Close()
-		body, _ := ioutil.ReadAll(response.Body)
-
-		if response.StatusCode != http.StatusCreated {
-			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
+		fmt.Printf("Background Checks:\n")
+		for _, check := range checks {
+			fmt.Printf("ID: %s Status: %s\n", check.ID, check.Status)
 		}
-
-		fmt.Printf("Created check")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(startCmd)
-
-	startCmd.Flags().StringVar(&email, "email", "", "Candidate's email address")
-	startCmd.MarkFlagRequired("email")
-	startCmd.Flags().StringVar(&pkg, "package", "standard", "Check package (standard/full)")
-	startCmd.MarkFlagRequired("package")
+	rootCmd.AddCommand(listCmd)
 }

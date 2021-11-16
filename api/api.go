@@ -19,29 +19,49 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"go.temporal.io/api/serviceerror"
+	workflowpb "go.temporal.io/api/workflow/v1"
+	"go.temporal.io/api/workflowservice/v1"
+	sdkclient "go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/converter"
+
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
-	"go.temporal.io/api/serviceerror"
-	"go.temporal.io/sdk/client"
-	"go.temporal.io/sdk/converter"
 )
 
 const DefaultEndpoint = "localhost:8081"
 
-func executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, args ...interface{}) (client.WorkflowRun, error) {
-	c, err := client.NewClient(client.Options{})
+var client sdkclient.Client
+
+func getClient() (sdkclient.Client, error) {
+	if client != nil {
+		return client, nil
+	}
+
+	c, err := sdkclient.NewClient(sdkclient.Options{})
 	if err != nil {
 		return nil, err
 	}
-	defer c.Close()
+	client = c
+
+	return c, nil
+}
+
+func executeWorkflow(options sdkclient.StartWorkflowOptions, workflow interface{}, args ...interface{}) (sdkclient.WorkflowRun, error) {
+	c, err := getClient()
+	if err != nil {
+		return nil, err
+	}
 
 	options.TaskQueue = config.TaskQueue
 
@@ -54,31 +74,28 @@ func executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, 
 }
 
 func cancelWorkflow(wid string) error {
-	c, err := client.NewClient(client.Options{})
+	c, err := getClient()
 	if err != nil {
 		return err
 	}
-	defer c.Close()
 
 	return c.CancelWorkflow(context.Background(), wid, "")
 }
 
 func completeActivity(token []byte, result interface{}, activityErr error) error {
-	c, err := client.NewClient(client.Options{})
+	c, err := getClient()
 	if err != nil {
 		return err
 	}
-	defer c.Close()
 
 	return c.CompleteActivity(context.Background(), token, result, activityErr)
 }
 
 func queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
-	c, err := client.NewClient(client.Options{})
+	c, err := getClient()
 	if err != nil {
 		return nil, err
 	}
-	defer c.Close()
 
 	return c.QueryWorkflow(
 		context.Background(),
@@ -90,19 +107,79 @@ func queryWorkflow(wid string, queryType string, args ...interface{}) (converter
 }
 
 func signalWorkflow(wid string, signalName string, signalArg interface{}) error {
-	c, err := client.NewClient(client.Options{})
+	c, err := getClient()
 	if err != nil {
 		return err
 	}
-	defer c.Close()
 
 	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
 }
 
-func handleCheckList(w http.ResponseWriter, r *http.Request) {
-	checks := []types.BackgroundCheckWorkflowInput{}
+func presentBackgroundCheck(we *workflowpb.WorkflowExecutionInfo) (BackgroundCheck, error) {
+	var result BackgroundCheck
 
-	// client.ListOpenWorkflowExecutions?
+	result.ID = we.Execution.RunId
+
+	attrs := we.GetSearchAttributes().GetIndexedFields()
+	err := converter.GetDefaultDataConverter().FromPayload(attrs["BackgroundCheckStatus"], &result.Status)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
+}
+
+func listWorkflows(status string) ([]*workflowpb.WorkflowExecutionInfo, error) {
+	var executions []*workflowpb.WorkflowExecutionInfo
+	var nextPageToken []byte
+
+	c, err := getClient()
+	if err != nil {
+		return executions, err
+	}
+
+	ctx := context.Background()
+
+	var query string
+	if status != "" {
+		query = fmt.Sprintf("WorkflowType = 'BackgroundCheck' AND BackgroundCheckStatus = '%s'", status)
+	} else {
+		query = "WorkflowType = 'BackgroundCheck'"
+	}
+
+	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
+		resp, err := c.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+			PageSize:      10,
+			NextPageToken: nextPageToken,
+			Query:         query,
+		})
+		if err != nil {
+			return executions, err
+		}
+
+		executions = append(executions, resp.Executions...)
+		nextPageToken = resp.NextPageToken
+	}
+
+	return executions, nil
+}
+
+func handleCheckList(w http.ResponseWriter, r *http.Request) {
+	wfs, err := listWorkflows("")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	checks := make([]BackgroundCheck, len(wfs))
+	for i, wf := range wfs {
+		check, err := presentBackgroundCheck(wf)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		checks[i] = check
+	}
 
 	json.NewEncoder(w).Encode(checks)
 }
@@ -117,7 +194,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = executeWorkflow(
-		client.StartWorkflowOptions{
+		sdkclient.StartWorkflowOptions{
 			ID: mappings.BackgroundCheckWorkflowID(input.Email),
 		},
 		workflows.BackgroundCheck,

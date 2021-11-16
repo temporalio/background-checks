@@ -21,7 +21,19 @@ func createCandidateWorkflow(ctx workflow.Context, email string) error {
 	return f.Get(ctx, nil)
 }
 
-func updateCandidateCheckStatus(ctx workflow.Context, email string, status string) error {
+func updateStatus(ctx workflow.Context, email string, status string) error {
+	// UpsertSearchAttributes before sending the signal so that the attributes
+	// get pushed along with the signal command.
+	err := workflow.UpsertSearchAttributes(
+		ctx,
+		map[string]interface{}{
+			"BackgroundCheckStatus": status,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
 	f := workflow.SignalExternalWorkflow(
 		ctx,
 		mappings.CandidateWorkflowID(email),
@@ -68,7 +80,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	err = updateCandidateCheckStatus(ctx, email, "Consent Required")
+	err = updateStatus(ctx, email, "pending_consent")
 	if err != nil {
 		return err
 	}
@@ -81,15 +93,10 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	status.Consent = c
 
 	if !c.Consent {
-		return updateCandidateCheckStatus(ctx, email, "Declined")
+		return updateStatus(ctx, email, "declined")
 	}
 
-	err = updateCandidateCheckStatus(ctx, email, "In Progress")
-	if err != nil {
-		return err
-	}
-
-	err = updateCandidateCheckStatus(ctx, email, "Running")
+	err = updateStatus(ctx, email, "running")
 	if err != nil {
 		return err
 	}
