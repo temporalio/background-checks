@@ -32,6 +32,11 @@ var listCmd = &cobra.Command{
 		router := api.Router()
 
 		requestURL, err := router.Get("checks_create").Host(api.DefaultEndpoint).URL()
+		query := requestURL.Query()
+		query.Set("email", email)
+		query.Set("status", status)
+		requestURL.RawQuery = query.Encode()
+
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
@@ -44,11 +49,14 @@ var listCmd = &cobra.Command{
 
 		fmt.Printf("Background Checks:\n")
 		for _, check := range checks {
-			fmt.Printf("ID: %s Status: %s\n", check.ID, check.Status)
+			fmt.Printf("ID: %s Email: %s Status: %s\n", check.ID, check.Email, check.Status)
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(listCmd)
+
+	listCmd.Flags().StringVar(&email, "email", "", "Candidate's email address")
+	listCmd.Flags().StringVar(&status, "status", "", "Status")
 }

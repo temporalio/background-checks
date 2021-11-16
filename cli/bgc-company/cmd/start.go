@@ -28,11 +28,6 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-var (
-	email string
-	pkg   string
-)
-
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
@@ -73,5 +68,4 @@ func init() {
 	startCmd.Flags().StringVar(&email, "email", "", "Candidate's email address")
 	startCmd.MarkFlagRequired("email")
 	startCmd.Flags().StringVar(&pkg, "package", "standard", "Check package (standard/full)")
-	startCmd.MarkFlagRequired("package")
 }

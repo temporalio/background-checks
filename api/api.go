@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -121,6 +122,13 @@ func presentBackgroundCheck(we *workflowpb.WorkflowExecutionInfo) (BackgroundChe
 
 	result.ID = we.Execution.RunId
 
+	attrs := we.GetSearchAttributes().GetIndexedFields()
+
+	err := converter.GetDefaultDataConverter().FromPayload(attrs["CandidateEmail"], &result.Email)
+	if err != nil {
+		return result, err
+	}
+
 	switch we.Status {
 	case enums.WORKFLOW_EXECUTION_STATUS_RUNNING:
 		attrs := we.GetSearchAttributes().GetIndexedFields()
@@ -144,7 +152,12 @@ func presentBackgroundCheck(we *workflowpb.WorkflowExecutionInfo) (BackgroundChe
 	return result, nil
 }
 
-func listWorkflows(status string) ([]*workflowpb.WorkflowExecutionInfo, error) {
+type listWorkflowFilters struct {
+	Email  string
+	Status string
+}
+
+func listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	var executions []*workflowpb.WorkflowExecutionInfo
 	var nextPageToken []byte
 
@@ -155,12 +168,19 @@ func listWorkflows(status string) ([]*workflowpb.WorkflowExecutionInfo, error) {
 
 	ctx := context.Background()
 
-	var query string
-	if status != "" {
-		query = fmt.Sprintf("WorkflowType = 'BackgroundCheck' AND BackgroundCheckStatus = '%s'", status)
-	} else {
-		query = "WorkflowType = 'BackgroundCheck'"
+	q := []string{
+		"WorkflowType = 'BackgroundCheck'",
 	}
+	if filters.Email != "" {
+		q = append(q, fmt.Sprintf("CandidateEmail = '%s'", filters.Email))
+	}
+	if filters.Status != "" {
+		q = append(q, fmt.Sprintf("BackgroundCheckStatus = '%s'", filters.Status))
+	}
+
+	query := strings.Join(q, " AND ")
+
+	fmt.Printf("Query: %s", query)
 
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
 		resp, err := c.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
@@ -180,7 +200,14 @@ func listWorkflows(status string) ([]*workflowpb.WorkflowExecutionInfo, error) {
 }
 
 func handleCheckList(w http.ResponseWriter, r *http.Request) {
-	wfs, err := listWorkflows("")
+	query := r.URL.Query()
+
+	filters := listWorkflowFilters{
+		Email:  query.Get("email"),
+		Status: query.Get("status"),
+	}
+
+	wfs, err := listWorkflows(filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -211,6 +238,9 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	_, err = executeWorkflow(
 		sdkclient.StartWorkflowOptions{
 			ID: mappings.BackgroundCheckWorkflowID(input.Email),
+			SearchAttributes: map[string]interface{}{
+				"CandidateEmail": input.Email,
+			},
 		},
 		workflows.BackgroundCheck,
 		input,
