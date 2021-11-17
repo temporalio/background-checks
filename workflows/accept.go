@@ -26,7 +26,7 @@ func waitForSubmission(ctx workflow.Context) types.Accept {
 }
 
 func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
-	consent := waitForSubmission(ctx)
+	accept := waitForSubmission(ctx)
 
-	return types.AcceptWorkflowResult{Accept: consent}, nil
+	return types.AcceptWorkflowResult{Accept: accept}, nil
 }

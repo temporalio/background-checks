@@ -19,15 +19,15 @@ func updateStatus(ctx workflow.Context, status types.BackgroundCheckStatus) erro
 }
 
 func waitForAccept(ctx workflow.Context) (types.Accept, error) {
-	var r types.Accept
+	var r types.AcceptWorkflowResult
 
 	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.AcceptWorkflowID(workflow.GetInfo(ctx).WorkflowExecution.ID),
+		WorkflowID: mappings.AcceptWorkflowID(workflow.GetInfo(ctx).WorkflowExecution.RunID),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{})
 	err := consentWF.Get(ctx, &r)
 
-	return r, err
+	return r.Accept, err
 }
 
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
