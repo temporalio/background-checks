@@ -7,8 +7,8 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-func waitForSubmission(ctx workflow.Context) types.Accept {
-	var response types.Accept
+func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
+	var response types.AcceptSubmission
 
 	s := workflow.NewSelector(ctx)
 
@@ -17,7 +17,7 @@ func waitForSubmission(ctx workflow.Context) types.Accept {
 		var submission types.AcceptSubmissionSignal
 		c.Receive(ctx, &submission)
 
-		response = submission.Accept
+		response = types.AcceptSubmission(submission)
 	})
 
 	s.Select(ctx)
@@ -26,7 +26,7 @@ func waitForSubmission(ctx workflow.Context) types.Accept {
 }
 
 func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
-	accept := waitForSubmission(ctx)
+	submission := waitForSubmission(ctx)
 
-	return types.AcceptWorkflowResult{Accept: accept}, nil
+	return types.AcceptWorkflowResult(submission), nil
 }

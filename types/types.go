@@ -63,15 +63,15 @@ func BackgroundCheckStatusFromString(s string) BackgroundCheckStatus {
 type BackgroundCheckState struct {
 	Email                      string
 	Tier                       string
-	Accept                     Accept
+	Accepted                   bool
+	CandidateDetails           CandidateDetails
 	Validate                   ValidateSSNWorkflowResult
 	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
 	StateCriminalSearch        StateCriminalSearchWorkflowResult
 	MotorVehicleIncidentSearch MotorVehicleIncidentSearchWorkflowResult
 }
 
-type Accept struct {
-	Accept   bool
+type CandidateDetails struct {
 	FullName string
 	Address  string
 	SSN      string
@@ -79,11 +79,18 @@ type Accept struct {
 }
 
 type AcceptWorkflowResult struct {
-	Accept Accept
+	Accepted         bool
+	CandidateDetails CandidateDetails
+}
+
+type AcceptSubmission struct {
+	Accepted         bool
+	CandidateDetails CandidateDetails
 }
 
 type AcceptSubmissionSignal struct {
-	Accept Accept
+	Accepted         bool
+	CandidateDetails CandidateDetails
 }
 
 type ResearcherWorkflowInput struct {

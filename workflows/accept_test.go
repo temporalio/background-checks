@@ -14,8 +14,7 @@ func TestReturnsAcceptResponse(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
 
-	accept := types.Accept{
-		Accept:   true,
+	details := types.CandidateDetails{
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
 		DOB:      "1981-01-01",
@@ -26,7 +25,7 @@ func TestReturnsAcceptResponse(t *testing.T) {
 		func() {
 			env.SignalWorkflow(
 				signals.AcceptSubmission,
-				types.AcceptSubmissionSignal{Accept: accept},
+				types.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
 			)
 		},
 		0,
@@ -38,5 +37,5 @@ func TestReturnsAcceptResponse(t *testing.T) {
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 
-	assert.Equal(t, types.AcceptWorkflowResult{Accept: accept}, result)
+	assert.Equal(t, types.AcceptWorkflowResult{Accepted: true, CandidateDetails: details}, result)
 }
