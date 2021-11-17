@@ -19,7 +19,6 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
-	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
@@ -44,13 +43,10 @@ to quickly create a Cobra application.`,
 
 		w := worker.New(c, "background-checks-main", worker.Options{})
 
-		w.RegisterActivity(activities.CreateCandidateWorkflow)
-		w.RegisterWorkflow(workflows.Candidate)
-
 		w.RegisterWorkflow(workflows.Researcher)
 
 		w.RegisterWorkflow(workflows.BackgroundCheck)
-		w.RegisterWorkflow(workflows.Consent)
+		w.RegisterWorkflow(workflows.Accept)
 		w.RegisterWorkflow(workflows.ValidateSSN)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)
 		w.RegisterWorkflow(workflows.StateCriminalSearch)

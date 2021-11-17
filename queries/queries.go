@@ -1,7 +1,6 @@
 package queries
 
 const (
-	BackgroundCheckStatus          = "background-check-status"
-	CandidateBackgroundCheckStatus = "candidate-background-check-list"
-	ResearcherTodosList            = "researcher-todos-list"
+	BackgroundCheckStatus = "background-check-status"
+	ResearcherTodosList   = "researcher-todos-list"
 )

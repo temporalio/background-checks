@@ -28,23 +28,21 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-// consentCmd represents the consent command
-var consentCmd = &cobra.Command{
-	Use:   "consent [email]",
-	Short: "Consent to a background check",
-	Args:  cobra.ExactArgs(1),
+// acceptCmd represents the accept command
+var acceptCmd = &cobra.Command{
+	Use:   "accept",
+	Short: "Accept a background check",
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		email := args[0]
-
 		router := api.Router()
 
-		requestURL, err := router.Get("consent").Host(api.DefaultEndpoint).URL("email", email)
+		requestURL, err := router.Get("accept").Host(api.DefaultEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		submission := types.ConsentSubmissionSignal{
-			Consent: mocks.ConsentResultConsented,
+		submission := types.AcceptSubmissionSignal{
+			Accept: mocks.AcceptResultAccepted,
 		}
 
 		response, err := utils.PostJSON(requestURL, submission)
@@ -59,10 +57,13 @@ var consentCmd = &cobra.Command{
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
 		}
 
-		fmt.Println("Consented")
+		fmt.Println("Accepted")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(consentCmd)
+	rootCmd.AddCommand(acceptCmd)
+	acceptCmd.Flags().StringVar(&ID, "id", "", "Background Check ID")
+	acceptCmd.MarkFlagRequired("id")
+
 }

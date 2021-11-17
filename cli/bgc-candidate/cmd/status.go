@@ -23,7 +23,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
-	"github.com/temporalio/background-checks/types"
 )
 
 // statusCmd represents the status command
@@ -41,18 +40,18 @@ var statusCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		var check types.BackgroundCheckStatusSignal
+		var check api.BackgroundCheck
 		response, err := utils.GetJSON(requestURL, &check)
 
 		if response.StatusCode == http.StatusNotFound {
-			fmt.Printf("No background check found for: %s\n", email)
+			fmt.Printf("No background checks require consent for this email\n")
 			return
 		}
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
 
-		fmt.Printf("Status: %s\n", check.Status)
+		fmt.Printf("ID: %s Status: %s\n", check.ID, check.Status)
 	},
 }
 

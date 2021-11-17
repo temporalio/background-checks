@@ -5,45 +5,85 @@ type BackgroundCheckWorkflowInput struct {
 	Package string
 }
 
-type BackgroundCheckStatus struct {
+type BackgroundCheckStatus int64
+
+const (
+	BackgroundCheckStatusUnknown BackgroundCheckStatus = iota
+	BackgroundCheckStatusPendingAccept
+	BackgroundCheckStatusRunning
+	BackgroundCheckStatusCompleted
+	BackgroundCheckStatusDeclined
+	BackgroundCheckStatusFailed
+	BackgroundCheckStatusTerminated
+	BackgroundCheckStatusCancelled
+)
+
+func (s BackgroundCheckStatus) String() string {
+	switch s {
+	case BackgroundCheckStatusPendingAccept:
+		return "pending_consent"
+	case BackgroundCheckStatusRunning:
+		return "running"
+	case BackgroundCheckStatusCompleted:
+		return "completed"
+	case BackgroundCheckStatusDeclined:
+		return "declined"
+	case BackgroundCheckStatusFailed:
+		return "failed"
+	case BackgroundCheckStatusTerminated:
+		return "terminated"
+	case BackgroundCheckStatusCancelled:
+		return "cancelled"
+	}
+
+	return "unknown"
+}
+
+func BackgroundCheckStatusFromString(s string) BackgroundCheckStatus {
+	switch s {
+	case BackgroundCheckStatusPendingAccept.String():
+		return BackgroundCheckStatusPendingAccept
+	case BackgroundCheckStatusRunning.String():
+		return BackgroundCheckStatusRunning
+	case BackgroundCheckStatusCompleted.String():
+		return BackgroundCheckStatusCompleted
+	case BackgroundCheckStatusDeclined.String():
+		return BackgroundCheckStatusDeclined
+	case BackgroundCheckStatusFailed.String():
+		return BackgroundCheckStatusFailed
+	case BackgroundCheckStatusTerminated.String():
+		return BackgroundCheckStatusTerminated
+	case BackgroundCheckStatusCancelled.String():
+		return BackgroundCheckStatusCancelled
+	default:
+		return BackgroundCheckStatusUnknown
+	}
+}
+
+type BackgroundCheckState struct {
 	Email                      string
 	Tier                       string
-	Consent                    Consent
+	Accept                     Accept
 	Validate                   ValidateSSNWorkflowResult
 	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
 	StateCriminalSearch        StateCriminalSearchWorkflowResult
 	MotorVehicleIncidentSearch MotorVehicleIncidentSearchWorkflowResult
 }
 
-type BackgroundCheckStatusSignal struct {
-	ConsentRequired bool
-	Status          string
-}
-
-type Consent struct {
-	Consent  bool
+type Accept struct {
+	Accept   bool
 	FullName string
 	Address  string
 	SSN      string
 	DOB      string
 }
 
-type ConsentWorkflowResult struct {
-	Consent
+type AcceptWorkflowResult struct {
+	Accept Accept
 }
 
-type ConsentRequestSignal struct{}
-
-type ConsentSubmissionSignal struct {
-	Consent Consent
-}
-
-type ConsentResponseSignal struct {
-	Consent Consent
-}
-
-type CandidateWorkflowInput struct {
-	Email string
+type AcceptSubmissionSignal struct {
+	Accept Accept
 }
 
 type ResearcherWorkflowInput struct {
@@ -71,8 +111,7 @@ func (r ResearcherTodo) Input() interface{} {
 	return nil
 }
 
-type ConsentWorkflowInput struct {
-	Email string
+type AcceptWorkflowInput struct {
 }
 
 type ValidateSSNWorkflowInput struct {

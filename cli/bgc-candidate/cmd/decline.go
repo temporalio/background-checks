@@ -28,15 +28,13 @@ import (
 
 // declineCmd represents the decline command
 var declineCmd = &cobra.Command{
-	Use:   "decline [token]",
+	Use:   "decline",
 	Short: "Decline a background check",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		token := args[0]
-
 		router := api.Router()
 
-		requestURL, err := router.Get("decline").Host(api.DefaultEndpoint).URL("token", token)
+		requestURL, err := router.Get("decline").Host(api.DefaultEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
@@ -59,4 +57,6 @@ var declineCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(declineCmd)
+	declineCmd.Flags().StringVar(&ID, "id", "", "Background Check ID")
+	declineCmd.MarkFlagRequired("id")
 }
