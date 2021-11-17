@@ -373,7 +373,7 @@ func handleDecline(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 
 	result := types.AcceptSubmissionSignal{
-		Accept: types.Accept{Accept: false},
+		Accepted: false,
 	}
 
 	err := signalWorkflow(

@@ -42,7 +42,7 @@ var acceptCmd = &cobra.Command{
 		}
 
 		submission := types.AcceptSubmissionSignal{
-			Accept: mocks.AcceptResultAccepted,
+			CandidateDetails: mocks.CandidateDetails,
 		}
 
 		response, err := utils.PostJSON(requestURL, submission)
