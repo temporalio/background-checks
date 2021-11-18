@@ -6,6 +6,8 @@ services:
     container_name: lp-temporal-postgresql
   temporal:
     container_name: lp-temporal
+    environment:
+      - STATSD_ENDPOINT=lp-graphite:8125
   temporal-admin-tools:
     container_name: lp-temporal-admin-tools
   temporal-web:
@@ -18,3 +20,21 @@ services:
     ports:
       - 1025:1025
       - 8025:8025
+  graphite:
+    container_name: lp-graphite
+    image: graphiteapp/graphite-statsd
+    networks:
+      - temporal-network
+    ports:
+      - 8081:80
+  grafana:
+    container_name: lp-grafana
+    image: grafana/grafana
+    networks:
+      - temporal-network
+    ports:
+      - 8000:3000
+    volumes:
+      - type: bind
+        source: ./grafana/provisioning/datasources
+        target: /etc/grafana/provisioning/datasources

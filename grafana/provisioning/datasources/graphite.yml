@@ -1,0 +1,5 @@
+datasources:
+  - name: Graphite
+    url: http://lp-graphite
+    type: graphite
+    isDefault: true
