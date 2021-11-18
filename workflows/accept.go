@@ -6,6 +6,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 
 	"github.com/temporalio/background-checks/activities"
+	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 )
@@ -30,6 +31,10 @@ func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
 		c.Receive(ctx, &submission)
 
 		response = types.AcceptSubmission(submission)
+	})
+	s.AddFuture(workflow.NewTimer(ctx, config.AcceptGracePeriod), func(f workflow.Future) {
+		// Treat failure to accept in time as declining.
+		response.Accepted = false
 	})
 
 	s.Select(ctx)
