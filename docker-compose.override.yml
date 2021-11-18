@@ -7,7 +7,7 @@ services:
   temporal:
     container_name: lp-temporal
     environment:
-      - STATSD_ENDPOINT=lp-graphite:8125
+      - PROMETHEUS_ENDPOINT=0.0.0.0:9090
   temporal-admin-tools:
     container_name: lp-temporal-admin-tools
   temporal-web:
@@ -20,21 +20,25 @@ services:
     ports:
       - 1025:1025
       - 8025:8025
-  graphite:
-    container_name: lp-graphite
-    image: graphiteapp/graphite-statsd
+  prometheus:
+    container_name: lp-prometheus
+    image: prom/prometheus
     networks:
       - temporal-network
     ports:
-      - 8181:80
+      - 9090:9090
+    volumes:
+      - type: bind
+        source: ./deployment/prometheus/prometheus.yml
+        target: /etc/prometheus/prometheus.yml
   grafana:
     container_name: lp-grafana
     image: grafana/grafana
     networks:
       - temporal-network
     ports:
-      - 8001:3000
+      - 8082:3000
     volumes:
       - type: bind
-        source: ./grafana/provisioning/datasources
+        source: ./deployment/grafana/provisioning/datasources
         target: /etc/grafana/provisioning/datasources
