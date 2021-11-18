@@ -26,14 +26,14 @@ services:
     networks:
       - temporal-network
     ports:
-      - 8081:80
+      - 8181:80
   grafana:
     container_name: lp-grafana
     image: grafana/grafana
     networks:
       - temporal-network
     ports:
-      - 8000:3000
+      - 8001:3000
     volumes:
       - type: bind
         source: ./grafana/provisioning/datasources
