@@ -1,9 +1,12 @@
 package workflows_test
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
@@ -20,6 +23,10 @@ func TestReturnsAcceptResponse(t *testing.T) {
 		DOB:      "1981-01-01",
 		Address:  "1 Chestnut Avenue",
 	}
+
+	env.OnActivity(activities.SendAcceptEmail, mock.Anything, mock.Anything).Return(func(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
+		return types.SendAcceptEmailResult{}, nil
+	})
 
 	env.RegisterDelayedCallback(
 		func() {
