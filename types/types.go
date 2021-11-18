@@ -78,6 +78,14 @@ type CandidateDetails struct {
 	DOB      string
 }
 
+type SendAcceptEmailInput struct {
+	Email   string
+	CheckID string
+}
+
+type SendAcceptEmailResult struct {
+}
+
 type AcceptWorkflowResult struct {
 	Accepted         bool
 	CandidateDetails CandidateDetails
@@ -119,6 +127,8 @@ func (r ResearcherTodo) Input() interface{} {
 }
 
 type AcceptWorkflowInput struct {
+	Email   string
+	CheckID string
 }
 
 type ValidateSSNWorkflowInput struct {

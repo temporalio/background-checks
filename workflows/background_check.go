@@ -18,13 +18,18 @@ func updateStatus(ctx workflow.Context, status types.BackgroundCheckStatus) erro
 	)
 }
 
-func waitForAccept(ctx workflow.Context) (types.AcceptSubmission, error) {
+func waitForAccept(ctx workflow.Context, email string) (types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
+	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
+
 	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.AcceptWorkflowID(workflow.GetInfo(ctx).WorkflowExecution.RunID),
+		WorkflowID: mappings.AcceptWorkflowID(checkID),
 	})
-	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{})
+	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
+		Email:   email,
+		CheckID: checkID,
+	})
 	err := consentWF.Get(ctx, &r)
 
 	return r, err
@@ -52,7 +57,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	c, err := waitForAccept(ctx)
+	c, err := waitForAccept(ctx, input.Email)
 	if err != nil {
 		return err
 	}

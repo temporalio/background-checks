@@ -1,0 +1,20 @@
+version: "3.5"
+services:
+  elasticsearch:
+    container_name: lp-temporal-elasticsearch
+  postgresql:
+    container_name: lp-temporal-postgresql
+  temporal:
+    container_name: lp-temporal
+  temporal-admin-tools:
+    container_name: lp-temporal-admin-tools
+  temporal-web:
+    container_name: lp-temporal-web
+  mailhog:
+    container_name: lp-mailhog
+    image: mailhog/mailhog:v1.0.1
+    networks:
+      - temporal-network
+    ports:
+      - 1025:1025
+      - 8025:8025
