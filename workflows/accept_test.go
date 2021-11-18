@@ -24,9 +24,11 @@ func TestReturnsAcceptResponse(t *testing.T) {
 		Address:  "1 Chestnut Avenue",
 	}
 
-	env.OnActivity(activities.SendAcceptEmail, mock.Anything, mock.Anything).Return(func(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
-		return types.SendAcceptEmailResult{}, nil
-	})
+	env.OnActivity(activities.SendAcceptEmail, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
+			return types.SendAcceptEmailResult{}, nil
+		},
+	)
 
 	env.RegisterDelayedCallback(
 		func() {
