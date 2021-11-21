@@ -45,9 +45,9 @@ to quickly create a Cobra application.`,
 		w := worker.New(c, "background-checks-main", worker.Options{})
 
 		w.RegisterWorkflow(workflows.Researcher)
-
 		w.RegisterWorkflow(workflows.BackgroundCheck)
 		w.RegisterWorkflow(workflows.Accept)
+		w.RegisterWorkflow(workflows.EmploymentVerification)
 		w.RegisterActivity(activities.SendAcceptEmail)
 		w.RegisterWorkflow(workflows.ValidateSSN)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)

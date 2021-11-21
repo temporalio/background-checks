@@ -35,6 +35,22 @@ func waitForAccept(ctx workflow.Context, email string) (types.AcceptSubmission, 
 	return r, err
 }
 
+func waitForEmploymentVerification(ctx workflow.Context, candidate types.CandidateDetails) (types.EmploymentVerificationWorkflowResult, error) {
+	var r types.EmploymentVerificationWorkflowResult
+
+	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
+
+	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+		WorkflowID: mappings.AcceptWorkflowID(checkID),
+	})
+	employmentVerificationWF := workflow.ExecuteChildWorkflow(ctx, EmploymentVerification, types.EmploymentVerificationWorkflowInput{
+		CandidateDetails: candidate,
+	})
+	err := employmentVerificationWF.Get(ctx, &r)
+
+	return r, err
+}
+
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	email := input.Email
 
@@ -85,15 +101,26 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	if !status.Validate.Valid {
-		return nil
-	}
+	/* 	if !status.Validate.Valid {
+	   		return nil
+	   	}
 
-	if input.Package != "full" {
-		return nil
-	}
+	   	if input.Package != "full" {
+	   		return nil
+	   	} */
 
 	s := workflow.NewSelector(ctx)
+
+	// Employment Verification
+
+	ev, err := waitForEmploymentVerification(ctx, candidate)
+	if err != nil {
+		return err
+	}
+
+	if ev.EmployerVerificationComplete {
+		candidate.EmployerVerified = ev.CandidateDetails.EmployerVerified
+	}
 
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,

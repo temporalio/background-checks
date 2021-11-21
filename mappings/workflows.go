@@ -10,6 +10,6 @@ func AcceptWorkflowID(checkID string) string {
 	return fmt.Sprintf("Accept:%s", checkID)
 }
 
-func ResearcherWorkflowID(email string) string {
-	return fmt.Sprintf("Researcher:%s", email)
+func EmploymentVerificationWorkflowID(checkID string) string {
+	return fmt.Sprintf("EmploymentVerification:%s", checkID)
 }

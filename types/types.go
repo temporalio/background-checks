@@ -72,10 +72,12 @@ type BackgroundCheckState struct {
 }
 
 type CandidateDetails struct {
-	FullName string
-	Address  string
-	SSN      string
-	DOB      string
+	FullName         string
+	Address          string
+	SSN              string
+	DOB              string
+	Employer         string
+	EmployerVerified bool
 }
 
 type SendAcceptEmailInput struct {
@@ -84,6 +86,11 @@ type SendAcceptEmailInput struct {
 }
 
 type SendAcceptEmailResult struct {
+}
+
+type AcceptWorkflowInput struct {
+	Email   string
+	CheckID string
 }
 
 type AcceptWorkflowResult struct {
@@ -99,6 +106,32 @@ type AcceptSubmission struct {
 type AcceptSubmissionSignal struct {
 	Accepted         bool
 	CandidateDetails CandidateDetails
+}
+
+type SendEmploymentVerificationEmailInput struct {
+	CandidateDetails CandidateDetails
+}
+
+type SendEmploymentVerificationEmailResult struct {
+}
+
+type EmploymentVerificationWorkflowInput struct {
+	CandidateDetails CandidateDetails
+}
+
+type EmploymentVerificationWorkflowResult struct {
+	CandidateDetails             CandidateDetails
+	EmployerVerificationComplete bool
+}
+
+type EmploymentVerificationSubmission struct {
+	CandidateDetails             CandidateDetails
+	EmployerVerificationComplete bool
+}
+
+type EmploymentVerificationSubmissionSignal struct {
+	CandidateDetails             CandidateDetails
+	EmployerVerificationComplete bool
 }
 
 type ResearcherWorkflowInput struct {
@@ -124,11 +157,6 @@ func (r ResearcherTodo) Input() interface{} {
 	}
 
 	return nil
-}
-
-type AcceptWorkflowInput struct {
-	Email   string
-	CheckID string
 }
 
 type ValidateSSNWorkflowInput struct {
@@ -162,15 +190,6 @@ type StateCriminalSearchWorkflowResult struct {
 type MotorVehicleIncidentSearchWorkflowInput struct {
 	FullName string
 	Address  string
-}
-
-type EmploymentSearchWorkflowInput struct {
-	FullName string
-	Address  string
-}
-
-type EmploymentSearchWorkflowResult struct {
-	Companies []string
 }
 
 type MotorVehicleIncidentSearchWorkflowResult struct {

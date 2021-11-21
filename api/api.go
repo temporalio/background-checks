@@ -27,7 +27,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"go.temporal.io/api/enums/v1"
-	"go.temporal.io/api/serviceerror"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	sdkclient "go.temporal.io/sdk/client"
@@ -350,11 +349,13 @@ func handleAccept(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 
 	var result types.AcceptSubmissionSignal
+
 	err := json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	result.Accepted = true
 
 	err = signalWorkflow(
 		mappings.AcceptWorkflowID(id),
@@ -430,35 +431,6 @@ func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(check)
 }
 
-func handleResearcherStatus(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	email := vars["email"]
-
-	v, err := queryWorkflow(
-		mappings.ResearcherWorkflowID(email),
-		queries.ResearcherTodosList,
-	)
-	if _, ok := err.(*serviceerror.NotFound); ok {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var result []types.ResearcherTodo
-	err = v.Get(&result)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-}
-
 func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -494,7 +466,6 @@ func Router() *mux.Router {
 	r.HandleFunc("/checks/{id}/decline", handleDecline).Methods("POST").Name("decline")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
 	r.HandleFunc("/candidate/{email}", handleCandidateStatus).Name("candidate")
-	r.HandleFunc("/research/{email}", handleResearcherStatus).Name("research")
 
 	return r
 }
