@@ -41,7 +41,7 @@ func waitForEmploymentVerification(ctx workflow.Context, candidate types.Candida
 	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
 
 	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.AcceptWorkflowID(checkID),
+		WorkflowID: mappings.EmploymentVerificationWorkflowID(checkID),
 	})
 	employmentVerificationWF := workflow.ExecuteChildWorkflow(ctx, EmploymentVerification, types.EmploymentVerificationWorkflowInput{
 		CandidateDetails: candidate,
