@@ -12,14 +12,6 @@ services:
     container_name: lp-temporal-admin-tools
   temporal-web:
     container_name: lp-temporal-web
-  mailhog:
-    container_name: lp-mailhog
-    image: mailhog/mailhog:v1.0.1
-    networks:
-      - temporal-network
-    ports:
-      - 1025:1025
-      - 8025:8025
   prometheus:
     container_name: lp-prometheus
     image: prom/prometheus
@@ -42,3 +34,29 @@ services:
       - type: bind
         source: ./deployment/grafana/provisioning/datasources
         target: /etc/grafana/provisioning/datasources
+  api:
+    container_name: lp-api
+    build: .
+    command: background-checks api
+    networks:
+      - temporal-network
+    ports:
+      - 8081:8081
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+  worker:
+    container_name: lp-worker
+    build: .
+    command: background-checks worker
+    networks:
+      - temporal-network
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+  mailhog:
+    container_name: lp-mailhog
+    image: mailhog/mailhog:v1.0.1
+    networks:
+      - temporal-network
+    ports:
+      - 1025:1025
+      - 8025:8025

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -49,7 +50,9 @@ func getClient() (sdkclient.Client, error) {
 		return client, nil
 	}
 
-	c, err := sdkclient.NewClient(sdkclient.Options{})
+	c, err := sdkclient.NewClient(sdkclient.Options{
+		HostPort: os.Getenv("TEMPORAL_GRPC_ENDPOINT"),
+	})
 	if err != nil {
 		return nil, err
 	}

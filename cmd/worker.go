@@ -17,10 +17,15 @@ package cmd
 
 import (
 	"log"
+	"os"
+	"time"
 
+	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/workflows"
+	"github.com/uber-go/tally/v4"
+	"github.com/uber-go/tally/v4/prometheus"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
 )
@@ -36,7 +41,13 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		c, err := client.NewClient(client.Options{})
+		c, err := client.NewClient(client.Options{
+			HostPort: os.Getenv("TEMPORAL_GRPC_ENDPOINT"),
+			MetricsScope: newPrometheusScope(prometheus.Configuration{
+				ListenAddress: "0.0.0.0:9090",
+				TimerType:     "histogram",
+			}),
+		})
 		if err != nil {
 			log.Fatalf("client error: %v", err)
 		}
@@ -60,6 +71,50 @@ to quickly create a Cobra application.`,
 			log.Fatalf("worker exited: %v", err)
 		}
 	},
+}
+
+var (
+	safeCharacters = []rune{'_'}
+
+	sanitizeOptions = tally.SanitizeOptions{
+		NameCharacters: tally.ValidCharacters{
+			Ranges:     tally.AlphanumericRange,
+			Characters: safeCharacters,
+		},
+		KeyCharacters: tally.ValidCharacters{
+			Ranges:     tally.AlphanumericRange,
+			Characters: safeCharacters,
+		},
+		ValueCharacters: tally.ValidCharacters{
+			Ranges:     tally.AlphanumericRange,
+			Characters: safeCharacters,
+		},
+		ReplacementCharacter: tally.DefaultReplacementCharacter,
+	}
+)
+
+func newPrometheusScope(c prometheus.Configuration) tally.Scope {
+	reporter, err := c.NewReporter(
+		prometheus.ConfigurationOptions{
+			Registry: prom.NewRegistry(),
+			OnError: func(err error) {
+				log.Println("error in prometheus reporter", err)
+			},
+		},
+	)
+	if err != nil {
+		log.Fatalln("error creating prometheus reporter", err)
+	}
+	scopeOpts := tally.ScopeOptions{
+		CachedReporter:  reporter,
+		Separator:       prometheus.DefaultSeparator,
+		SanitizeOptions: &sanitizeOptions,
+		Prefix:          "lp_background_checks",
+	}
+	scope, _ := tally.NewRootScope(scopeOpts, time.Second)
+
+	log.Println("prometheus metrics scope created")
+	return scope
 }
 
 func init() {
