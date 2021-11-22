@@ -100,7 +100,7 @@ func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 	id := vars["id"]
 
 	var input types.CandidateDetails
-	log.Println("Employment Verification Entry: ", input.Employer)
+	log.Println("Employment Verification ID: ", id)
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -110,7 +110,7 @@ func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 
 	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St", "DOB" : "1/1/1990", "Employer" : "Acme Corp"}
 
-	var result types.EmploymentVerificationWorkflowResult
+	var result types.EmploymentVerificationSubmissionSignal
 
 	result.CandidateDetails = input
 
@@ -193,7 +193,7 @@ func Router() *mux.Router {
 
 	r.HandleFunc("/ssntrace/", handleSsnTrace).Methods("POST").Name("ssntrace")
 	r.HandleFunc("/motorvehiclesearch/", handleMotorVehicleSearch).Methods("POST").Name("motorvehiclesearch")
-	r.HandleFunc("/employmentverification/", handleEmploymentVerification).Name("employmentverification")
+	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
 	r.HandleFunc("/federalcriminalsearch/", handleFederalCriminalSearch).Methods("POST").Name("federalcriminalsearch")
 	r.HandleFunc("/statecriminalsearch/", handleStateCriminalSearch).Name("statecriminalsearch")
 	return r

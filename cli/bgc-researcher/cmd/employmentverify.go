@@ -36,7 +36,7 @@ var employmentVerifyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := thirdparty.Router()
 
-		requestURL, err := router.Get("employmentverification").Host(thirdparty.DefaultEndpoint).URL("id", ID)
+		requestURL, err := router.Get("employmentverify").Host(thirdparty.DefaultEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}

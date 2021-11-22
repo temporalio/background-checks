@@ -66,6 +66,7 @@ type BackgroundCheckState struct {
 	Accepted                   bool
 	CandidateDetails           CandidateDetails
 	Validate                   ValidateSSNWorkflowResult
+	EmploymentVerification     EmploymentVerificationWorkflowResult
 	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
 	StateCriminalSearch        StateCriminalSearchWorkflowResult
 	MotorVehicleIncidentSearch MotorVehicleIncidentSearchWorkflowResult
@@ -110,6 +111,7 @@ type AcceptSubmissionSignal struct {
 
 type SendEmploymentVerificationEmailInput struct {
 	CandidateDetails CandidateDetails
+	CheckID          string
 }
 
 type SendEmploymentVerificationEmailResult struct {
@@ -117,6 +119,7 @@ type SendEmploymentVerificationEmailResult struct {
 
 type EmploymentVerificationWorkflowInput struct {
 	CandidateDetails CandidateDetails
+	CheckID          string
 }
 
 type EmploymentVerificationWorkflowResult struct {

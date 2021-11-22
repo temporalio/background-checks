@@ -45,6 +45,7 @@ func waitForEmploymentVerification(ctx workflow.Context, candidate types.Candida
 	})
 	employmentVerificationWF := workflow.ExecuteChildWorkflow(ctx, EmploymentVerification, types.EmploymentVerificationWorkflowInput{
 		CandidateDetails: candidate,
+		CheckID:          checkID,
 	})
 	err := employmentVerificationWF.Get(ctx, &r)
 
@@ -111,17 +112,6 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	s := workflow.NewSelector(ctx)
 
-	// Employment Verification
-
-	ev, err := waitForEmploymentVerification(ctx, candidate)
-	if err != nil {
-		return err
-	}
-
-	if ev.EmployerVerificationComplete {
-		candidate.EmployerVerified = ev.CandidateDetails.EmployerVerified
-	}
-
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		FederalCriminalSearch,
@@ -157,6 +147,17 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 			logger.Error(fmt.Sprintf("motor vehicle incident search: %v", err))
 		}
 	})
+
+	// Employment Verification
+
+	ev, err := waitForEmploymentVerification(ctx, candidate)
+	if err != nil {
+		return err
+	}
+
+	if ev.EmployerVerificationComplete {
+		candidate.EmployerVerified = ev.CandidateDetails.EmployerVerified
+	}
 
 	checks := []workflow.ChildWorkflowFuture{
 		federalCriminalSearch,

@@ -49,6 +49,7 @@ to quickly create a Cobra application.`,
 		w.RegisterWorkflow(workflows.Accept)
 		w.RegisterWorkflow(workflows.EmploymentVerification)
 		w.RegisterActivity(activities.SendAcceptEmail)
+		w.RegisterActivity(activities.SendEmploymentVerificationRequestEmail)
 		w.RegisterWorkflow(workflows.ValidateSSN)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)
 		w.RegisterWorkflow(workflows.StateCriminalSearch)
