@@ -41,7 +41,7 @@ import (
 	"github.com/temporalio/background-checks/workflows"
 )
 
-const DefaultEndpoint = "localhost:8081"
+const DefaultEndpoint = "0.0.0.0:8081"
 
 var client sdkclient.Client
 
@@ -478,6 +478,8 @@ func Run() {
 		Handler: Router(),
 		Addr:    DefaultEndpoint,
 	}
+
+	fmt.Printf("Listening: %s\n", DefaultEndpoint)
 
 	log.Fatal(srv.ListenAndServe())
 }

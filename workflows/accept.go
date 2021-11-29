@@ -5,7 +5,6 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
@@ -16,7 +15,7 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, activities.SendAcceptEmail, types.SendAcceptEmailInput(input))
+	f := workflow.ExecuteActivity(ctx, a.SendAcceptEmail, types.SendAcceptEmailInput(input))
 	return f.Get(ctx, nil)
 }
 

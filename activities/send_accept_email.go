@@ -3,17 +3,13 @@ package activities
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"net/smtp"
 	"text/template"
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/types"
 )
 
-const acceptEmail = `To: {{.Email}}
-Subject: Background Check Request
-
+const acceptEmail = `
 Hi!
 
 Your potential employer has requested that we run a background check on their behalf.
@@ -31,13 +27,10 @@ Thanks,
 Background Check System
 `
 
-func SendAcceptEmail(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
+func (a *Activities) SendAcceptEmail(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
 	var result types.SendAcceptEmailResult
 
-	to := []string{input.Email}
 	var body bytes.Buffer
-
-	fmt.Fprintf(&body, "From: %s\n", config.CandidateSupportEmail)
 
 	t := template.Must(template.New("acceptEmail").Parse(acceptEmail))
 	err := t.Execute(&body, input)
@@ -45,7 +38,7 @@ func SendAcceptEmail(ctx context.Context, input types.SendAcceptEmailInput) (typ
 		return result, err
 	}
 
-	err = smtp.SendMail(config.SMTPServer, nil, config.CandidateSupportEmail, to, body.Bytes())
+	err = a.SendMail(config.CandidateSupportEmail, input.Email, "Background Check Request", &body)
 	if err != nil {
 		return result, err
 	}

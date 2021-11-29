@@ -16,6 +16,7 @@ import (
 func TestReturnsAcceptResponse(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
+	var a *activities.Activities
 
 	details := types.CandidateDetails{
 		FullName: "John Smith",
@@ -24,7 +25,7 @@ func TestReturnsAcceptResponse(t *testing.T) {
 		Address:  "1 Chestnut Avenue",
 	}
 
-	env.OnActivity(activities.SendAcceptEmail, mock.Anything, mock.Anything).Return(
+	env.OnActivity(a.SendAcceptEmail, mock.Anything, mock.Anything).Return(
 		func(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
 			return types.SendAcceptEmailResult{}, nil
 		},

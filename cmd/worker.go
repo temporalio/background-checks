@@ -23,6 +23,7 @@ import (
 	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/activities"
+	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/workflows"
 	"github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
@@ -59,8 +60,7 @@ to quickly create a Cobra application.`,
 		w.RegisterWorkflow(workflows.BackgroundCheck)
 		w.RegisterWorkflow(workflows.Accept)
 		w.RegisterWorkflow(workflows.EmploymentVerification)
-		w.RegisterActivity(activities.SendAcceptEmail)
-		w.RegisterActivity(activities.SendEmploymentVerificationRequestEmail)
+		w.RegisterActivity(&activities.Activities{Server: config.SMTPServer})
 		w.RegisterWorkflow(workflows.ValidateSSN)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)
 		w.RegisterWorkflow(workflows.StateCriminalSearch)

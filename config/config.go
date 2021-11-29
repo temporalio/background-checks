@@ -4,7 +4,7 @@ import "time"
 
 const (
 	TaskQueue                 = "background-checks-main"
-	SMTPServer                = "localhost:1025"
+	SMTPServer                = "lp-mailhog:1025"
 	CandidateSupportEmail     = "candidates@background-checks.local"
 	ResearcherSupportEmail    = "BackgroundChecks <researchers@background-checks.local>"
 	CandidateSupportEmailOld  = "BackgroundChecks <candidates@background-checks.local>"

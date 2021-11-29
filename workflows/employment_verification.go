@@ -5,7 +5,6 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
@@ -16,7 +15,7 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 		StartToCloseTimeout: time.Minute,
 	})
 
-	evsend := workflow.ExecuteActivity(ctx, activities.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput(input))
+	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput(input))
 	return evsend.Get(ctx, nil)
 }
 

@@ -3,17 +3,13 @@ package activities
 import (
 	"bytes"
 	"context"
-	"fmt"
-	"net/smtp"
 	"text/template"
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/types"
 )
 
-const employmentVerificationRequestEmail = `To: Researcher
-Subject: Employment Verification Request
-
+const employmentVerificationRequestEmail = `
 Hello Background Check Researcher, 
 
 Our candidate is undergoing a background check, and the next step is to verify their employment history. 
@@ -33,13 +29,10 @@ Thanks,
 Background Check System
 `
 
-func SendEmploymentVerificationRequestEmail(ctx context.Context, input types.SendEmploymentVerificationEmailInput) (types.SendAcceptEmailResult, error) {
-	var result types.SendAcceptEmailResult
+func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input types.SendEmploymentVerificationEmailInput) (types.SendEmploymentVerificationEmailResult, error) {
+	var result types.SendEmploymentVerificationEmailResult
 
-	var to = []string{config.ResearcherSupportEmail}
 	var body bytes.Buffer
-
-	fmt.Fprintf(&body, "From: %s\n", config.CandidateSupportEmail)
 
 	t := template.Must(template.New("employmentVerificationRequestEmail").Parse(employmentVerificationRequestEmail))
 	err := t.Execute(&body, input)
@@ -47,7 +40,7 @@ func SendEmploymentVerificationRequestEmail(ctx context.Context, input types.Sen
 		return result, err
 	}
 
-	err = smtp.SendMail(config.SMTPServer, nil, config.ResearcherSupportEmail, to, body.Bytes())
+	err = a.SendMail(config.ResearcherSupportEmail, "researcher@example.com", "Employment Verification Request", &body)
 	if err != nil {
 		return result, err
 	}
