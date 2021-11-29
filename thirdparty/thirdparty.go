@@ -21,7 +21,7 @@ import (
 	"log"
 	"net/http"
 
-	sdkclient "go.temporal.io/sdk/client"
+	temporalClient "go.temporal.io/sdk/client"
 
 	"github.com/gorilla/mux"
 
@@ -32,14 +32,14 @@ import (
 
 const DefaultEndpoint = "localhost:8082"
 
-var client sdkclient.Client
+var client temporalClient.Client
 
-func getClient() (sdkclient.Client, error) {
+func getClient() (temporalClient.Client, error) {
 	if client != nil {
 		return client, nil
 	}
 
-	c, err := sdkclient.NewClient(sdkclient.Options{})
+	c, err := temporalClient.NewClient(temporalClient.Options{})
 	if err != nil {
 		return nil, err
 	}

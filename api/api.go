@@ -30,7 +30,7 @@ import (
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	sdkclient "go.temporal.io/sdk/client"
+	temporalClient "go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 
 	"github.com/temporalio/background-checks/config"
@@ -43,14 +43,14 @@ import (
 
 const DefaultEndpoint = "0.0.0.0:8081"
 
-var client sdkclient.Client
+var client temporalClient.Client
 
-func getClient() (sdkclient.Client, error) {
+func getClient() (temporalClient.Client, error) {
 	if client != nil {
 		return client, nil
 	}
 
-	c, err := sdkclient.NewClient(sdkclient.Options{
+	c, err := temporalClient.NewClient(temporalClient.Options{
 		HostPort: os.Getenv("TEMPORAL_GRPC_ENDPOINT"),
 	})
 	if err != nil {
@@ -61,7 +61,7 @@ func getClient() (sdkclient.Client, error) {
 	return c, nil
 }
 
-func executeWorkflow(options sdkclient.StartWorkflowOptions, workflow interface{}, args ...interface{}) (sdkclient.WorkflowRun, error) {
+func executeWorkflow(options temporalClient.StartWorkflowOptions, workflow interface{}, args ...interface{}) (temporalClient.WorkflowRun, error) {
 	c, err := getClient()
 	if err != nil {
 		return nil, err
@@ -299,7 +299,7 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err = executeWorkflow(
-		sdkclient.StartWorkflowOptions{
+		temporalClient.StartWorkflowOptions{
 			ID: mappings.BackgroundCheckWorkflowID(input.Email),
 			SearchAttributes: map[string]interface{}{
 				"CandidateEmail": input.Email,
