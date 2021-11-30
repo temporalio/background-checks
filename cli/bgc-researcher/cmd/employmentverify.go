@@ -22,21 +22,20 @@ import (
 	"net/http"
 
 	"github.com/spf13/cobra"
+	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
 	"github.com/temporalio/background-checks/mocks"
-	"github.com/temporalio/background-checks/thirdparty"
 	"github.com/temporalio/background-checks/types"
 )
 
-// employmentverifyCmd represents the employmentverify command
 var employmentVerifyCmd = &cobra.Command{
 	Use:   "employmentverify",
 	Short: "Complete the employment verification process for a candidate",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		router := thirdparty.Router()
+		router := api.Router()
 
-		requestURL, err := router.Get("employmentverify").Host(thirdparty.DefaultEndpoint).URL("id", ID)
+		requestURL, err := router.Get("employmentverify").Host(api.DefaultEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}

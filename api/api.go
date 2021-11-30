@@ -391,6 +391,55 @@ func handleDecline(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	var input types.CandidateDetails
+	log.Println("Employment Verification ID: ", id)
+	err := json.NewDecoder(r.Body).Decode(&input)
+	if err != nil {
+		log.Println("Error: ", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St", "DOB" : "1/1/1990", "Employer" : "Acme Corp"}
+
+	var result types.EmploymentVerificationSubmissionSignal
+
+	result.CandidateDetails = input
+
+	err = signalEmploymentVerificationWorkflow(
+		mappings.EmploymentVerificationWorkflowID(id),
+		signals.EmploymentVerificationSubmission,
+		result,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	/* if verified {
+		result.CandidateDetails.EmployerVerified = verified
+		return
+	} */
+	result.EmployerVerificationComplete = true
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
+
+}
+
+func signalEmploymentVerificationWorkflow(wid string, signalName string, signalArg interface{}) error {
+	c, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
+}
+
 func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -465,6 +514,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/checks/{email}", handleCheckStatus).Name("check")
 	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
+	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
 	r.HandleFunc("/checks/{id}/accept", handleAccept).Methods("POST").Name("accept")
 	r.HandleFunc("/checks/{id}/decline", handleDecline).Methods("POST").Name("decline")
 	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")

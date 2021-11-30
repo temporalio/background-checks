@@ -16,7 +16,6 @@ limitations under the License.
 package thirdparty
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -25,8 +24,6 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -95,55 +92,6 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	id := vars["id"]
-
-	var input types.CandidateDetails
-	log.Println("Employment Verification ID: ", id)
-	err := json.NewDecoder(r.Body).Decode(&input)
-	if err != nil {
-		log.Println("Error: ", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St", "DOB" : "1/1/1990", "Employer" : "Acme Corp"}
-
-	var result types.EmploymentVerificationSubmissionSignal
-
-	result.CandidateDetails = input
-
-	err = signalWorkflow(
-		mappings.EmploymentVerificationWorkflowID(id),
-		signals.EmploymentVerificationSubmission,
-		result,
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	/* if verified {
-		result.CandidateDetails.EmployerVerified = verified
-		return
-	} */
-	result.EmployerVerificationComplete = true
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-
-}
-
-func signalWorkflow(wid string, signalName string, signalArg interface{}) error {
-	c, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
-}
-
 func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 	var input types.FederalCriminalSearchWorkflowInput
 
@@ -152,8 +100,6 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
 
 	var result types.FederalCriminalSearchWorkflowResult
 	if input.FullName == "Joe Bloggs" {
@@ -175,8 +121,6 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
-
 	var result types.StateCriminalSearchWorkflowResult
 	if input.FullName == "Joe Bloggs" {
 		crimes := []string{"Jay-walking", "Littering"}
@@ -193,7 +137,6 @@ func Router() *mux.Router {
 
 	r.HandleFunc("/ssntrace/", handleSsnTrace).Methods("POST").Name("ssntrace")
 	r.HandleFunc("/motorvehiclesearch/", handleMotorVehicleSearch).Methods("POST").Name("motorvehiclesearch")
-	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
 	r.HandleFunc("/federalcriminalsearch/", handleFederalCriminalSearch).Methods("POST").Name("federalcriminalsearch")
 	r.HandleFunc("/statecriminalsearch/", handleStateCriminalSearch).Name("statecriminalsearch")
 	return r
