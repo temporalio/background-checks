@@ -75,7 +75,7 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.FederalCriminalSearchWorkflowInput
+	var input types.FederalCriminalSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -83,7 +83,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.FederalCriminalSearchWorkflowResult
+	var result types.FederalCriminalSearchResult
 	if input.FullName == "Joe Bloggs" {
 		crimes := []string{"Money Laundering", "Pick-pocketing"}
 		result.Crimes = crimes
@@ -117,10 +117,11 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 func Router() *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/ssntrace/", handleSsnTrace).Methods("POST").Name("ssntrace")
-	r.HandleFunc("/motorvehiclesearch/", handleMotorVehicleSearch).Methods("POST").Name("motorvehiclesearch")
-	r.HandleFunc("/federalcriminalsearch/", handleFederalCriminalSearch).Methods("POST").Name("federalcriminalsearch")
-	r.HandleFunc("/statecriminalsearch/", handleStateCriminalSearch).Name("statecriminalsearch")
+	r.HandleFunc("/ssntrace", handleSsnTrace).Methods("POST")
+	r.HandleFunc("/motorvehiclesearch", handleMotorVehicleSearch).Methods("POST")
+	r.HandleFunc("/federalcriminalsearch", handleFederalCriminalSearch).Methods("POST")
+	r.HandleFunc("/statecriminalsearch", handleStateCriminalSearch).Methods("POST")
+
 	return r
 }
 

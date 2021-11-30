@@ -32,14 +32,14 @@ var listCmd = &cobra.Command{
 		router := api.Router()
 
 		requestURL, err := router.Get("checks_create").Host(APIEndpoint).URL()
+		if err != nil {
+			log.Fatalf("cannot create URL: %v", err)
+		}
+
 		query := requestURL.Query()
 		query.Set("email", email)
 		query.Set("status", status)
 		requestURL.RawQuery = query.Encode()
-
-		if err != nil {
-			log.Fatalf("cannot create URL: %v", err)
-		}
 
 		var checks []api.BackgroundCheck
 		_, err = utils.GetJSON(requestURL, &checks)

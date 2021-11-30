@@ -182,6 +182,15 @@ type FederalCriminalSearchWorkflowResult struct {
 	Crimes []string
 }
 
+type FederalCriminalSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type FederalCriminalSearchResult struct {
+	Crimes []string
+}
+
 type StateCriminalSearchWorkflowInput struct {
 	FullName string
 	Address  string
