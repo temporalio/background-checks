@@ -1,3 +1,4 @@
 docker-compose.yml
 docker-compose.override.yml
-run.sh
+run-cli
+start
