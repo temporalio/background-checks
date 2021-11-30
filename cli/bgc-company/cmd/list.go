@@ -31,7 +31,7 @@ var listCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router()
 
-		requestURL, err := router.Get("checks_create").Host(api.DefaultEndpoint).URL()
+		requestURL, err := router.Get("checks_create").Host(APIEndpoint).URL()
 		query := requestURL.Query()
 		query.Set("email", email)
 		query.Set("status", status)

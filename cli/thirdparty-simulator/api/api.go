@@ -13,37 +13,19 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package thirdparty
+package api
 
 import (
 	"encoding/json"
 	"log"
 	"net/http"
 
-	temporalClient "go.temporal.io/sdk/client"
-
 	"github.com/gorilla/mux"
 
 	"github.com/temporalio/background-checks/types"
 )
 
-const DefaultEndpoint = "localhost:8082"
-
-var client temporalClient.Client
-
-func getClient() (temporalClient.Client, error) {
-	if client != nil {
-		return client, nil
-	}
-
-	c, err := temporalClient.NewClient(temporalClient.Options{})
-	if err != nil {
-		return nil, err
-	}
-	client = c
-
-	return c, nil
-}
+const DefaultEndpoint = "0.0.0.0:8082"
 
 func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 	var input types.ValidateSSNWorkflowInput

@@ -20,15 +20,17 @@ import (
 	"os"
 	"time"
 
-	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/cobra"
-	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/config"
-	"github.com/temporalio/background-checks/workflows"
+
+	prom "github.com/prometheus/client_golang/prometheus"
 	"github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/worker"
+
+	"github.com/temporalio/background-checks/activities"
+	"github.com/temporalio/background-checks/config"
+	"github.com/temporalio/background-checks/workflows"
 )
 
 // workerCmd represents the worker command

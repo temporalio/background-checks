@@ -29,29 +29,11 @@ services:
     networks:
       - temporal-network
     ports:
-      - 8082:3000
+      - 8085:3000
     volumes:
       - type: bind
         source: ./deployment/grafana/provisioning/datasources
         target: /etc/grafana/provisioning/datasources
-  api:
-    container_name: lp-api
-    build: .
-    command: background-checks api
-    networks:
-      - temporal-network
-    ports:
-      - 8081:8081
-    environment:
-      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
-  worker:
-    container_name: lp-worker
-    build: .
-    command: background-checks worker
-    networks:
-      - temporal-network
-    environment:
-      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
   mailhog:
     container_name: lp-mailhog
     image: mailhog/mailhog:v1.0.1
@@ -60,3 +42,37 @@ services:
     ports:
       - 1025:1025
       - 8025:8025
+  api:
+    container_name: lp-api
+    build: .
+    command: bgc-backend api
+    networks:
+      - temporal-network
+    ports:
+      - 8081:8081
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+  thirdparty:
+    container_name: lp-thirdparty-api
+    build: .
+    command: thirdparty-simulator api
+    networks:
+      - temporal-network
+    ports:
+      - 8082:8082
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+  worker:
+    container_name: lp-worker
+    build: .
+    command: bgc-backend worker
+    networks:
+      - temporal-network
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+  tools:
+    container_name: lp-tools
+    build: .
+    command: tail -f /dev/null
+    networks:
+      - temporal-network

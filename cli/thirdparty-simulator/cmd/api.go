@@ -17,19 +17,19 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
+
+	"github.com/temporalio/background-checks/cli/thirdparty-simulator/api"
 )
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
-	Use:   "bgc-company",
-	Short: "Company CLI for the Background Check application",
-	CompletionOptions: cobra.CompletionOptions{
-		DisableDefaultCmd: true,
+// apiCmd represents the thirdparty command
+var apiCmd = &cobra.Command{
+	Use:   "api",
+	Short: "Starts an API server for the third party API simulator",
+	Run: func(cmd *cobra.Command, args []string) {
+		api.Run()
 	},
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
-func Execute() {
-	cobra.CheckErr(rootCmd.Execute())
+func init() {
+	rootCmd.AddCommand(apiCmd)
 }

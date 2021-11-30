@@ -34,7 +34,7 @@ var declineCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router()
 
-		requestURL, err := router.Get("decline").Host(api.DefaultEndpoint).URL("id", ID)
+		requestURL, err := router.Get("decline").Host(APIEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}

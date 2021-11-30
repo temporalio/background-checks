@@ -36,7 +36,7 @@ var acceptCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router()
 
-		requestURL, err := router.Get("accept").Host(api.DefaultEndpoint).URL("id", ID)
+		requestURL, err := router.Get("accept").Host(APIEndpoint).URL("id", ID)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}

@@ -36,7 +36,7 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router()
 
-		requestURL, err := router.Get("checks_create").Host(api.DefaultEndpoint).URL()
+		requestURL, err := router.Get("checks_create").Host(APIEndpoint).URL()
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
@@ -58,7 +58,7 @@ var startCmd = &cobra.Command{
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
 		}
 
-		fmt.Printf("Created check")
+		fmt.Printf("Created check\n")
 	},
 }
 
