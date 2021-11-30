@@ -16,11 +16,11 @@ Your potential employer has requested that we run a background check on their be
 
 Please give permission for us proceed with the check by running this command:
 
-"docker compose exec tools bgc-candidate accept --id {{.CheckID}}"
+"./run-cli bgc-candidate accept --id {{.CheckID}}"
 
 If you would rather we did not run the check you can decline by running this command:
 
-"docker compose exec tools bgc-candidate decline --id {{.CheckID}}"
+"./run-cli bgc-candidate decline --id {{.CheckID}}"
 
 Thanks,
 
