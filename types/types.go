@@ -110,6 +110,7 @@ type AcceptSubmissionSignal struct {
 }
 
 type SendEmploymentVerificationEmailInput struct {
+	Email            string
 	CandidateDetails CandidateDetails
 	CheckID          string
 }

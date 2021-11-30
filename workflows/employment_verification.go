@@ -1,6 +1,7 @@
 package workflows
 
 import (
+	"math/rand"
 	"time"
 
 	"go.temporal.io/sdk/workflow"
@@ -10,12 +11,32 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-func emailEmploymentVerificationRequest(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) error {
+func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (string, error) {
+	researchers := []string{
+		"researcher1@example.com",
+		"researcher2@example.com",
+		"researcher3@example.com",
+	}
+
+	// Here we just pick a random researcher.
+	// In a real use case you may round-robin, decide based on price or current workload,
+	// or fetch a researcher from a third party API.
+
+	researcher := researchers[rand.Intn(len(researchers))]
+
+	return researcher, nil
+}
+
+func emailEmploymentVerificationRequest(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput, email string) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
-	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput(input))
+	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput{
+		Email:            email,
+		CheckID:          input.CheckID,
+		CandidateDetails: input.CandidateDetails,
+	})
 	return evsend.Get(ctx, nil)
 }
 
@@ -31,8 +52,8 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 
 		response = types.EmploymentVerificationSubmission(submission)
 	})
-	s.AddFuture(workflow.NewTimer(ctx, config.AcceptGracePeriod), func(f workflow.Future) {
-		// Treat failure to accept in time as declining.
+	s.AddFuture(workflow.NewTimer(ctx, config.ResearchDeadline), func(f workflow.Future) {
+		// We should probably fail the (child) workflow here.
 		response.EmployerVerificationComplete = false
 	})
 
@@ -42,7 +63,12 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 }
 
 func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (types.EmploymentVerificationWorkflowResult, error) {
-	err := emailEmploymentVerificationRequest(ctx, input)
+	researcher, err := chooseResearcher(ctx, input)
+	if err != nil {
+		return types.EmploymentVerificationWorkflowResult{}, err
+	}
+
+	err = emailEmploymentVerificationRequest(ctx, input, researcher)
 	if err != nil {
 		return types.EmploymentVerificationWorkflowResult{}, err
 	}
