@@ -17,7 +17,6 @@ package api
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -84,15 +83,6 @@ func cancelWorkflow(wid string) error {
 	}
 
 	return c.CancelWorkflow(context.Background(), wid, "")
-}
-
-func completeActivity(token []byte, result interface{}, activityErr error) error {
-	c, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	return c.CompleteActivity(context.Background(), token, result, activityErr)
 }
 
 func queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
@@ -452,73 +442,19 @@ func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleCandidateStatus(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	email := vars["email"]
-
-	filters := listWorkflowFilters{
-		Email:  email,
-		Status: "pending_consent",
-	}
-
-	wfs, err := listWorkflows(filters)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	if len(wfs) == 0 {
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-
-	check, err := presentBackgroundCheck(wfs[0])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(check)
-}
-
-func handleSaveSearchResult(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
-	token, err := base64.StdEncoding.DecodeString(vars["token"])
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var result types.SearchResult
-	err = json.NewDecoder(r.Body).Decode(&result)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	err = completeActivity(token, result.Result(), nil)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-}
-
 func Router() *mux.Router {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/checks", handleCheckList).Methods("GET").Name("checks_list")
 	r.HandleFunc("/checks", handleCheckCreate).Methods("POST").Name("checks_create")
-	r.HandleFunc("/checks/{email}", handleCheckStatus).Name("check")
+	r.HandleFunc("/checks/{email}", handleCheckStatus).Methods("GET").Name("check")
 	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
-	r.HandleFunc("/checks/{email}/report", handleCheckReport).Name("check_report")
-	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
+	r.HandleFunc("/checks/{email}/report", handleCheckReport).Methods("GET").Name("check_report")
+
 	r.HandleFunc("/checks/{id}/accept", handleAccept).Methods("POST").Name("accept")
 	r.HandleFunc("/checks/{id}/decline", handleDecline).Methods("POST").Name("decline")
-	r.HandleFunc("/checks/{token}/search", handleSaveSearchResult).Methods("POST").Name("research_save")
-	r.HandleFunc("/candidate/{email}", handleCandidateStatus).Name("candidate")
+
+	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
 
 	return r
 }
@@ -528,8 +464,6 @@ func Run() {
 		Handler: Router(),
 		Addr:    DefaultEndpoint,
 	}
-
-	fmt.Printf("Listening: %s\n", DefaultEndpoint)
 
 	log.Fatal(srv.ListenAndServe())
 }
