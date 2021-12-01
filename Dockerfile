@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine
+FROM golang:1.17
 
 WORKDIR /go/src/background-checks
 
