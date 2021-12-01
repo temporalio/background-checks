@@ -91,26 +91,19 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	ssnInput := types.ValidateSSNWorkflowInput{
-		FullName: candidate.FullName,
-		Address:  candidate.Address,
-		SSN:      candidate.SSN,
-	}
-	ssnWF := workflow.ExecuteChildWorkflow(ctx, ValidateSSN, ssnInput)
-	err = ssnWF.Get(ctx, &status.Validate)
-	if err != nil {
-		return err
-	}
-
-	/* 	if !status.Validate.Valid {
-	   		return nil
-	   	}
-
-	   	if input.Package != "full" {
-	   		return nil
-	   	} */
-
 	s := workflow.NewSelector(ctx)
+
+	ssnTrace := workflow.ExecuteChildWorkflow(
+		ctx, ValidateSSN,
+		types.ValidateSSNWorkflowInput{FullName: candidate.FullName, SSN: candidate.SSN},
+	)
+
+	s.AddFuture(ssnTrace, func(f workflow.Future) {
+		err := f.Get(ctx, &status.ValidateSSN)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Social Security Number Trace: %v", err))
+		}
+	})
 
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,

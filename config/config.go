@@ -10,4 +10,5 @@ const (
 	ResearcherSupportEmail = "BackgroundChecks <researchers@background-checks.local>"
 	AcceptGracePeriod      = time.Hour * 24 * 7
 	ResearchDeadline       = time.Hour * 24 * 7
+	ThirdPartyAPIEndpoint  = "lp-thirdparty-api:8082"
 )

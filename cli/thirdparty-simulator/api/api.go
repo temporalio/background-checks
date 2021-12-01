@@ -36,12 +36,14 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Test Input - {"SSN" : "123-45-6789", "Address" : "123 Main St", "FullName" : "Joe Bloggs"}
-
 	var result types.ValidateSSNWorkflowResult
-	result.Valid = false
-	if input.SSN == "123-45-6789" {
-		result.Valid = true
+	if input.SSN == "111-11-1111" {
+		Addresses := []string{
+			"123 Broadway, New York, NY 10011",
+			"500 Market Street, San Francisco, CA 94110",
+			"111 Dearborn Ave, Detroit, MI 44014",
+		}
+		result.KnownAddresses = Addresses
 	}
 
 	w.Header().Set("Content-Type", "application/json")

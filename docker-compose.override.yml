@@ -63,7 +63,7 @@ services:
     environment:
       - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
   worker:
-    container_name: lp-worker
+    container_name: lp-worker 
     build: .
     command: bgc-backend worker
     networks:

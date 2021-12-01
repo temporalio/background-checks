@@ -65,7 +65,7 @@ type BackgroundCheckState struct {
 	Tier                       string
 	Accepted                   bool
 	CandidateDetails           CandidateDetails
-	Validate                   ValidateSSNWorkflowResult
+	ValidateSSN                ValidateSSNWorkflowResult
 	EmploymentVerification     EmploymentVerificationWorkflowResult
 	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
 	StateCriminalSearch        StateCriminalSearchWorkflowResult
@@ -163,14 +163,28 @@ func (r ResearcherTodo) Input() interface{} {
 	return nil
 }
 
+type SSNTraceInput struct {
+	FullName string
+	SSN      string
+}
 type ValidateSSNWorkflowInput struct {
 	FullName string
-	Address  string
 	SSN      string
 }
 
+type KnownAddress struct {
+	Address string
+	City    string
+	State   string
+	ZipCode string
+}
+
 type ValidateSSNWorkflowResult struct {
-	Valid bool
+	KnownAddresses []string
+}
+
+type SSNTraceResult struct {
+	KnownAddresses []string
 }
 
 type FederalCriminalSearchWorkflowInput struct {
