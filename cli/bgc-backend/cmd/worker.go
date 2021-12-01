@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"log"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -30,22 +29,16 @@ import (
 
 	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/config"
+	"github.com/temporalio/background-checks/temporal"
 	"github.com/temporalio/background-checks/workflows"
 )
 
 // workerCmd represents the worker command
 var workerCmd = &cobra.Command{
 	Use:   "worker",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Run worker",
 	Run: func(cmd *cobra.Command, args []string) {
-		c, err := client.NewClient(client.Options{
-			HostPort: os.Getenv("TEMPORAL_GRPC_ENDPOINT"),
+		c, err := temporal.NewClient(client.Options{
 			MetricsScope: newPrometheusScope(prometheus.Configuration{
 				ListenAddress: "0.0.0.0:9090",
 				TimerType:     "histogram",
@@ -114,7 +107,6 @@ func newPrometheusScope(c prometheus.Configuration) tally.Scope {
 	}
 	scope, _ := tally.NewRootScope(scopeOpts, time.Second)
 
-	log.Println("prometheus metrics scope created")
 	return scope
 }
 

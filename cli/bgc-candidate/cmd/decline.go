@@ -32,7 +32,7 @@ var declineCmd = &cobra.Command{
 	Short: "Decline a background check",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		router := api.Router()
+		router := api.Router(nil)
 
 		requestURL, err := router.Get("decline").Host(APIEndpoint).URL("id", ID)
 		if err != nil {

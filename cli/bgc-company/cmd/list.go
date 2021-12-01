@@ -29,7 +29,7 @@ var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List background checks",
 	Run: func(cmd *cobra.Command, args []string) {
-		router := api.Router()
+		router := api.Router(nil)
 
 		requestURL, err := router.Get("checks_create").Host(APIEndpoint).URL()
 		if err != nil {

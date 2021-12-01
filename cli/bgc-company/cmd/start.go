@@ -34,7 +34,7 @@ var startCmd = &cobra.Command{
 	Short: "starts a background check for a candidate",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		router := api.Router()
+		router := api.Router(nil)
 
 		requestURL, err := router.Get("checks_create").Host(APIEndpoint).URL()
 		if err != nil {

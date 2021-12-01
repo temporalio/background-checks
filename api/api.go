@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	"github.com/gorilla/mux"
@@ -29,7 +28,7 @@ import (
 	"go.temporal.io/api/enums/v1"
 	workflowpb "go.temporal.io/api/workflow/v1"
 	"go.temporal.io/api/workflowservice/v1"
-	temporalClient "go.temporal.io/sdk/client"
+	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 
 	"github.com/temporalio/background-checks/config"
@@ -40,35 +39,14 @@ import (
 	"github.com/temporalio/background-checks/workflows"
 )
 
-const DefaultEndpoint = "0.0.0.0:8081"
-
-var client temporalClient.Client
-
-func getClient() (temporalClient.Client, error) {
-	if client != nil {
-		return client, nil
-	}
-
-	c, err := temporalClient.NewClient(temporalClient.Options{
-		HostPort: os.Getenv("TEMPORAL_GRPC_ENDPOINT"),
-	})
-	if err != nil {
-		return nil, err
-	}
-	client = c
-
-	return c, nil
+type handlers struct {
+	temporalClient client.Client
 }
 
-func executeWorkflow(options temporalClient.StartWorkflowOptions, workflow interface{}, args ...interface{}) (temporalClient.WorkflowRun, error) {
-	c, err := getClient()
-	if err != nil {
-		return nil, err
-	}
-
+func (h *handlers) executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, args ...interface{}) (client.WorkflowRun, error) {
 	options.TaskQueue = config.TaskQueue
 
-	return c.ExecuteWorkflow(
+	return h.temporalClient.ExecuteWorkflow(
 		context.Background(),
 		options,
 		workflows.BackgroundCheck,
@@ -76,22 +54,12 @@ func executeWorkflow(options temporalClient.StartWorkflowOptions, workflow inter
 	)
 }
 
-func cancelWorkflow(wid string) error {
-	c, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	return c.CancelWorkflow(context.Background(), wid, "")
+func (h *handlers) cancelWorkflow(wid string) error {
+	return h.temporalClient.CancelWorkflow(context.Background(), wid, "")
 }
 
-func queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
-	c, err := getClient()
-	if err != nil {
-		return nil, err
-	}
-
-	return c.QueryWorkflow(
+func (h *handlers) queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
+	return h.temporalClient.QueryWorkflow(
 		context.Background(),
 		wid,
 		"",
@@ -100,13 +68,8 @@ func queryWorkflow(wid string, queryType string, args ...interface{}) (converter
 	)
 }
 
-func signalWorkflow(wid string, signalName string, signalArg interface{}) error {
-	c, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
+func (h *handlers) signalWorkflow(wid string, signalName string, signalArg interface{}) error {
+	return h.temporalClient.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
 }
 
 func getBackgroundCheckCandidateEmail(we *workflowpb.WorkflowExecutionInfo) (string, error) {
@@ -219,14 +182,9 @@ func statusQuery(status string) (string, error) {
 	}
 }
 
-func listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecutionInfo, error) {
+func (h *handlers) listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	var executions []*workflowpb.WorkflowExecutionInfo
 	var nextPageToken []byte
-
-	c, err := getClient()
-	if err != nil {
-		return executions, err
-	}
 
 	ctx := context.Background()
 
@@ -236,7 +194,7 @@ func listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecution
 	}
 
 	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
-		resp, err := c.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
+		resp, err := h.temporalClient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
 			PageSize:      10,
 			NextPageToken: nextPageToken,
 			Query:         query,
@@ -252,7 +210,7 @@ func listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecution
 	return executions, nil
 }
 
-func handleCheckList(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleCheckList(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	filters := listWorkflowFilters{
@@ -260,7 +218,7 @@ func handleCheckList(w http.ResponseWriter, r *http.Request) {
 		Status: query.Get("status"),
 	}
 
-	wfs, err := listWorkflows(filters)
+	wfs, err := h.listWorkflows(filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -279,7 +237,7 @@ func handleCheckList(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(checks)
 }
 
-func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	var input types.BackgroundCheckWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
@@ -288,8 +246,8 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = executeWorkflow(
-		temporalClient.StartWorkflowOptions{
+	_, err = h.executeWorkflow(
+		client.StartWorkflowOptions{
 			ID: mappings.BackgroundCheckWorkflowID(input.Email),
 			SearchAttributes: map[string]interface{}{
 				"CandidateEmail": input.Email,
@@ -308,12 +266,12 @@ func handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
-func handleCheckStatus(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
 
-	v, err := queryWorkflow(
+	v, err := h.queryWorkflow(
 		mappings.BackgroundCheckWorkflowID(email),
 		queries.BackgroundCheckStatus,
 	)
@@ -333,10 +291,10 @@ func handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-func handleCheckReport(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleCheckReport(w http.ResponseWriter, r *http.Request) {
 }
 
-func handleAccept(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id := vars["id"]
@@ -350,7 +308,7 @@ func handleAccept(w http.ResponseWriter, r *http.Request) {
 	}
 	result.Accepted = true
 
-	err = signalWorkflow(
+	err = h.signalWorkflow(
 		mappings.AcceptWorkflowID(id),
 		signals.AcceptSubmission,
 		result,
@@ -361,7 +319,7 @@ func handleAccept(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleDecline(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id := vars["id"]
@@ -370,7 +328,7 @@ func handleDecline(w http.ResponseWriter, r *http.Request) {
 		Accepted: false,
 	}
 
-	err := signalWorkflow(
+	err := h.signalWorkflow(
 		mappings.AcceptWorkflowID(id),
 		signals.AcceptSubmission,
 		result,
@@ -381,7 +339,7 @@ func handleDecline(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -400,7 +358,7 @@ func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 
 	result.CandidateDetails = input
 
-	err = signalEmploymentVerificationWorkflow(
+	err = h.signalEmploymentVerificationWorkflow(
 		mappings.EmploymentVerificationWorkflowID(id),
 		signals.EmploymentVerificationSubmission,
 		result,
@@ -421,49 +379,37 @@ func handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func signalEmploymentVerificationWorkflow(wid string, signalName string, signalArg interface{}) error {
-	c, err := getClient()
-	if err != nil {
-		return err
-	}
-
-	return c.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
+func (h *handlers) signalEmploymentVerificationWorkflow(wid string, signalName string, signalArg interface{}) error {
+	return h.temporalClient.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
 }
 
-func handleCheckCancel(w http.ResponseWriter, r *http.Request) {
+func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	id := vars["id"]
 
-	err := cancelWorkflow(id)
+	err := h.cancelWorkflow(id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 }
 
-func Router() *mux.Router {
+func Router(c client.Client) *mux.Router {
 	r := mux.NewRouter()
 
-	r.HandleFunc("/checks", handleCheckList).Methods("GET").Name("checks_list")
-	r.HandleFunc("/checks", handleCheckCreate).Methods("POST").Name("checks_create")
-	r.HandleFunc("/checks/{email}", handleCheckStatus).Methods("GET").Name("check")
-	r.HandleFunc("/checks/{email}/cancel", handleCheckCancel).Methods("POST").Name("check_cancel")
-	r.HandleFunc("/checks/{email}/report", handleCheckReport).Methods("GET").Name("check_report")
+	h := handlers{temporalClient: c}
 
-	r.HandleFunc("/checks/{id}/accept", handleAccept).Methods("POST").Name("accept")
-	r.HandleFunc("/checks/{id}/decline", handleDecline).Methods("POST").Name("decline")
+	r.HandleFunc("/checks", h.handleCheckList).Methods("GET").Name("checks_list")
+	r.HandleFunc("/checks", h.handleCheckCreate).Methods("POST").Name("checks_create")
+	r.HandleFunc("/checks/{email}", h.handleCheckStatus).Methods("GET").Name("check")
+	r.HandleFunc("/checks/{email}/cancel", h.handleCheckCancel).Methods("POST").Name("check_cancel")
+	r.HandleFunc("/checks/{email}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
-	r.HandleFunc("/employmentverify/{id}/employmentverify", handleEmploymentVerification).Name("employmentverify")
+	r.HandleFunc("/checks/{id}/accept", h.handleAccept).Methods("POST").Name("accept")
+	r.HandleFunc("/checks/{id}/decline", h.handleDecline).Methods("POST").Name("decline")
+
+	r.HandleFunc("/employmentverify/{id}/employmentverify", h.handleEmploymentVerification).Name("employmentverify")
 
 	return r
-}
-
-func Run() {
-	srv := &http.Server{
-		Handler: Router(),
-		Addr:    DefaultEndpoint,
-	}
-
-	log.Fatal(srv.ListenAndServe())
 }

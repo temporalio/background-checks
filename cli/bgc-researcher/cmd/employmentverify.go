@@ -33,7 +33,7 @@ var employmentVerifyCmd = &cobra.Command{
 	Short: "Complete the employment verification process for a candidate",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		router := api.Router()
+		router := api.Router(nil)
 
 		requestURL, err := router.Get("employmentverify").Host(APIEndpoint).URL("id", ID)
 		if err != nil {
