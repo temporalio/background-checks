@@ -10,6 +10,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
+// @@@SNIPSTART background-checks-candidate-accept-email-candidate
 func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -18,7 +19,9 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 	f := workflow.ExecuteActivity(ctx, a.SendAcceptEmail, types.SendAcceptEmailInput(input))
 	return f.Get(ctx, nil)
 }
+// @@@SNIPEND
 
+// @@@SNIPSTART background-checks-candidate-accept-wait-for-submission
 func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
 	var response types.AcceptSubmission
 
@@ -40,7 +43,9 @@ func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
 
 	return response
 }
+// @@@SNIPEND
 
+// @@@SNIPSTART background-checks-candidate-accept-workflow-definition
 func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
 	err := emailCandidate(ctx, input)
 	if err != nil {
@@ -51,3 +56,4 @@ func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.Accept
 
 	return types.AcceptWorkflowResult(submission), nil
 }
+// @@@SNIPEND
