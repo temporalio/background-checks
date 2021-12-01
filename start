@@ -10,12 +10,12 @@ echo
 echo " * Checking for custom search attributes..."
 echo
 
-until docker compose exec temporal-admin-tools tctl admin cluster add-search-attributes --name CandidateEmail --type Text > /dev/null 2>&1 ; do 
+until docker compose exec tools tctl admin cluster add-search-attributes --name CandidateEmail --type Text > /dev/null 2>&1 ; do 
     echo "Waiting for Temporal Frontend to be up"
     sleep 1
 done
 
-until docker compose exec temporal-admin-tools tctl admin cluster add-search-attributes --name BackgroundCheckStatus --type keyword > /dev/null 2>&1 ; do
+until docker compose exec tools tctl admin cluster add-search-attributes --name BackgroundCheckStatus --type keyword > /dev/null 2>&1 ; do
     echo "Waiting for Temporal Frontend to be up"
     sleep 1
 done

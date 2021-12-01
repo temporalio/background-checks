@@ -76,3 +76,5 @@ services:
     command: tail -f /dev/null
     networks:
       - temporal-network
+    environment:
+      - TEMPORAL_CLI_ADDRESS=lp-temporal:7233
