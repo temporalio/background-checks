@@ -21,10 +21,10 @@ until docker compose exec tools tctl --auto_confirm admin cluster add-search-att
 done
 
 echo
-echo " * Ensuring all services are running (the worker may have died if Temporal wasn't quite ready yet...)"
+echo " * Restarting worker (it may have died if Temporal wasn't quite ready yet...)"
 echo
 
-docker compose up --build -d
+docker compose up -d worker
 
 echo
 echo " * All services are up"
@@ -36,7 +36,7 @@ echo
 echo "The following URLs are available to explore the sytem:"
 echo
 echo -e "\tTemporal Web:"
-echo -e "\t\thttp://localhost:8088/"
+echo -e "\t\thttp://localhost:8088/data-converter/8086"
 echo -e "\tMail Server (mailhog):"
 echo -e "\t\thttp://localhost:8025/"
 echo -e "\tGrafana:"

@@ -78,3 +78,14 @@ services:
       - temporal-network
     environment:
       - TEMPORAL_CLI_ADDRESS=lp-temporal:7233
+  dataconverter:
+    container_name: lp-dataconverter
+    build: .
+    command:
+      bash -c "tctl dc web --web_ui_url http://localhost:8088 | stdbuf -oL grep /data-converter/ | stdbuf -oL cut -d / -f 5 | xargs -i socat tcp-listen:8086,fork,reuseaddr tcp:127.0.0.1:{}"
+    networks:
+      - temporal-network
+    ports:
+      - 8086:8086
+    environment:
+      - TEMPORAL_CLI_ADDRESS=lp-temporal:7233

@@ -2,6 +2,8 @@ FROM golang:1.17 AS base
 
 WORKDIR /go/src/background-checks
 
+RUN apt-get update && apt-get install -y socat && rm -rf /var/lib/apt/lists/*
+
 COPY --from=temporalio/admin-tools /usr/local/bin/tctl /usr/local/bin/tctl
 
 COPY go.mod go.sum ./
