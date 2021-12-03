@@ -79,8 +79,8 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	candidate := c.CandidateDetails
-	status.CandidateDetails = candidate
+	status.CandidateDetails = c.CandidateDetails
+	status.Accepted = c.Accepted
 
 	if !c.Accepted {
 		return updateStatus(ctx, types.BackgroundCheckStatusDeclined)
@@ -93,7 +93,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	ssnTrace := workflow.ExecuteChildWorkflow(
 		ctx, ValidateSSN,
-		types.ValidateSSNWorkflowInput{FullName: candidate.FullName, SSN: candidate.SSN},
+		types.ValidateSSNWorkflowInput{FullName: status.CandidateDetails.FullName, SSN: status.CandidateDetails.SSN},
 	)
 
 	err = ssnTrace.Get(ctx, &status.ValidateSSN)
@@ -101,54 +101,63 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
+	logger.Info(fmt.Sprintf("ssn trace: %v", status.ValidateSSN))
+
 	s := workflow.NewSelector(ctx)
 
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		FederalCriminalSearch,
-		types.FederalCriminalSearchWorkflowInput{FullName: candidate.FullName, Address: candidate.Address},
+		types.FederalCriminalSearchWorkflowInput{FullName: status.CandidateDetails.FullName, Address: status.CandidateDetails.Address},
 	)
 	s.AddFuture(federalCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.FederalCriminalSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("federal criminal search: %v", err))
 		}
+		logger.Info(fmt.Sprintf("Federal Search: %v", status.FederalCriminalSearch))
 	})
+
+	/* State check will iterate over array of Known Addresses
+	 */
 
 	stateCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		StateCriminalSearch,
-		types.StateCriminalSearchWorkflowInput{FullName: candidate.FullName, Address: candidate.Address},
+		types.StateCriminalSearchWorkflowInput{FullName: status.CandidateDetails.FullName, SSNTraceResult: status.ValidateSSN.KnownAddresses},
 	)
 	s.AddFuture(stateCriminalSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.StateCriminalSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("state criminal search: %v", err))
 		}
+		logger.Info(fmt.Sprintf("State Search: %v", status.FederalCriminalSearch))
 	})
 
 	motorVehicleIncidentSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		MotorVehicleIncidentSearch,
-		types.MotorVehicleIncidentSearchWorkflowInput{FullName: candidate.FullName, Address: candidate.Address},
+		types.MotorVehicleIncidentSearchWorkflowInput{FullName: status.CandidateDetails.FullName, Address: status.CandidateDetails.Address},
 	)
 	s.AddFuture(motorVehicleIncidentSearch, func(f workflow.Future) {
 		err := f.Get(ctx, &status.MotorVehicleIncidentSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("motor vehicle incident search: %v", err))
 		}
+		logger.Info(fmt.Sprintf("Motor Vehicle Search: %v", status.MotorVehicleIncidentSearch))
 	})
 
 	// Employment Verification
 
-	ev, err := waitForEmploymentVerification(ctx, candidate)
+	ev, err := waitForEmploymentVerification(ctx, status.CandidateDetails)
 	if err != nil {
 		return err
 	}
 
 	if ev.EmployerVerificationComplete {
-		candidate.EmployerVerified = ev.CandidateDetails.EmployerVerified
+		status.EmploymentVerification = ev
 	}
+	logger.Info(fmt.Sprintf("Employment Verification: %v", status.EmploymentVerification))
 
 	checks := []workflow.ChildWorkflowFuture{
 		federalCriminalSearch,

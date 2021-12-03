@@ -3,7 +3,6 @@ module github.com/temporalio/background-checks
 go 1.16
 
 require (
-	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/go-plugin v1.4.3
 	github.com/prometheus/client_golang v1.11.0

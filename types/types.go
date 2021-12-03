@@ -206,12 +206,22 @@ type FederalCriminalSearchResult struct {
 }
 
 type StateCriminalSearchWorkflowInput struct {
-	FullName string
-	Address  string
+	FullName       string
+	SSNTraceResult []string
 }
 
 type StateCriminalSearchWorkflowResult struct {
 	Crimes []string
+}
+type StateCriminalSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type StateCriminalSearchResult struct {
+	FullName string
+	Address  string
+	Crimes   []string
 }
 
 type MotorVehicleIncidentSearchWorkflowInput struct {

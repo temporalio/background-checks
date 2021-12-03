@@ -64,7 +64,7 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 
 	var result types.MotorVehicleIncidentSearchWorkflowResult
 	result.LicenseValid = false
-	if input.FullName == "Joe Bloggs" {
+	if input.FullName == "John Smith" {
 		result.LicenseValid = true
 		result.CurrentLicenseState = "CA"
 		incident := []string{"License Revoked 12/1/2020"}
@@ -86,7 +86,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result types.FederalCriminalSearchResult
-	if input.FullName == "Joe Bloggs" {
+	if input.FullName == "John Smith" {
 		crimes := []string{"Money Laundering", "Pick-pocketing"}
 		result.Crimes = crimes
 	}
@@ -97,7 +97,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.StateCriminalSearchWorkflowInput
+	var input types.StateCriminalSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -105,8 +105,11 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.StateCriminalSearchWorkflowResult
-	if input.FullName == "Joe Bloggs" {
+	var result types.StateCriminalSearchResult
+	result.FullName = input.FullName
+	result.Address = input.Address
+
+	if input.Address == "500 Market Street, San Francisco, CA 94110" && input.FullName == "John Smith" {
 		crimes := []string{"Jay-walking", "Littering"}
 		result.Crimes = crimes
 	}
