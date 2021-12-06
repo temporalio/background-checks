@@ -52,6 +52,7 @@ func waitForEmploymentVerification(ctx workflow.Context, candidate types.Candida
 	return r, err
 }
 
+// @@@SNIPSTART background-checks-main-background-check-workflow-definition
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	email := input.Email
 
@@ -171,3 +172,4 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	return updateStatus(ctx, types.BackgroundCheckStatusCompleted)
 }
+// @@@SNIPEND
