@@ -86,8 +86,14 @@ type SendAcceptEmailInput struct {
 	CheckID string
 }
 
-type SendAcceptEmailResult struct {
+type SendAcceptEmailResult struct{}
+
+type SendReportEmailInput struct {
+	Email string
+	State BackgroundCheckState
 }
+
+type SendReportEmailResult struct{}
 
 type AcceptWorkflowInput struct {
 	Email   string

@@ -9,11 +9,6 @@ import (
 	"github.com/temporalio/background-checks/config"
 )
 
-type Activities struct {
-	Server string
-	Auth   smtp.Auth
-}
-
 func (a *Activities) SendMail(from string, to string, subject string, body io.Reader) error {
 	var b bytes.Buffer
 
@@ -24,5 +19,5 @@ func (a *Activities) SendMail(from string, to string, subject string, body io.Re
 		return err
 	}
 
-	return smtp.SendMail(a.Server, a.Auth, config.CandidateSupportEmail, []string{to}, b.Bytes())
+	return smtp.SendMail(a.SMTPServer, a.SMTPAuth, config.CandidateSupportEmail, []string{to}, b.Bytes())
 }

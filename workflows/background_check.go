@@ -2,7 +2,9 @@ package workflows
 
 import (
 	"fmt"
+	"time"
 
+	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/types"
@@ -55,7 +57,9 @@ func waitForEmploymentVerification(ctx workflow.Context, candidate types.Candida
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	email := input.Email
 
-	status := types.BackgroundCheckState{
+	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
+
+	state := types.BackgroundCheckState{
 		Email: email,
 		Tier:  input.Package,
 	}
@@ -63,7 +67,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	logger := workflow.GetLogger(ctx)
 
 	err := workflow.SetQueryHandler(ctx, queries.BackgroundCheckStatus, func() (types.BackgroundCheckState, error) {
-		return status, nil
+		return state, nil
 	})
 	if err != nil {
 		return err
@@ -79,8 +83,8 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	status.CandidateDetails = c.CandidateDetails
-	status.Accepted = c.Accepted
+	state.CandidateDetails = c.CandidateDetails
+	state.Accepted = c.Accepted
 
 	if !c.Accepted {
 		return updateStatus(ctx, types.BackgroundCheckStatusDeclined)
@@ -92,30 +96,31 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	}
 
 	ssnTrace := workflow.ExecuteChildWorkflow(
-		ctx, ValidateSSN,
-		types.ValidateSSNWorkflowInput{FullName: status.CandidateDetails.FullName, SSN: status.CandidateDetails.SSN},
+		ctx,
+		ValidateSSN,
+		types.ValidateSSNWorkflowInput{FullName: state.CandidateDetails.FullName, SSN: state.CandidateDetails.SSN},
 	)
 
-	err = ssnTrace.Get(ctx, &status.ValidateSSN)
+	err = ssnTrace.Get(ctx, &state.ValidateSSN)
 	if err != nil {
 		return err
 	}
 
-	logger.Info(fmt.Sprintf("ssn trace: %v", status.ValidateSSN))
+	logger.Info(fmt.Sprintf("ssn trace: %v", state.ValidateSSN))
 
 	s := workflow.NewSelector(ctx)
 
 	federalCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		FederalCriminalSearch,
-		types.FederalCriminalSearchWorkflowInput{FullName: status.CandidateDetails.FullName, Address: status.CandidateDetails.Address},
+		types.FederalCriminalSearchWorkflowInput{FullName: state.CandidateDetails.FullName, Address: state.CandidateDetails.Address},
 	)
 	s.AddFuture(federalCriminalSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &status.FederalCriminalSearch)
+		err := f.Get(ctx, &state.FederalCriminalSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("federal criminal search: %v", err))
 		}
-		logger.Info(fmt.Sprintf("Federal Search: %v", status.FederalCriminalSearch))
+		logger.Info(fmt.Sprintf("Federal Search: %v", state.FederalCriminalSearch))
 	})
 
 	/* State check will iterate over array of Known Addresses
@@ -124,50 +129,63 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	stateCriminalSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		StateCriminalSearch,
-		types.StateCriminalSearchWorkflowInput{FullName: status.CandidateDetails.FullName, SSNTraceResult: status.ValidateSSN.KnownAddresses},
+		types.StateCriminalSearchWorkflowInput{FullName: state.CandidateDetails.FullName, SSNTraceResult: state.ValidateSSN.KnownAddresses},
 	)
 	s.AddFuture(stateCriminalSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &status.StateCriminalSearch)
+		err := f.Get(ctx, &state.StateCriminalSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("state criminal search: %v", err))
 		}
-		logger.Info(fmt.Sprintf("State Search: %v", status.FederalCriminalSearch))
+		logger.Info(fmt.Sprintf("State Search: %v", state.StateCriminalSearch))
 	})
 
 	motorVehicleIncidentSearch := workflow.ExecuteChildWorkflow(
 		ctx,
 		MotorVehicleIncidentSearch,
-		types.MotorVehicleIncidentSearchWorkflowInput{FullName: status.CandidateDetails.FullName, Address: status.CandidateDetails.Address},
+		types.MotorVehicleIncidentSearchWorkflowInput{FullName: state.CandidateDetails.FullName, Address: state.CandidateDetails.Address},
 	)
 	s.AddFuture(motorVehicleIncidentSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &status.MotorVehicleIncidentSearch)
+		err := f.Get(ctx, &state.MotorVehicleIncidentSearch)
 		if err != nil {
 			logger.Error(fmt.Sprintf("motor vehicle incident search: %v", err))
 		}
-		logger.Info(fmt.Sprintf("Motor Vehicle Search: %v", status.MotorVehicleIncidentSearch))
+		logger.Info(fmt.Sprintf("Motor Vehicle Search: %v", state.MotorVehicleIncidentSearch))
 	})
 
 	// Employment Verification
 
-	ev, err := waitForEmploymentVerification(ctx, status.CandidateDetails)
-	if err != nil {
-		return err
-	}
-
-	if ev.EmployerVerificationComplete {
-		status.EmploymentVerification = ev
-	}
-	logger.Info(fmt.Sprintf("Employment Verification: %v", status.EmploymentVerification))
+	employmentVerification := workflow.ExecuteChildWorkflow(
+		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+			WorkflowID: mappings.EmploymentVerificationWorkflowID(checkID),
+		}),
+		EmploymentVerification,
+		types.EmploymentVerificationWorkflowInput{CandidateDetails: state.CandidateDetails, CheckID: checkID},
+	)
+	s.AddFuture(employmentVerification, func(f workflow.Future) {
+		err := f.Get(ctx, &state.EmploymentVerification)
+		if err != nil {
+			logger.Error(fmt.Sprintf("employment verification: %v", err))
+		}
+		logger.Info(fmt.Sprintf("Employment Verification: %v", state.EmploymentVerification))
+	})
 
 	checks := []workflow.ChildWorkflowFuture{
 		federalCriminalSearch,
 		stateCriminalSearch,
 		motorVehicleIncidentSearch,
+		employmentVerification,
 	}
 
 	for i := 0; i < len(checks); i++ {
 		s.Select(ctx)
 	}
 
-	return updateStatus(ctx, types.BackgroundCheckStatusCompleted)
+	updateStatus(ctx, types.BackgroundCheckStatusCompleted)
+
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute,
+	})
+
+	f := workflow.ExecuteActivity(ctx, a.SendReportEmail, types.SendReportEmailInput{Email: config.HiringManagerEmail, State: state})
+	return f.Get(ctx, nil)
 }
