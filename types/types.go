@@ -144,31 +144,6 @@ type EmploymentVerificationSubmissionSignal struct {
 	EmployerVerificationComplete bool
 }
 
-type ResearcherWorkflowInput struct {
-	Email string
-}
-
-type ResearcherTodo struct {
-	Token                           string
-	Type                            string
-	FederalCriminalSearchInput      FederalCriminalSearchWorkflowInput
-	StateCriminalSearchInput        StateCriminalSearchWorkflowInput
-	MotorVehicleIncidentSearchInput MotorVehicleIncidentSearchWorkflowInput
-}
-
-func (r ResearcherTodo) Input() interface{} {
-	switch r.Type {
-	case "FederalCriminalSearch":
-		return r.FederalCriminalSearchInput
-	case "StateCriminalSearch":
-		return r.StateCriminalSearchInput
-	case "MotorVehicleIncidentSearch":
-		return r.MotorVehicleIncidentSearchInput
-	}
-
-	return nil
-}
-
 type SSNTraceInput struct {
 	FullName string
 	SSN      string
@@ -239,24 +214,4 @@ type MotorVehicleIncidentSearchWorkflowResult struct {
 	CurrentLicenseState   string
 	LicenseValid          bool
 	MotorVehicleIncidents []string
-}
-
-type SearchResult struct {
-	Type                             string
-	FederalCriminalSearchResult      FederalCriminalSearchWorkflowResult
-	StateCriminalSearchResult        StateCriminalSearchWorkflowResult
-	MotorVehicleIncidentSearchResult MotorVehicleIncidentSearchWorkflowResult
-}
-
-func (r SearchResult) Result() interface{} {
-	switch r.Type {
-	case "FederalCriminalSearch":
-		return r.FederalCriminalSearchResult
-	case "StateCriminalSearch":
-		return r.StateCriminalSearchResult
-	case "MotorVehicleIncidentSearch":
-		return r.MotorVehicleIncidentSearchResult
-	}
-
-	return nil
 }
