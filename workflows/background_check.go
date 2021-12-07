@@ -37,23 +37,6 @@ func waitForAccept(ctx workflow.Context, email string) (types.AcceptSubmission, 
 	return r, err
 }
 
-func waitForEmploymentVerification(ctx workflow.Context, candidate types.CandidateDetails) (types.EmploymentVerificationWorkflowResult, error) {
-	var r types.EmploymentVerificationWorkflowResult
-
-	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
-
-	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.EmploymentVerificationWorkflowID(checkID),
-	})
-	employmentVerificationWF := workflow.ExecuteChildWorkflow(ctx, EmploymentVerification, types.EmploymentVerificationWorkflowInput{
-		CandidateDetails: candidate,
-		CheckID:          checkID,
-	})
-	err := employmentVerificationWF.Get(ctx, &r)
-
-	return r, err
-}
-
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	email := input.Email
 
