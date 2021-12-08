@@ -161,10 +161,12 @@ type KnownAddress struct {
 }
 
 type ValidateSSNWorkflowResult struct {
+	SSNIsValid     bool
 	KnownAddresses []string
 }
 
 type SSNTraceResult struct {
+	SSNIsValid     bool
 	KnownAddresses []string
 }
 

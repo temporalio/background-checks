@@ -43,6 +43,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 			"500 Market Street, San Francisco, CA 94110",
 			"111 Dearborn Ave, Detroit, MI 44014",
 		}
+		result.SSNIsValid = true
 		result.KnownAddresses = Addresses
 	}
 
