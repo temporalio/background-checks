@@ -39,6 +39,9 @@ Incidents:
 None found.
 {{end}}
 
+Employment Verification:
+{{if .State.EmploymentVerification.EmployerVerified}}Verified Employer: {{.State.CandidateDetails.Employer}}{{else}}**Employer could not be verified**{{end}}
+
 Thanks,
 
 Background Check System

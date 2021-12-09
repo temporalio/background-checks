@@ -12,9 +12,12 @@ import (
 const employmentVerificationRequestEmail = `
 Hello Background Check Researcher, 
 
-Our candidate is undergoing a background check, and the next step is to verify their employment history. 
+Our candidate {{.CandidateDetails.FullName}} is undergoing a background check, and the next step is to verify their employment history. 
 
 Please reach out to their company and confirm whether they are currently employed. 
+
+Candidate Name: {{.CandidateDetails.FullName}}
+Employer: {{.CandidateDetails.Employer}}
 
 When you have completed this step, respond by updating the Background Check using the instructions below:
 
