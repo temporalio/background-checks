@@ -14,6 +14,13 @@ Your background check for: {{.State.CandidateDetails.FullName}} <{{.State.Email}
 
 The results are as follows:
 
+Employment Verification:
+{{if .State.EmploymentVerification.EmploymentVerificationComplete}}
+Verified: {{if .State.EmploymentVerification.EmployerVerified}}Yes{{else}}No{{end}}
+{{else}}
+Not completed.
+{{end}}
+
 Federal Criminal Search:
 {{range .State.FederalCriminalSearch.Crimes}}
 - {{.}}
