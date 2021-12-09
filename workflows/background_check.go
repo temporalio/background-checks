@@ -38,16 +38,10 @@ func waitForAccept(ctx workflow.Context, email string) (types.AcceptSubmission, 
 }
 
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
-	email := input.Email
-
-	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
-
 	state := types.BackgroundCheckState{
-		Email: email,
+		Email: input.Email,
 		Tier:  input.Package,
 	}
-
-	logger := workflow.GetLogger(ctx)
 
 	err := workflow.SetQueryHandler(ctx, queries.BackgroundCheckStatus, func() (types.BackgroundCheckState, error) {
 		return state, nil
@@ -55,6 +49,8 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	if err != nil {
 		return err
 	}
+
+	logger := workflow.GetLogger(ctx)
 
 	err = updateStatus(ctx, types.BackgroundCheckStatusPendingAccept)
 	if err != nil {
@@ -70,7 +66,10 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	state.Accepted = c.Accepted
 
 	if !c.Accepted {
-		return updateStatus(ctx, types.BackgroundCheckStatusDeclined)
+		updateStatus(ctx, types.BackgroundCheckStatusDeclined)
+
+		f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: config.HiringManagerEmail})
+		return f.Get(ctx, nil)
 	}
 
 	err = updateStatus(ctx, types.BackgroundCheckStatusRunning)
@@ -136,6 +135,8 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	})
 
 	// Employment Verification
+
+	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
 
 	employmentVerification := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{

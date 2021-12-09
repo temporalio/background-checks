@@ -57,7 +57,7 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 	})
 	s.AddFuture(workflow.NewTimer(ctx, config.ResearchDeadline), func(f workflow.Future) {
 		// We should probably fail the (child) workflow here.
-		response.EmploymentVerificationComplete = true
+		response.EmploymentVerificationComplete = false
 		response.EmployerVerified = false
 	})
 
