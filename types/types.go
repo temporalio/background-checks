@@ -94,6 +94,12 @@ type SendReportEmailInput struct {
 
 type SendReportEmailResult struct{}
 
+type SendDeclineEmailInput struct {
+	Email string
+}
+
+type SendDeclineEmailResult struct{}
+
 type AcceptWorkflowInput struct {
 	Email   string
 	CheckID string

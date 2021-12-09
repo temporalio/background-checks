@@ -62,7 +62,7 @@ func (a *Activities) SendReportEmail(ctx context.Context, input types.SendReport
 		return result, err
 	}
 
-	err = a.SendMail(config.CandidateSupportEmail, config.HiringManagerEmail, "Background Check Report", &body)
+	err = a.SendMail(config.HiringSupportEmail, config.HiringManagerEmail, "Background Check Report", &body)
 	if err != nil {
 		return result, err
 	}
