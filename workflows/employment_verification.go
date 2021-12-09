@@ -42,6 +42,7 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 
 func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.EmploymentVerificationSubmission {
 	var response types.EmploymentVerificationSubmission
+	logger := workflow.GetLogger(ctx)
 
 	s := workflow.NewSelector(ctx)
 
@@ -50,11 +51,14 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 		var submission types.EmploymentVerificationSubmissionSignal
 		c.Receive(ctx, &submission)
 
+		logger.Info("Signal received: ", submission)
+
 		response = types.EmploymentVerificationSubmission(submission)
 	})
 	s.AddFuture(workflow.NewTimer(ctx, config.ResearchDeadline), func(f workflow.Future) {
 		// We should probably fail the (child) workflow here.
-		response.EmployerVerificationComplete = false
+		response.EmploymentVerificationComplete = true
+		response.EmployerVerified = false
 	})
 
 	s.Select(ctx)

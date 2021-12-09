@@ -24,7 +24,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/api"
 	"github.com/temporalio/background-checks/cli/utils"
-	"github.com/temporalio/background-checks/mocks"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -41,7 +40,8 @@ var employmentVerifyCmd = &cobra.Command{
 		}
 
 		submission := types.EmploymentVerificationSubmissionSignal{
-			CandidateDetails: mocks.CandidateDetails,
+			EmploymentVerificationComplete: true,
+			EmployerVerified:               true,
 		}
 
 		response, err := utils.PostJSON(requestURL, submission)
@@ -55,8 +55,7 @@ var employmentVerifyCmd = &cobra.Command{
 		if response.StatusCode != http.StatusOK {
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)
 		}
-
-		fmt.Println("employment verification received")
+		fmt.Println("Employment verification received")
 	},
 }
 

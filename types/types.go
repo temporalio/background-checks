@@ -73,12 +73,11 @@ type BackgroundCheckState struct {
 }
 
 type CandidateDetails struct {
-	FullName         string
-	Address          string
-	SSN              string
-	DOB              string
-	Employer         string
-	EmployerVerified bool
+	FullName string
+	Address  string
+	SSN      string
+	DOB      string
+	Employer string
 }
 
 type SendAcceptEmailInput struct {
@@ -130,18 +129,18 @@ type EmploymentVerificationWorkflowInput struct {
 }
 
 type EmploymentVerificationWorkflowResult struct {
-	CandidateDetails             CandidateDetails
-	EmployerVerificationComplete bool
+	EmploymentVerificationComplete bool
+	EmployerVerified               bool
 }
 
 type EmploymentVerificationSubmission struct {
-	CandidateDetails             CandidateDetails
-	EmployerVerificationComplete bool
+	EmploymentVerificationComplete bool
+	EmployerVerified               bool
 }
 
 type EmploymentVerificationSubmissionSignal struct {
-	CandidateDetails             CandidateDetails
-	EmployerVerificationComplete bool
+	EmploymentVerificationComplete bool
+	EmployerVerified               bool
 }
 
 type SSNTraceInput struct {

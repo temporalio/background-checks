@@ -342,9 +342,8 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	var input types.EmploymentVerificationSubmissionSignal
 
-	var input types.CandidateDetails
-	log.Println("Employment Verification ID: ", id)
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		log.Println("Error: ", err)
@@ -352,11 +351,7 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St", "DOB" : "1/1/1990", "Employer" : "Acme Corp"}
-
-	var result types.EmploymentVerificationSubmissionSignal
-
-	result.CandidateDetails = input
+	result := input
 
 	err = h.signalEmploymentVerificationWorkflow(
 		mappings.EmploymentVerificationWorkflowID(id),
@@ -367,12 +362,6 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
-	/* if verified {
-		result.CandidateDetails.EmployerVerified = verified
-		return
-	} */
-	result.EmployerVerificationComplete = true
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
