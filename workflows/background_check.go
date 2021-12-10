@@ -20,7 +20,7 @@ func updateStatus(ctx workflow.Context, status types.BackgroundCheckStatus) erro
 	)
 }
 
-func waitForAccept(ctx workflow.Context, email string) (types.AcceptSubmission, error) {
+func waitForAccept(ctx workflow.Context, email string, fullname string) (types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
 	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
@@ -57,7 +57,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	c, err := waitForAccept(ctx, input.Email)
+	c, err := waitForAccept(ctx, state.Email, state.CandidateDetails.FullName)
 	if err != nil {
 		return err
 	}

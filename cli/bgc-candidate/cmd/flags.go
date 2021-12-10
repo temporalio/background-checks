@@ -1,5 +1,8 @@
 package cmd
 
 var (
-	ID string
+	ID       string
+	FullName string
+	SSN      string
+	Employer string
 )

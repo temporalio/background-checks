@@ -15,10 +15,9 @@ Your background check for: {{.State.CandidateDetails.FullName}} <{{.State.Email}
 The results are as follows:
 
 Employment Verification:
-{{if .State.EmploymentVerification.EmploymentVerificationComplete}}
-Verified: {{if .State.EmploymentVerification.EmployerVerified}}Yes{{else}}No{{end}}
-{{else}}
-Not completed.
+{{if .State.EmploymentVerification.EmployerVerified}}
+Verified Employer: {{.State.CandidateDetails.Employer}}
+{{else}}**Employer could not be verified**
 {{end}}
 
 Federal Criminal Search:
@@ -46,9 +45,6 @@ Incidents:
 None found.
 {{end}}
 
-Employment Verification:
-{{if .State.EmploymentVerification.EmployerVerified}}Verified Employer: {{.State.CandidateDetails.Employer}}{{else}}**Employer could not be verified**{{end}}
-
 Thanks,
 
 Background Check System
@@ -65,7 +61,7 @@ func (a *Activities) SendReportEmail(ctx context.Context, input types.SendReport
 		return result, err
 	}
 
-	err = a.SendMail(config.HiringSupportEmail, config.HiringManagerEmail, "Background Check Report", &body)
+	err = a.SendMail(config.CandidateSupportEmail, config.HiringManagerEmail, "Background Check Report", &body)
 	if err != nil {
 		return result, err
 	}
