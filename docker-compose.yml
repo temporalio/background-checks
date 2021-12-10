@@ -39,11 +39,13 @@ services:
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
+      - PROMETHEUS_ENDPOINT=0.0.0.0:8000
     image: temporalio/auto-setup:1.13.1
     networks:
       - temporal-network
     ports:
       - 7233:7233
+      - 8000:8000
     # volumes:
     #   - ./dynamicconfig:/etc/temporal/config/dynamicconfig
   temporal-admin-tools:
