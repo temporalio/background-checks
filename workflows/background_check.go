@@ -158,7 +158,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	if w.Tier != "full" {
+	if !w.SSNTrace.SSNIsValid || w.Tier != "full" {
 		return w.sendReportEmail(config.HiringManagerEmail)
 	}
 
