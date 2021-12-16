@@ -10,7 +10,9 @@ import (
 )
 
 const declineEmail = `
-Your background check for: {{.State.CandidateDetails.FullName}} <{{.State.Email}}> has been declined by the candidate.
+{{- $email := .State.Email -}}
+{{- $candidate := .State.CandidateDetails -}}
+Your background check for: {{$candidate.FullName}} <{{$email}}> has been declined by the candidate.
 
 Thanks,
 

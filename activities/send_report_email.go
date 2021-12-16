@@ -10,25 +10,29 @@ import (
 )
 
 const reportEmail = `
-Your background check for: {{.State.CandidateDetails.FullName}} <{{.State.Email}}> has completed.
+{{- $email := .State.Email -}}
+{{- $candidate := .State.CandidateDetails -}}
+{{- $checks := .State.Checks -}}
+Your background check for: {{$candidate.FullName}} <{{$email}}> has completed.
 
 The results are as follows:
 
 Employment Verification:
-{{if .State.EmploymentVerification.EmployerVerified}}
-Verified Employer: {{.State.CandidateDetails.Employer}}
-{{else}}**Employer could not be verified**
+{{if $checks.EmploymentVerification.EmployerVerified}}
+Verified Employer: {{$candidate.Employer}}
+{{else}}
+**Employer could not be verified**
 {{end}}
 
 Federal Criminal Search:
-{{range .State.FederalCriminalSearch.Crimes}}
+{{range $checks.FederalCriminalSearch.Crimes}}
 - {{.}}
 {{else}}
 None found.
 {{end}}
 
 State Criminal Search:
-{{range .State.StateCriminalSearch.Crimes}}
+{{range $checks.StateCriminalSearch.Crimes}}
 - {{.}}
 {{else}}
 None found.
@@ -36,10 +40,10 @@ None found.
 
 Motor Vehicle Search:
 
-Valid License: {{if .State.MotorVehicleIncidentSearch.LicenseValid}}Yes{{else}}No{{end}}
+Valid License: {{if $checks.MotorVehicleIncidentSearch.LicenseValid}}Yes{{else}}No{{end}}
 
 Incidents:
-{{range .State.MotorVehicleIncidentSearch.MotorVehicleIncidents}}
+{{range $checks.MotorVehicleIncidentSearch.MotorVehicleIncidents}}
 - {{.}}
 {{else}}
 None found.

@@ -61,15 +61,12 @@ func BackgroundCheckStatusFromString(s string) BackgroundCheckStatus {
 }
 
 type BackgroundCheckState struct {
-	Email                      string
-	Tier                       string
-	Accepted                   bool
-	CandidateDetails           CandidateDetails
-	ValidateSSN                ValidateSSNWorkflowResult
-	EmploymentVerification     EmploymentVerificationWorkflowResult
-	FederalCriminalSearch      FederalCriminalSearchWorkflowResult
-	StateCriminalSearch        StateCriminalSearchWorkflowResult
-	MotorVehicleIncidentSearch MotorVehicleIncidentSearchWorkflowResult
+	Email            string
+	Tier             string
+	Accepted         bool
+	CandidateDetails CandidateDetails
+	SSNTrace         SSNTraceWorkflowResult
+	Checks           map[string]interface{}
 }
 
 type CandidateDetails struct {
@@ -153,7 +150,7 @@ type SSNTraceInput struct {
 	FullName string
 	SSN      string
 }
-type ValidateSSNWorkflowInput struct {
+type SSNTraceWorkflowInput struct {
 	FullName string
 	SSN      string
 }
@@ -165,7 +162,7 @@ type KnownAddress struct {
 	ZipCode string
 }
 
-type ValidateSSNWorkflowResult struct {
+type SSNTraceWorkflowResult struct {
 	SSNIsValid     bool
 	KnownAddresses []string
 }

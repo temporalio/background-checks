@@ -10,21 +10,24 @@ import (
 )
 
 const employmentVerificationRequestEmail = `
+{{ $candidate := .CandidateDetails -}}
 Hello Background Check Researcher, 
 
-Our candidate {{.CandidateDetails.FullName}} is undergoing a background check, and the next step is to verify their employment history. 
+Our candidate {{$candidate.FullName}} is undergoing a background check, and the next step is to verify their employment history. 
 
 Please reach out to their company and confirm whether they are currently employed. 
 
-Candidate Name: {{.CandidateDetails.FullName}}
-Employer: {{.CandidateDetails.Employer}}
+Candidate Name: {{$candidate.FullName}}
+Employer: {{$candidate.Employer}}
 
 When you have completed this step, respond by updating the Background Check using the instructions below:
 
 EMPLOYMENT IS VERIFIED:
-"./run-cli bgc-researcher employmentverify --id {{.CheckID}}"
+
+./run-cli bgc-researcher employmentverify --id {{.CheckID}}
 
 EMPLOYMENT IS NOT VERIFIED:
+
 TBA
 
 Thanks,

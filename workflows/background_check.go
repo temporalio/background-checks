@@ -8,168 +8,182 @@ import (
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/types"
+	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
 )
 
-func updateStatus(ctx workflow.Context, status types.BackgroundCheckStatus) error {
+type backgroundCheckWorkflow struct {
+	types.BackgroundCheckState
+	checkID       string
+	ctx           workflow.Context
+	checkFutures  []workflow.Future
+	checkSelector workflow.Selector
+	logger        log.Logger
+}
+
+func newBackgroundCheckWorkflow(ctx workflow.Context, state types.BackgroundCheckState) (*backgroundCheckWorkflow, error) {
+	w := backgroundCheckWorkflow{
+		BackgroundCheckState: state,
+		checkID:              workflow.GetInfo(ctx).WorkflowExecution.RunID,
+		ctx:                  ctx,
+		checkSelector:        workflow.NewSelector(ctx),
+		logger:               workflow.GetLogger(ctx),
+	}
+
+	w.Checks = make(map[string]interface{})
+
+	err := workflow.SetQueryHandler(ctx, queries.BackgroundCheckStatus, func() (types.BackgroundCheckState, error) {
+		return w.BackgroundCheckState, nil
+	})
+	return &w, err
+}
+
+func (w *backgroundCheckWorkflow) pushStatus(status types.BackgroundCheckStatus) error {
 	return workflow.UpsertSearchAttributes(
-		ctx,
+		w.ctx,
 		map[string]interface{}{
 			"BackgroundCheckStatus": status.String(),
 		},
 	)
 }
 
-func waitForAccept(ctx workflow.Context, email string, fullname string) (types.AcceptSubmission, error) {
+func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
-	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
+	err := w.pushStatus(types.BackgroundCheckStatusPendingAccept)
+	if err != nil {
+		return r, err
+	}
 
-	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
+	checkID := workflow.GetInfo(w.ctx).WorkflowExecution.RunID
+
+	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
 		WorkflowID: mappings.AcceptWorkflowID(checkID),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
 		Email:   email,
 		CheckID: checkID,
 	})
-	err := consentWF.Get(ctx, &r)
+	err = consentWF.Get(ctx, &r)
 
 	return r, err
 }
 
-func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
-	state := types.BackgroundCheckState{
-		Email: input.Email,
-		Tier:  input.Package,
-	}
+func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
+	w.pushStatus(types.BackgroundCheckStatusDeclined)
 
-	err := workflow.SetQueryHandler(ctx, queries.BackgroundCheckStatus, func() (types.BackgroundCheckState, error) {
-		return state, nil
+	f := workflow.ExecuteActivity(w.ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: email})
+	return f.Get(w.ctx, nil)
+}
+
+func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
+	w.pushStatus(types.BackgroundCheckStatusCompleted)
+
+	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute,
 	})
+
+	f := workflow.ExecuteActivity(ctx, a.SendReportEmail, types.SendReportEmailInput{Email: email, State: w.BackgroundCheckState})
+	return f.Get(ctx, nil)
+}
+
+func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interface{}, checkInputs ...interface{}) {
+	f := workflow.ExecuteChildWorkflow(
+		workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
+			WorkflowID: mappings.CheckWorkflowID(w.checkID, name),
+		}),
+		checkWorkflow,
+		checkInputs...,
+	)
+	w.checkFutures = append(w.checkFutures, f)
+	w.logger.Info(fmt.Sprintf("Added check. Now: %v", w.checkFutures))
+	w.checkSelector.AddFuture(f, func(f workflow.Future) {
+		var result interface{}
+
+		err := f.Get(w.ctx, &result)
+		if err != nil {
+			w.logger.Error(fmt.Sprintf("%s search failed: %v", name, err))
+		}
+
+		w.Checks[name] = result
+	})
+}
+
+func (w *backgroundCheckWorkflow) waitForChecks() {
+	w.logger.Info(fmt.Sprintf("Waiting for %d checks", len(w.checkFutures)))
+
+	for i := 0; i < len(w.checkFutures); i++ {
+		w.checkSelector.Select(w.ctx)
+	}
+}
+
+func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
+	w, err := newBackgroundCheckWorkflow(
+		ctx,
+		types.BackgroundCheckState{
+			Email: input.Email,
+			Tier:  input.Package,
+		},
+	)
 	if err != nil {
 		return err
 	}
 
-	logger := workflow.GetLogger(ctx)
-
-	err = updateStatus(ctx, types.BackgroundCheckStatusPendingAccept)
+	response, err := w.waitForAccept(w.Email)
 	if err != nil {
 		return err
 	}
 
-	c, err := waitForAccept(ctx, state.Email, state.CandidateDetails.FullName)
-	if err != nil {
-		return err
+	w.Accepted = response.Accepted
+
+	if !w.Accepted {
+		return w.sendDeclineEmail(config.HiringManagerEmail)
 	}
 
-	state.CandidateDetails = c.CandidateDetails
-	state.Accepted = c.Accepted
+	w.CandidateDetails = response.CandidateDetails
 
-	if !c.Accepted {
-		updateStatus(ctx, types.BackgroundCheckStatusDeclined)
-
-		f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: config.HiringManagerEmail})
-		return f.Get(ctx, nil)
-	}
-
-	err = updateStatus(ctx, types.BackgroundCheckStatusRunning)
+	err = w.pushStatus(types.BackgroundCheckStatusRunning)
 	if err != nil {
 		return err
 	}
 
 	ssnTrace := workflow.ExecuteChildWorkflow(
 		ctx,
-		ValidateSSN,
-		types.ValidateSSNWorkflowInput{FullName: state.CandidateDetails.FullName, SSN: state.CandidateDetails.SSN},
+		SSNTrace,
+		types.SSNTraceWorkflowInput{FullName: w.CandidateDetails.FullName, SSN: w.CandidateDetails.SSN},
 	)
 
-	err = ssnTrace.Get(ctx, &state.ValidateSSN)
+	err = ssnTrace.Get(ctx, &w.SSNTrace)
 	if err != nil {
 		return err
 	}
 
-	logger.Info(fmt.Sprintf("ssn trace: %v", state.ValidateSSN))
+	if w.Tier != "full" {
+		return w.sendReportEmail(config.HiringManagerEmail)
+	}
 
-	s := workflow.NewSelector(ctx)
-
-	federalCriminalSearch := workflow.ExecuteChildWorkflow(
-		ctx,
+	w.startCheck(
+		"FederalCriminalSearch",
 		FederalCriminalSearch,
-		types.FederalCriminalSearchWorkflowInput{FullName: state.CandidateDetails.FullName, Address: state.CandidateDetails.Address},
+		types.FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
 	)
-	s.AddFuture(federalCriminalSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &state.FederalCriminalSearch)
-		if err != nil {
-			logger.Error(fmt.Sprintf("federal criminal search: %v", err))
-		}
-		logger.Info(fmt.Sprintf("Federal Search: %v", state.FederalCriminalSearch))
-	})
-
-	/* State check will iterate over array of Known Addresses
-	 */
-
-	stateCriminalSearch := workflow.ExecuteChildWorkflow(
-		ctx,
+	w.startCheck(
+		"StateCriminalSearch",
 		StateCriminalSearch,
-		types.StateCriminalSearchWorkflowInput{FullName: state.CandidateDetails.FullName, SSNTraceResult: state.ValidateSSN.KnownAddresses},
+		types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, SSNTraceResult: w.SSNTrace.KnownAddresses},
 	)
-	s.AddFuture(stateCriminalSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &state.StateCriminalSearch)
-		if err != nil {
-			logger.Error(fmt.Sprintf("state criminal search: %v", err))
-		}
-		logger.Info(fmt.Sprintf("State Search: %v", state.StateCriminalSearch))
-	})
-
-	motorVehicleIncidentSearch := workflow.ExecuteChildWorkflow(
-		ctx,
+	w.startCheck(
+		"MotorVehicleIncidentSearch",
 		MotorVehicleIncidentSearch,
-		types.MotorVehicleIncidentSearchWorkflowInput{FullName: state.CandidateDetails.FullName, Address: state.CandidateDetails.Address},
+		types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
 	)
-	s.AddFuture(motorVehicleIncidentSearch, func(f workflow.Future) {
-		err := f.Get(ctx, &state.MotorVehicleIncidentSearch)
-		if err != nil {
-			logger.Error(fmt.Sprintf("motor vehicle incident search: %v", err))
-		}
-		logger.Info(fmt.Sprintf("Motor Vehicle Search: %v", state.MotorVehicleIncidentSearch))
-	})
-
-	// Employment Verification
-
-	checkID := workflow.GetInfo(ctx).WorkflowExecution.RunID
-
-	employmentVerification := workflow.ExecuteChildWorkflow(
-		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: mappings.EmploymentVerificationWorkflowID(checkID),
-		}),
+	w.startCheck(
+		"EmploymentVerification",
 		EmploymentVerification,
-		types.EmploymentVerificationWorkflowInput{CandidateDetails: state.CandidateDetails, CheckID: checkID},
+		types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails, CheckID: w.checkID},
 	)
-	s.AddFuture(employmentVerification, func(f workflow.Future) {
-		err := f.Get(ctx, &state.EmploymentVerification)
-		if err != nil {
-			logger.Error(fmt.Sprintf("employment verification: %v", err))
-		}
-		logger.Info(fmt.Sprintf("Employment Verification: %v", state.EmploymentVerification))
-	})
 
-	checks := []workflow.ChildWorkflowFuture{
-		federalCriminalSearch,
-		stateCriminalSearch,
-		motorVehicleIncidentSearch,
-		employmentVerification,
-	}
+	w.waitForChecks()
 
-	for i := 0; i < len(checks); i++ {
-		s.Select(ctx)
-	}
-
-	updateStatus(ctx, types.BackgroundCheckStatusCompleted)
-
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
-		StartToCloseTimeout: time.Minute,
-	})
-
-	f := workflow.ExecuteActivity(ctx, a.SendReportEmail, types.SendReportEmailInput{Email: config.HiringManagerEmail, State: state})
-	return f.Get(ctx, nil)
+	return w.sendReportEmail(config.HiringManagerEmail)
 }

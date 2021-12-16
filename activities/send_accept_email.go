@@ -21,11 +21,11 @@ The following information is needed to complete your check:
 
 Please give permission for us proceed with the check by running this command and adding your details:
 
-"./run-cli bgc-candidate accept --id {{.CheckID}} --fullname 'your name here' --ssn '111-11-1111' --employer 'Your current employer'"
+./run-cli bgc-candidate accept --id {{.CheckID}} --fullname 'your name here' --ssn '111-11-1111' --employer 'Your current employer'
 
 If you would rather we did not run the check you can decline by running this command:
 
-"./run-cli bgc-candidate decline --id {{.CheckID}}"
+./run-cli bgc-candidate decline --id {{.CheckID}}
 
 Thanks,
 

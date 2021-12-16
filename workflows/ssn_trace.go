@@ -7,15 +7,15 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-func ValidateSSN(ctx workflow.Context, input types.ValidateSSNWorkflowInput) (types.ValidateSSNWorkflowResult, error) {
+func SSNTrace(ctx workflow.Context, input types.SSNTraceWorkflowInput) (types.SSNTraceWorkflowResult, error) {
 	var result types.SSNTraceResult
 
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.SSNTrace, types.ValidateSSNWorkflowInput(input))
+	f := workflow.ExecuteActivity(ctx, a.SSNTrace, types.SSNTraceWorkflowInput(input))
 
 	err := f.Get(ctx, &result)
-	return types.ValidateSSNWorkflowResult(result), err
+	return types.SSNTraceWorkflowResult(result), err
 }

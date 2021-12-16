@@ -354,7 +354,7 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 	result := input
 
 	err = h.signalEmploymentVerificationWorkflow(
-		mappings.EmploymentVerificationWorkflowID(id),
+		mappings.CheckWorkflowID(id, "EmploymentVerification"),
 		signals.EmploymentVerificationSubmission,
 		result,
 	)
@@ -398,7 +398,7 @@ func Router(c client.Client) *mux.Router {
 	r.HandleFunc("/checks/{id}/accept", h.handleAccept).Methods("POST").Name("accept")
 	r.HandleFunc("/checks/{id}/decline", h.handleDecline).Methods("POST").Name("decline")
 
-	r.HandleFunc("/employmentverify/{id}/employmentverify", h.handleEmploymentVerification).Name("employmentverify")
+	r.HandleFunc("/checks/{id}/employmentverify", h.handleEmploymentVerification).Name("employmentverify")
 
 	return r
 }

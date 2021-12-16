@@ -55,7 +55,7 @@ var workerCmd = &cobra.Command{
 		w.RegisterWorkflow(workflows.Accept)
 		w.RegisterWorkflow(workflows.EmploymentVerification)
 		w.RegisterActivity(&activities.Activities{SMTPServer: config.SMTPServer})
-		w.RegisterWorkflow(workflows.ValidateSSN)
+		w.RegisterWorkflow(workflows.SSNTrace)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)
 		w.RegisterWorkflow(workflows.StateCriminalSearch)
 		w.RegisterWorkflow(workflows.MotorVehicleIncidentSearch)

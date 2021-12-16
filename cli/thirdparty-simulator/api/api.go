@@ -28,7 +28,7 @@ import (
 const DefaultEndpoint = "0.0.0.0:8082"
 
 func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
-	var input types.ValidateSSNWorkflowInput
+	var input types.SSNTraceWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -36,7 +36,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.ValidateSSNWorkflowResult
+	var result types.SSNTraceWorkflowResult
 	if input.SSN == "111-11-1111" {
 		Addresses := []string{
 			"123 Broadway, New York, NY 10011",

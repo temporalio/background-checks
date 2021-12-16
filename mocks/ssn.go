@@ -2,7 +2,7 @@ package mocks
 
 import "github.com/temporalio/background-checks/types"
 
-var ValidateSSNWorkflowResult = map[types.ValidateSSNWorkflowInput]types.ValidateSSNWorkflowResult{
+var SSNTraceWorkflowResult = map[types.SSNTraceWorkflowInput]types.SSNTraceWorkflowResult{
 	{FullName: "John Smith", SSN: "111-11-1111"}:    {},
 	{FullName: "Sally Jones", SSN: "123-45-6789"}:   {},
 	{FullName: "Javier Bardem", SSN: "987-65-4321"}: {},
