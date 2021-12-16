@@ -19,7 +19,7 @@ services:
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
-    image: postgres:9.6
+    image: postgres:13
     networks:
       - temporal-network
     ports:
@@ -35,11 +35,11 @@ services:
       - POSTGRES_USER=temporal
       - POSTGRES_PWD=temporal
       - POSTGRES_SEEDS=postgresql
-      # - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development_es.yaml
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development_es.yaml
       - ENABLE_ES=true
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
-    image: temporalio/auto-setup:1.13.1
+    image: temporalio/auto-setup:1.14.0
     networks:
       - temporal-network
     ports:
@@ -52,7 +52,7 @@ services:
       - temporal
     environment:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:1.13.1
+    image: temporalio/admin-tools:1.14.0
     networks:
       - temporal-network
     stdin_open: true
