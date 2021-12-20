@@ -66,6 +66,7 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 	return response
 }
 
+// @@@SNIPSTART background-checks-employment-verification-workflow-definition
 func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (types.EmploymentVerificationWorkflowResult, error) {
 	researcher, err := chooseResearcher(ctx, input)
 	if err != nil {
@@ -80,3 +81,4 @@ func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerifica
 
 	return types.EmploymentVerificationWorkflowResult(submission), nil
 }
+// @@@SNIPEND

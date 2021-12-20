@@ -41,6 +41,7 @@ func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
 	return response
 }
 
+// @@@SNIPSTART background-checks-accept-workflow-definition
 func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
 	err := emailCandidate(ctx, input)
 	if err != nil {
@@ -51,3 +52,4 @@ func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.Accept
 
 	return types.AcceptWorkflowResult(submission), nil
 }
+// @@@SNIPEND

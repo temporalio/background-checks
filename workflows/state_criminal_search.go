@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+// @@@SNIPSTART background-checks-state-criminal-workflow-definition
 func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWorkflowInput) (types.StateCriminalSearchWorkflowResult, error) {
 	var result types.StateCriminalSearchWorkflowResult
 
@@ -40,3 +41,4 @@ func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWo
 	return types.StateCriminalSearchWorkflowResult(result), err
 
 }
+// @@@SNIPEND

@@ -6,6 +6,8 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+// @@@SNIPSTART background-checks-motor-vehicle-workflow-definition
 func MotorVehicleIncidentSearch(ctx workflow.Context, input types.MotorVehicleIncidentSearchWorkflowInput) (types.MotorVehicleIncidentSearchWorkflowResult, error) {
 	return mocks.MotorVehicleIncidentSearchResults[input], nil
 }
+// @@@SNIPEND
