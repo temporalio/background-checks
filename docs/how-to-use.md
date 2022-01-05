@@ -9,7 +9,6 @@ sidebar_label: How to run the app
 
 Make sure you have the following installed:
 
-- [Go](https://go.dev/dl/) (latest stable version is recommended)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
 ## How to run the application
@@ -66,5 +65,19 @@ When all the Searches have completed, the Background Check application compiles 
 Check the mailbox again to find the Background Check report.
 
 ### How to check the status of a Background Check
+
+The Company CLI has the ability to access the Background Checks currently in the system.
+
+You can get a full list of Background Checks and their current status by using the `bgc-company list` command:
+
+```
+./run-cli bgc-company list
+```
+
+You can see the status of specific Background Check by providing the `--email` modifier and a value:
+
+```
+./run-cli bgc-company list --email your-email@example.com
+```
 
 ### How to cancel a Background Check
