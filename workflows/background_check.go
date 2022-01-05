@@ -72,7 +72,11 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
 	w.pushStatus(types.BackgroundCheckStatusDeclined)
 
-	f := workflow.ExecuteActivity(w.ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: email})
+	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+		StartToCloseTimeout: time.Minute,
+	})
+
+	f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: email})
 	return f.Get(w.ctx, nil)
 }
 
@@ -96,7 +100,6 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 		checkInputs...,
 	)
 	w.checkFutures = append(w.checkFutures, f)
-	w.logger.Info(fmt.Sprintf("Added check. Now: %v", w.checkFutures))
 	w.checkSelector.AddFuture(f, func(f workflow.Future) {
 		var result interface{}
 

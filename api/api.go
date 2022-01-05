@@ -54,8 +54,12 @@ func (h *handlers) executeWorkflow(options client.StartWorkflowOptions, workflow
 	)
 }
 
-func (h *handlers) cancelWorkflow(wid string) error {
-	return h.temporalClient.CancelWorkflow(context.Background(), wid, "")
+func (h *handlers) cancelWorkflow(email string, runid string) error {
+	return h.temporalClient.CancelWorkflow(
+		context.Background(),
+		mappings.BackgroundCheckWorkflowID(email),
+		runid,
+	)
 }
 
 func (h *handlers) queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
@@ -375,9 +379,10 @@ func (h *handlers) signalEmploymentVerificationWorkflow(wid string, signalName s
 func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
+	email := vars["email"]
 	id := vars["id"]
 
-	err := h.cancelWorkflow(id)
+	err := h.cancelWorkflow(email, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -391,8 +396,8 @@ func Router(c client.Client) *mux.Router {
 
 	r.HandleFunc("/checks", h.handleCheckList).Methods("GET").Name("checks_list")
 	r.HandleFunc("/checks", h.handleCheckCreate).Methods("POST").Name("checks_create")
+	r.HandleFunc("/checks/{email}/{id}/cancel", h.handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}", h.handleCheckStatus).Methods("GET").Name("check")
-	r.HandleFunc("/checks/{email}/cancel", h.handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
 	r.HandleFunc("/checks/{id}/accept", h.handleAccept).Methods("POST").Name("accept")

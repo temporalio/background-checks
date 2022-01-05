@@ -19,8 +19,9 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 	return f.Get(ctx, nil)
 }
 
-func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
+func waitForSubmission(ctx workflow.Context) (types.AcceptSubmission, error) {
 	var response types.AcceptSubmission
+	var err error
 
 	s := workflow.NewSelector(ctx)
 
@@ -32,13 +33,15 @@ func waitForSubmission(ctx workflow.Context) types.AcceptSubmission {
 		response = types.AcceptSubmission(submission)
 	})
 	s.AddFuture(workflow.NewTimer(ctx, config.AcceptGracePeriod), func(f workflow.Future) {
+		err = f.Get(ctx, nil)
+
 		// Treat failure to accept in time as declining.
 		response.Accepted = false
 	})
 
 	s.Select(ctx)
 
-	return response
+	return response, err
 }
 
 func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
@@ -47,7 +50,7 @@ func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.Accept
 		return types.AcceptWorkflowResult{}, err
 	}
 
-	submission := waitForSubmission(ctx)
+	submission, err := waitForSubmission(ctx)
 
-	return types.AcceptWorkflowResult(submission), nil
+	return types.AcceptWorkflowResult(submission), err
 }

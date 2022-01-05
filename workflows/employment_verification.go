@@ -40,8 +40,10 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 	return evsend.Get(ctx, nil)
 }
 
-func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.EmploymentVerificationSubmission {
+func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.EmploymentVerificationSubmission, error) {
 	var response types.EmploymentVerificationSubmission
+	var err error
+
 	logger := workflow.GetLogger(ctx)
 
 	s := workflow.NewSelector(ctx)
@@ -56,6 +58,8 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 		response = types.EmploymentVerificationSubmission(submission)
 	})
 	s.AddFuture(workflow.NewTimer(ctx, config.ResearchDeadline), func(f workflow.Future) {
+		err = f.Get(ctx, nil)
+
 		// We should probably fail the (child) workflow here.
 		response.EmploymentVerificationComplete = false
 		response.EmployerVerified = false
@@ -63,7 +67,7 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) types.Employm
 
 	s.Select(ctx)
 
-	return response
+	return response, err
 }
 
 func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (types.EmploymentVerificationWorkflowResult, error) {
@@ -76,7 +80,7 @@ func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerifica
 	if err != nil {
 		return types.EmploymentVerificationWorkflowResult{}, err
 	}
-	submission := waitForEmploymentVerificationSubmission(ctx)
+	submission, err := waitForEmploymentVerificationSubmission(ctx)
 
-	return types.EmploymentVerificationWorkflowResult(submission), nil
+	return types.EmploymentVerificationWorkflowResult(submission), err
 }
