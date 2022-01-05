@@ -28,6 +28,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List background checks",
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router(nil)
 
