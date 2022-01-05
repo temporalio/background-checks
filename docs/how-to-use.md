@@ -9,8 +9,8 @@ sidebar_label: How to run the app
 
 Make sure you have the following installed:
 
-- Go version >= x.x.x
-- Docker Desktop
+- [Go](https://go.dev/dl/) (latest stable version is recommended)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
 ## How to run the application
 
@@ -41,7 +41,7 @@ The main Workflow Execution is now viewable in the [Temporal UI - http://localho
 The very first thing the Background Check application does is send an email to the Candidate.
 For this Learning Path we are using a single mailbox using a single mail server running in one of the Docker containers.
 This means that the Company HR person, Candidate, and Researcher personas receive their emails in this mailbox.
-Use the "To" address to distinguish between personas.
+Look at the "To" address to distinguish between personas in the mailbox.
 
 The mailbox is accessible at [http://localhost:8025/](http://localhost:8025/).
 
@@ -64,3 +64,7 @@ When all the Searches have completed, the Background Check application compiles 
 **While pretending to be the Company HR person...**
 
 Check the mailbox again to find the Background Check report.
+
+### How to check the status of a Background Check
+
+### How to cancel a Background Check

@@ -1,6 +1,6 @@
 ---
 id: temporal-application-design
-title: How to design and build a Long Running Human Driven Process application as a Temporal Application?
+title: How to design and implement a Long Running Human Driven Process application as a Temporal Application?
 sidebar_label: Building the application
 ---
 

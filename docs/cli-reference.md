@@ -1,6 +1,6 @@
 ---
-id: cli
-title: Long Running Human Drive Process CLI reference
+id: cli-reference
+title: background-checks CLI reference
 sidebar_label: CLI reference
 ---
 
@@ -103,7 +103,7 @@ Possible values are:
 - standard
 - full
 
-## `cancel`
+### `cancel`
 
 Cancels a Background Check.
 
