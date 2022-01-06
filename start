@@ -41,3 +41,9 @@ echo -e "\tMail Server (mailhog):"
 echo -e "\t\thttp://localhost:8025/"
 echo -e "\tGrafana:"
 echo -e "\t\thttp://localhost:8085/"
+echo
+echo "You can check the logs for various components:"
+echo
+echo -e "docker compose logs worker"
+echo -e "docker compose logs api"
+echo -e "docker compose logs temporal"
