@@ -20,9 +20,12 @@ We can break down the application requirements in a few different ways.
 
 There are 3 users we need to consider for this application:
 
-- **Company:** The Company user is typically the HR Person who is communicating with the Candidate and has their information. The Company HR Person is the one who initiates Background Checks.
-- **Candidate:** The Candidate is the user who is the subject of the Background Check. They will have to consent to the Background Check.
-- **Researcher:** The Researcher is the user who does some sort of manual "search" for information reg
+- **Company:** The Company user is typically the HR Person who is communicating with the Candidate and has their information.
+The Company HR Person is the one who initiates Background Checks.
+- **Candidate:** The Candidate is the user who is the subject of the Background Check.
+They will have to consent to the Background Check.
+- **Researcher:** The Researcher is the user who does some sort of manual "search" for information regarding the Candidate.
+In our application the Researcher is used to verify the Candidate's employment information.
 
 ### What are the Company experience requirements?
 
@@ -67,12 +70,13 @@ Already we can start to see some of the functional requirements take shape, such
 
 ### APIs
 
-Based on the experiences of the two user types, we know we will need APIs for the following:
+Based on the experiences of the three user types, we know we will need APIs for the following:
 
 - Start a Background Check
 - Accept Background Check
 - Cancel a Background Check
 - List Background Checks
+- Submit research
 - Get the report of a specific Background Check
 
 See the Application API Reference for API details:

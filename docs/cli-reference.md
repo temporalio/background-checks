@@ -110,7 +110,7 @@ Cancels a Background Check.
 Example:
 
 ```bash
-bgc-company cancel --id <check_id>
+bgc-company cancel --email <email> --id <check_id>
 ```
 
 Output:
@@ -119,25 +119,9 @@ Output:
 
 Background Check Id
 
-### `status`
+#### `--email` (required)
 
-View the results of a specific Background Check.
-
-#### `--id` (required)
-
-Background Check Id
-
-**Example:**
-
-```powershell
-$ bgc-company status --id <check_id>
-```
-
-**Output:**
-
-A report of the Background Check.
-
-The report will include Candidate information and the results from each of the individual searches.
+Email address of the Candidate
 
 ## `bgc-candidate`
 
