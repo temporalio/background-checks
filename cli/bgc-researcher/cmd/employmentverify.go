@@ -34,7 +34,7 @@ var employmentVerifyCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router(nil)
 
-		requestURL, err := router.Get("employmentverify").Host(APIEndpoint).URL("id", ID)
+		requestURL, err := router.Get("employmentverify").Host(APIEndpoint).URL("token", Token)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
@@ -61,7 +61,7 @@ var employmentVerifyCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(employmentVerifyCmd)
-	employmentVerifyCmd.Flags().StringVar(&ID, "id", "", "Background Check ID")
-	employmentVerifyCmd.MarkFlagRequired("id")
+	employmentVerifyCmd.Flags().StringVar(&Token, "token", "", "Token")
+	employmentVerifyCmd.MarkFlagRequired("token")
 
 }

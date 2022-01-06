@@ -1,7 +1,7 @@
 package cmd
 
 var (
-	ID       string
+	Token    string
 	FullName string
 	SSN      string
 	Employer string

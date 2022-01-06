@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 
 	"github.com/temporalio/background-checks/config"
+	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 )
@@ -34,8 +35,8 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 
 	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput{
 		Email:            email,
-		CheckID:          input.CheckID,
 		CandidateDetails: input.CandidateDetails,
+		Token:            mappings.TokenForWorkflow(ctx),
 	})
 	return evsend.Get(ctx, nil)
 }

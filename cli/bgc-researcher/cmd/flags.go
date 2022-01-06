@@ -1,5 +1,5 @@
 package cmd
 
 var (
-	ID string
+	Token string
 )

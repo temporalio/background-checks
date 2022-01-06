@@ -24,7 +24,7 @@ When you have completed this step, respond by updating the Background Check usin
 
 EMPLOYMENT IS VERIFIED:
 
-./run-cli bgc-researcher employmentverify --id {{.CheckID}}
+./run-cli bgc-researcher employmentverify --token {{.Token}}
 
 EMPLOYMENT IS NOT VERIFIED:
 

@@ -72,8 +72,8 @@ func (h *handlers) queryWorkflow(wid string, queryType string, args ...interface
 	)
 }
 
-func (h *handlers) signalWorkflow(wid string, signalName string, signalArg interface{}) error {
-	return h.temporalClient.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
+func (h *handlers) signalWorkflow(wfid string, runid string, signalName string, signalArg interface{}) error {
+	return h.temporalClient.SignalWorkflow(context.Background(), wfid, runid, signalName, signalArg)
 }
 
 func getBackgroundCheckCandidateEmail(we *workflowpb.WorkflowExecutionInfo) (string, error) {
@@ -300,12 +300,17 @@ func (h *handlers) handleCheckReport(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	token := vars["token"]
 
-	id := vars["id"]
+	wfid, runid, err := mappings.WorkflowFromToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	var result types.AcceptSubmissionSignal
 
-	err := json.NewDecoder(r.Body).Decode(&result)
+	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -313,7 +318,8 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 	result.Accepted = true
 
 	err = h.signalWorkflow(
-		mappings.AcceptWorkflowID(id),
+		wfid,
+		runid,
 		signals.AcceptSubmission,
 		result,
 	)
@@ -325,15 +331,21 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	token := vars["token"]
 
-	id := vars["id"]
+	wfid, runid, err := mappings.WorkflowFromToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	result := types.AcceptSubmissionSignal{
 		Accepted: false,
 	}
 
-	err := h.signalWorkflow(
-		mappings.AcceptWorkflowID(id),
+	err = h.signalWorkflow(
+		wfid,
+		runid,
 		signals.AcceptSubmission,
 		result,
 	)
@@ -345,10 +357,17 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	id := vars["id"]
+	token := vars["token"]
+
+	wfid, runid, err := mappings.WorkflowFromToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	var input types.EmploymentVerificationSubmissionSignal
 
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err = json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
 		log.Println("Error: ", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -357,8 +376,9 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 
 	result := input
 
-	err = h.signalEmploymentVerificationWorkflow(
-		mappings.CheckWorkflowID(id, "EmploymentVerification"),
+	err = h.signalWorkflow(
+		wfid,
+		runid,
 		signals.EmploymentVerificationSubmission,
 		result,
 	)
@@ -370,10 +390,6 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
 
-}
-
-func (h *handlers) signalEmploymentVerificationWorkflow(wid string, signalName string, signalArg interface{}) error {
-	return h.temporalClient.SignalWorkflow(context.Background(), wid, "", signalName, signalArg)
 }
 
 func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
@@ -400,10 +416,10 @@ func Router(c client.Client) *mux.Router {
 	r.HandleFunc("/checks/{email}", h.handleCheckStatus).Methods("GET").Name("check")
 	r.HandleFunc("/checks/{email}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
-	r.HandleFunc("/checks/{id}/accept", h.handleAccept).Methods("POST").Name("accept")
-	r.HandleFunc("/checks/{id}/decline", h.handleDecline).Methods("POST").Name("decline")
+	r.HandleFunc("/checks/{token}/accept", h.handleAccept).Methods("POST").Name("accept")
+	r.HandleFunc("/checks/{token}/decline", h.handleDecline).Methods("POST").Name("decline")
 
-	r.HandleFunc("/checks/{id}/employmentverify", h.handleEmploymentVerification).Name("employmentverify")
+	r.HandleFunc("/checks/{token}/employmentverify", h.handleEmploymentVerification).Name("employmentverify")
 
 	return r
 }

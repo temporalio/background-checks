@@ -34,7 +34,7 @@ var declineCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		router := api.Router(nil)
 
-		requestURL, err := router.Get("decline").Host(APIEndpoint).URL("id", ID)
+		requestURL, err := router.Get("decline").Host(APIEndpoint).URL("token", Token)
 		if err != nil {
 			log.Fatalf("cannot create URL: %v", err)
 		}
@@ -57,6 +57,6 @@ var declineCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(declineCmd)
-	declineCmd.Flags().StringVar(&ID, "id", "", "Background Check ID")
-	declineCmd.MarkFlagRequired("id")
+	declineCmd.Flags().StringVar(&Token, "token", "", "Token")
+	declineCmd.MarkFlagRequired("token")
 }

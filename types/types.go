@@ -78,8 +78,8 @@ type CandidateDetails struct {
 }
 
 type SendAcceptEmailInput struct {
-	Email   string
-	CheckID string
+	Email string
+	Token string
 }
 
 type SendAcceptEmailResult struct{}
@@ -98,8 +98,7 @@ type SendDeclineEmailInput struct {
 type SendDeclineEmailResult struct{}
 
 type AcceptWorkflowInput struct {
-	Email   string
-	CheckID string
+	Email string
 }
 
 type AcceptWorkflowResult struct {
@@ -120,7 +119,7 @@ type AcceptSubmissionSignal struct {
 type SendEmploymentVerificationEmailInput struct {
 	Email            string
 	CandidateDetails CandidateDetails
-	CheckID          string
+	Token            string
 }
 
 type SendEmploymentVerificationEmailResult struct {
@@ -128,7 +127,6 @@ type SendEmploymentVerificationEmailResult struct {
 
 type EmploymentVerificationWorkflowInput struct {
 	CandidateDetails CandidateDetails
-	CheckID          string
 }
 
 type EmploymentVerificationWorkflowResult struct {

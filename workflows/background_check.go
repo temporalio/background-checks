@@ -55,14 +55,11 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 		return r, err
 	}
 
-	checkID := workflow.GetInfo(w.ctx).WorkflowExecution.RunID
-
 	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.AcceptWorkflowID(checkID),
+		WorkflowID: mappings.AcceptWorkflowID(email),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
-		Email:   email,
-		CheckID: checkID,
+		Email: email,
 	})
 	err = consentWF.Get(ctx, &r)
 
@@ -94,7 +91,7 @@ func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
 func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interface{}, checkInputs ...interface{}) {
 	f := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: mappings.CheckWorkflowID(w.checkID, name),
+			WorkflowID: mappings.CheckWorkflowID(w.Email, name),
 		}),
 		checkWorkflow,
 		checkInputs...,
@@ -185,7 +182,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		w.startCheck(
 			"EmploymentVerification",
 			EmploymentVerification,
-			types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails, CheckID: w.checkID},
+			types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails},
 		)
 	}
 
