@@ -38,7 +38,7 @@ By default, without any options, lists all Background Checks from most recent to
 
 Default list count is 100.
 
-#### `--candidate` (optional)
+#### `--email` (optional)
 
 Lists all Background Checks associated with the email address.
 

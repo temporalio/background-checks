@@ -87,7 +87,7 @@ The steps within the business processes that we are mapping to Activities are th
 For this Learning Path application we are using Workflows for searches for a few reasons.
 
 1. Each search could be long running: In a real life scenario, we won't know how long a search might take to give us a result. Individual searches and Background Checks overall can often take hours or days to complete. While Temporal supports long running Activities, an actual search is conducted by a third party system, and therefore Heartbeats are not very helpful here. An Activity will be the one to make the call to the third party system, but we can just set a timeout and let the Workflow Execution be the long running process.
-2. Division of responsibilities: In a real life scenario, you might have a team that is dedicated any particular search. The Background Check team can manages their Workflow Definition, while the the Federal criminal search team manages its own Workflow Definition, for example, to create a sort of inter-team distributed system that can work together to accomplish goals.
+2. Division of responsibilities: In a real life scenario, you might have a team that is dedicated to a particular search. The Background Check team can manages their Workflow Definition, while the the Federal criminal search team manages its own Workflow Definition, for example, to create a sort of inter-team distributed system that can work together to accomplish goals.
    - Bug fixes
    - CI/CD
 3. The state of a Workflow is maintained: The results of an Activity are written to the Workflow Execution Event History. Instead of writing search results directly to our Background Check Workflow Execution, we can keep them separate in their own Workflow Execution and access them independently from Background Check Workflow.
@@ -120,7 +120,7 @@ To encrypt data in the Temporal Platform, we use a Data Converter.
 
 ## How do we know what the status of each Workflow Execution is?
 
-We can use the Temporal Platform's build in List APIs to see the status of any of our Workflow Executions.
+We can use the Temporal Platform's built in List APIs to see the status of any of our Workflow Executions.
 
 ## How do we get data into a running Workflow Execution?
 
