@@ -161,7 +161,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		return err
 	}
 
-	if !w.SSNTrace.SSNIsValid || w.Tier != "full" {
+	if !w.SSNTrace.SSNIsValid {
 		return w.sendReportEmail(config.HiringManagerEmail)
 	}
 
@@ -170,21 +170,24 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 		FederalCriminalSearch,
 		types.FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
 	)
-	w.startCheck(
-		"StateCriminalSearch",
-		StateCriminalSearch,
-		types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, SSNTraceResult: w.SSNTrace.KnownAddresses},
-	)
-	w.startCheck(
-		"MotorVehicleIncidentSearch",
-		MotorVehicleIncidentSearch,
-		types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
-	)
-	w.startCheck(
-		"EmploymentVerification",
-		EmploymentVerification,
-		types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails, CheckID: w.checkID},
-	)
+
+	if w.Tier == "full" {
+		w.startCheck(
+			"StateCriminalSearch",
+			StateCriminalSearch,
+			types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, SSNTraceResult: w.SSNTrace.KnownAddresses},
+		)
+		w.startCheck(
+			"MotorVehicleIncidentSearch",
+			MotorVehicleIncidentSearch,
+			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
+		)
+		w.startCheck(
+			"EmploymentVerification",
+			EmploymentVerification,
+			types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails, CheckID: w.checkID},
+		)
+	}
 
 	w.waitForChecks()
 
