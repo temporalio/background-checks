@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -38,7 +38,7 @@ func (*Activities) StateCriminalSearch(ctx context.Context, input types.StateCri
 	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
-		body, _ := ioutil.ReadAll(r.Body)
+		body, _ := io.ReadAll(r.Body)
 
 		return result, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), body)
 	}

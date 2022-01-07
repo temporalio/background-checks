@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 )
@@ -44,7 +44,7 @@ func GetJSON(url *url.URL, result interface{}) (*http.Response, error) {
 		return r, err
 	}
 
-	message, _ := ioutil.ReadAll(r.Body)
+	message, _ := io.ReadAll(r.Body)
 
 	return r, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), message)
 }

@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 
@@ -37,7 +37,7 @@ var startCmd = &cobra.Command{
 		}
 		defer response.Body.Close()
 
-		body, _ := ioutil.ReadAll(response.Body)
+		body, _ := io.ReadAll(response.Body)
 
 		if response.StatusCode != http.StatusCreated {
 			log.Fatalf("%s: %s", http.StatusText(response.StatusCode), body)

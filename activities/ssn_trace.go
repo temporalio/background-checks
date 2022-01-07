@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"time"
 
@@ -38,7 +38,7 @@ func (*Activities) SSNTrace(ctx context.Context, input types.SSNTraceInput) (typ
 
 	if r.StatusCode != http.StatusOK {
 		defer r.Body.Close()
-		body, _ := ioutil.ReadAll(r.Body)
+		body, _ := io.ReadAll(r.Body)
 
 		return result, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), body)
 	}
