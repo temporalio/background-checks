@@ -189,6 +189,7 @@ func (h *handlers) handleCheckList(w http.ResponseWriter, r *http.Request) {
 		checks[i] = check
 	}
 
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(checks)
 }
 
@@ -347,7 +348,6 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
-
 }
 
 func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
