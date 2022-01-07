@@ -10,6 +10,7 @@ import (
 	"github.com/uber-go/tally/v4"
 	"github.com/uber-go/tally/v4/prometheus"
 	"go.temporal.io/sdk/client"
+	tallyhandler "go.temporal.io/sdk/contrib/tally"
 	"go.temporal.io/sdk/worker"
 
 	"github.com/temporalio/background-checks/activities"
@@ -24,10 +25,10 @@ var workerCmd = &cobra.Command{
 	Short: "Run worker",
 	Run: func(cmd *cobra.Command, args []string) {
 		c, err := temporal.NewClient(client.Options{
-			MetricsScope: newPrometheusScope(prometheus.Configuration{
+			MetricsHandler: tallyhandler.NewMetricsHandler(newPrometheusScope(prometheus.Configuration{
 				ListenAddress: "0.0.0.0:9090",
 				TimerType:     "histogram",
-			}),
+			})),
 		})
 		if err != nil {
 			log.Fatalf("client error: %v", err)
@@ -52,26 +53,6 @@ var workerCmd = &cobra.Command{
 	},
 }
 
-var (
-	safeCharacters = []rune{'_'}
-
-	sanitizeOptions = tally.SanitizeOptions{
-		NameCharacters: tally.ValidCharacters{
-			Ranges:     tally.AlphanumericRange,
-			Characters: safeCharacters,
-		},
-		KeyCharacters: tally.ValidCharacters{
-			Ranges:     tally.AlphanumericRange,
-			Characters: safeCharacters,
-		},
-		ValueCharacters: tally.ValidCharacters{
-			Ranges:     tally.AlphanumericRange,
-			Characters: safeCharacters,
-		},
-		ReplacementCharacter: tally.DefaultReplacementCharacter,
-	}
-)
-
 func newPrometheusScope(c prometheus.Configuration) tally.Scope {
 	reporter, err := c.NewReporter(
 		prometheus.ConfigurationOptions{
@@ -85,10 +66,9 @@ func newPrometheusScope(c prometheus.Configuration) tally.Scope {
 		log.Fatalln("error creating prometheus reporter", err)
 	}
 	scopeOpts := tally.ScopeOptions{
-		CachedReporter:  reporter,
-		Separator:       prometheus.DefaultSeparator,
-		SanitizeOptions: &sanitizeOptions,
-		Prefix:          "lp_background_checks",
+		CachedReporter: reporter,
+		Separator:      prometheus.DefaultSeparator,
+		Prefix:         "lp_background_checks",
 	}
 	scope, _ := tally.NewRootScope(scopeOpts, time.Second)
 
