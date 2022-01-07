@@ -14,7 +14,7 @@ import (
 
 const ssnTraceAPITimeout = time.Second * 5
 
-func (a *Activities) SSNTrace(ctx context.Context, input types.SSNTraceInput) (types.SSNTraceResult, error) {
+func (*Activities) SSNTrace(ctx context.Context, input types.SSNTraceInput) (types.SSNTraceResult, error) {
 	var result types.SSNTraceResult
 
 	jsonInput, err := json.Marshal(input)

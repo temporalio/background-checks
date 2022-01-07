@@ -14,7 +14,7 @@ import (
 
 const federalCriminalSearchAPITimeout = time.Second * 5
 
-func (a *Activities) FederalCriminalSearch(ctx context.Context, input types.FederalCriminalSearchInput) (types.FederalCriminalSearchResult, error) {
+func (*Activities) FederalCriminalSearch(ctx context.Context, input types.FederalCriminalSearchInput) (types.FederalCriminalSearchResult, error) {
 	var result types.FederalCriminalSearchResult
 
 	jsonInput, err := json.Marshal(input)
