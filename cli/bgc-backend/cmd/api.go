@@ -19,6 +19,7 @@ var apiCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("Error: %v", err)
 		}
+		defer c.Close()
 
 		srv := &http.Server{
 			Handler: api.Router(c),
