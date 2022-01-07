@@ -28,39 +28,6 @@ type handlers struct {
 	temporalClient client.Client
 }
 
-func (h *handlers) executeWorkflow(options client.StartWorkflowOptions, workflow interface{}, args ...interface{}) (client.WorkflowRun, error) {
-	options.TaskQueue = config.TaskQueue
-
-	return h.temporalClient.ExecuteWorkflow(
-		context.Background(),
-		options,
-		workflows.BackgroundCheck,
-		args...,
-	)
-}
-
-func (h *handlers) cancelWorkflow(email string, runid string) error {
-	return h.temporalClient.CancelWorkflow(
-		context.Background(),
-		mappings.BackgroundCheckWorkflowID(email),
-		runid,
-	)
-}
-
-func (h *handlers) queryWorkflow(wid string, queryType string, args ...interface{}) (converter.EncodedValue, error) {
-	return h.temporalClient.QueryWorkflow(
-		context.Background(),
-		wid,
-		"",
-		queryType,
-		args...,
-	)
-}
-
-func (h *handlers) signalWorkflow(wfid string, runid string, signalName string, signalArg interface{}) error {
-	return h.temporalClient.SignalWorkflow(context.Background(), wfid, runid, signalName, signalArg)
-}
-
 func getBackgroundCheckCandidateEmail(we *workflowpb.WorkflowExecutionInfo) (string, error) {
 	var email string
 
@@ -171,11 +138,9 @@ func statusQuery(status string) (string, error) {
 	}
 }
 
-func (h *handlers) listWorkflows(filters listWorkflowFilters) ([]*workflowpb.WorkflowExecutionInfo, error) {
+func (h *handlers) listWorkflows(ctx context.Context, filters listWorkflowFilters) ([]*workflowpb.WorkflowExecutionInfo, error) {
 	var executions []*workflowpb.WorkflowExecutionInfo
 	var nextPageToken []byte
-
-	ctx := context.Background()
 
 	query, err := queryForFilters(filters)
 	if err != nil {
@@ -207,7 +172,7 @@ func (h *handlers) handleCheckList(w http.ResponseWriter, r *http.Request) {
 		Status: query.Get("status"),
 	}
 
-	wfs, err := h.listWorkflows(filters)
+	wfs, err := h.listWorkflows(r.Context(), filters)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -235,9 +200,11 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = h.executeWorkflow(
+	_, err = h.temporalClient.ExecuteWorkflow(
+		r.Context(),
 		client.StartWorkflowOptions{
-			ID: mappings.BackgroundCheckWorkflowID(input.Email),
+			TaskQueue: config.TaskQueue,
+			ID:        mappings.BackgroundCheckWorkflowID(input.Email),
 			SearchAttributes: map[string]interface{}{
 				"CandidateEmail": input.Email,
 			},
@@ -260,8 +227,10 @@ func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 
 	email := vars["email"]
 
-	v, err := h.queryWorkflow(
+	v, err := h.temporalClient.QueryWorkflow(
+		r.Context(),
 		mappings.BackgroundCheckWorkflowID(email),
+		"",
 		queries.BackgroundCheckStatus,
 	)
 	if err != nil {
@@ -302,7 +271,8 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 	}
 	result.Accepted = true
 
-	err = h.signalWorkflow(
+	err = h.temporalClient.SignalWorkflow(
+		r.Context(),
 		wfid,
 		runid,
 		signals.AcceptSubmission,
@@ -328,7 +298,8 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 		Accepted: false,
 	}
 
-	err = h.signalWorkflow(
+	err = h.temporalClient.SignalWorkflow(
+		r.Context(),
 		wfid,
 		runid,
 		signals.AcceptSubmission,
@@ -361,7 +332,8 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 
 	result := input
 
-	err = h.signalWorkflow(
+	err = h.temporalClient.SignalWorkflow(
+		r.Context(),
 		wfid,
 		runid,
 		signals.EmploymentVerificationSubmission,
@@ -383,7 +355,7 @@ func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	email := vars["email"]
 	id := vars["id"]
 
-	err := h.cancelWorkflow(email, id)
+	err := h.temporalClient.CancelWorkflow(r.Context(), email, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
