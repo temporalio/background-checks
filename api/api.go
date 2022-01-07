@@ -18,7 +18,6 @@ import (
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
@@ -233,7 +232,7 @@ func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		mappings.BackgroundCheckWorkflowID(email),
 		"",
-		queries.BackgroundCheckStatus,
+		workflows.BackgroundCheckStatusQuery,
 	)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

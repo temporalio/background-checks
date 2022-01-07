@@ -14,7 +14,6 @@ COPY cli ./cli/
 COPY config ./config/
 COPY mappings ./mappings/
 COPY mocks ./mocks/
-COPY queries ./queries/
 COPY signals ./signals/
 COPY types ./types/
 COPY temporal ./temporal

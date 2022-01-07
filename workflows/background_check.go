@@ -6,10 +6,13 @@ import (
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/queries"
 	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
+)
+
+const (
+	BackgroundCheckStatusQuery = "background-check-status"
 )
 
 type backgroundCheckWorkflow struct {
@@ -32,7 +35,7 @@ func newBackgroundCheckWorkflow(ctx workflow.Context, state types.BackgroundChec
 
 	w.Checks = make(map[string]interface{})
 
-	err := workflow.SetQueryHandler(ctx, queries.BackgroundCheckStatus, func() (types.BackgroundCheckState, error) {
+	err := workflow.SetQueryHandler(ctx, BackgroundCheckStatusQuery, func() (types.BackgroundCheckState, error) {
 		return w.BackgroundCheckState, nil
 	})
 	return &w, err
@@ -191,4 +194,5 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	return w.sendReportEmail(config.HiringManagerEmail)
 }
+
 // @@@SNIPEND
