@@ -30,7 +30,7 @@ func (a *Activities) SendDeclineEmail(ctx context.Context, input types.SendRepor
 		return result, err
 	}
 
-	err = a.SendMail(config.HiringSupportEmail, config.HiringManagerEmail, "Background Check Declined", &body)
+	err = a.sendMail(config.HiringSupportEmail, config.HiringManagerEmail, "Background Check Declined", &body)
 	if err != nil {
 		return result, err
 	}

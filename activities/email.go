@@ -9,7 +9,7 @@ import (
 	"github.com/temporalio/background-checks/config"
 )
 
-func (a *Activities) SendMail(from string, to string, subject string, body io.Reader) error {
+func (a *Activities) sendMail(from string, to string, subject string, body io.Reader) error {
 	var b bytes.Buffer
 
 	fmt.Fprintf(&b, "From: %s\nTo: %s\nSubject: %s\n\n", from, to, subject)

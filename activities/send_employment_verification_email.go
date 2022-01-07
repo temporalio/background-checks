@@ -46,7 +46,7 @@ func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context,
 		return result, err
 	}
 
-	err = a.SendMail(config.ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
+	err = a.sendMail(config.ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
 	if err != nil {
 		return result, err
 	}

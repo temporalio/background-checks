@@ -43,7 +43,7 @@ func (a *Activities) SendAcceptEmail(ctx context.Context, input types.SendAccept
 		return result, err
 	}
 
-	err = a.SendMail(config.CandidateSupportEmail, input.Email, "Background Check Request", &body)
+	err = a.sendMail(config.CandidateSupportEmail, input.Email, "Background Check Request", &body)
 	if err != nil {
 		return result, err
 	}
