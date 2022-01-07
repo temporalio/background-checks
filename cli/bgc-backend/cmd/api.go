@@ -17,7 +17,7 @@ var apiCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		c, err := temporal.NewClient(client.Options{})
 		if err != nil {
-			log.Fatalf("Error: %v", err)
+			log.Fatalf("error: %v", err)
 		}
 		defer c.Close()
 
