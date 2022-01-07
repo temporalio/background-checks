@@ -147,7 +147,7 @@ func (h *handlers) listWorkflows(ctx context.Context, filters listWorkflowFilter
 		return executions, err
 	}
 
-	for hasMore := true; hasMore; hasMore = len(nextPageToken) > 0 {
+	for {
 		resp, err := h.temporalClient.ListWorkflow(ctx, &workflowservice.ListWorkflowExecutionsRequest{
 			PageSize:      10,
 			NextPageToken: nextPageToken,
@@ -158,10 +158,11 @@ func (h *handlers) listWorkflows(ctx context.Context, filters listWorkflowFilter
 		}
 
 		executions = append(executions, resp.Executions...)
+		if len(resp.NextPageToken) == 0 {
+			return executions, nil
+		}
 		nextPageToken = resp.NextPageToken
 	}
-
-	return executions, nil
 }
 
 func (h *handlers) handleCheckList(w http.ResponseWriter, r *http.Request) {
