@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/temporalio/background-checks/types"
@@ -18,17 +17,12 @@ const stateCriminalSearchAPITimeout = time.Second * 5
 func (a *Activities) StateCriminalSearch(ctx context.Context, input types.StateCriminalSearchInput) (types.StateCriminalSearchResult, error) {
 	var result types.StateCriminalSearchResult
 
-	requestURL, err := url.Parse("http://thirdparty:8082/statecriminalsearch")
-	if err != nil {
-		return result, err
-	}
-
 	jsonInput, err := json.Marshal(input)
 	if err != nil {
 		return result, fmt.Errorf("unable to encode input: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), bytes.NewReader(jsonInput))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://thirdparty:8082/statecriminalsearch", bytes.NewReader(jsonInput))
 	if err != nil {
 		return result, fmt.Errorf("unable to build request: %w", err)
 	}
