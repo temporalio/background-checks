@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/testsuite"
@@ -34,7 +33,7 @@ func TestReturnsAcceptResponse(t *testing.T) {
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
-				signals.AcceptSubmission,
+				workflows.AcceptSubmissionSignal,
 				types.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
 			)
 		},
