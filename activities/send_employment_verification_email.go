@@ -8,7 +8,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-const employmentVerificationRequestEmail = `
+const employmentVerificationRequestEmailText = `
 {{ $candidate := .CandidateDetails -}}
 Hello Background Check Researcher, 
 
@@ -34,13 +34,14 @@ Thanks,
 Background Check System
 `
 
+var employmentVerificationRequestEmailTemplate = template.Must(template.New("employmentVerificationRequestEmail").Parse(employmentVerificationRequestEmailText))
+
 func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input types.SendEmploymentVerificationEmailInput) (types.SendEmploymentVerificationEmailResult, error) {
 	var result types.SendEmploymentVerificationEmailResult
 
 	var body bytes.Buffer
 
-	t := template.Must(template.New("employmentVerificationRequestEmail").Parse(employmentVerificationRequestEmail))
-	err := t.Execute(&body, input)
+	err := employmentVerificationRequestEmailTemplate.Execute(&body, input)
 	if err != nil {
 		return result, err
 	}

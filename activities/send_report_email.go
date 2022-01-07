@@ -8,7 +8,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-const reportEmail = `
+const reportEmailText = `
 {{- $email := .State.Email -}}
 {{- $candidate := .State.CandidateDetails -}}
 {{- $ssntrace := .State.SSNTrace -}}
@@ -71,13 +71,14 @@ Thanks,
 Background Check System
 `
 
+var reportEmailTemplate = template.Must(template.New("reportEmail").Parse(reportEmailText))
+
 func (a *Activities) SendReportEmail(ctx context.Context, input types.SendReportEmailInput) (types.SendReportEmailResult, error) {
 	var result types.SendReportEmailResult
 
 	var body bytes.Buffer
 
-	t := template.Must(template.New("reportEmail").Parse(reportEmail))
-	err := t.Execute(&body, input)
+	err := reportEmailTemplate.Execute(&body, input)
 	if err != nil {
 		return result, err
 	}

@@ -8,7 +8,7 @@ import (
 	"github.com/temporalio/background-checks/types"
 )
 
-const acceptEmail = `
+const acceptEmailText = `
 Hello, 
 
 Your potential employer has requested that we conduct a background check on their behalf.
@@ -31,13 +31,14 @@ Thanks,
 Background Check System
 `
 
+var acceptEmailTemplate = template.Must(template.New("acceptEmail").Parse(acceptEmailText))
+
 func (a *Activities) SendAcceptEmail(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
 	var result types.SendAcceptEmailResult
 
 	var body bytes.Buffer
 
-	t := template.Must(template.New("acceptEmail").Parse(acceptEmail))
-	err := t.Execute(&body, input)
+	err := acceptEmailTemplate.Execute(&body, input)
 	if err != nil {
 		return result, err
 	}
