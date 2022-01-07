@@ -44,9 +44,5 @@ func (a *Activities) SendAcceptEmail(ctx context.Context, input types.SendAccept
 	}
 
 	err = a.sendMail(config.CandidateSupportEmail, input.Email, "Background Check Request", &body)
-	if err != nil {
-		return result, err
-	}
-
-	return result, nil
+	return result, err
 }
