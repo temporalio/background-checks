@@ -28,7 +28,7 @@ func (a *Activities) StateCriminalSearch(ctx context.Context, input types.StateC
 		return result, fmt.Errorf("unable to encode input: %v", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), bytes.NewBuffer(jsonInput))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), bytes.NewReader(jsonInput))
 	if err != nil {
 		return result, fmt.Errorf("unable to build request: %v", err)
 	}

@@ -15,7 +15,7 @@ func PostJSON(url *url.URL, input interface{}) (*http.Response, error) {
 		return nil, fmt.Errorf("unable to encode input: %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, url.String(), bytes.NewBuffer(jsonInput))
+	req, err := http.NewRequest(http.MethodPost, url.String(), bytes.NewReader(jsonInput))
 	if err != nil {
 		return nil, fmt.Errorf("unable to build request: %v", err)
 	}
