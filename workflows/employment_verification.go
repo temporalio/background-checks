@@ -23,9 +23,13 @@ func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWo
 	// In a real use case you may round-robin, decide based on price or current workload,
 	// or fetch a researcher from a third party API.
 
-	researcher := researchers[rand.Intn(len(researchers))]
+	var researcher string
+	r := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
+		return researchers[rand.Intn(len(researchers))]
+	})
+	err := r.Get(&researcher)
 
-	return researcher, nil
+	return researcher, err
 }
 
 func emailEmploymentVerificationRequest(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput, email string) error {
@@ -86,4 +90,5 @@ func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerifica
 
 	return types.EmploymentVerificationWorkflowResult(submission), err
 }
+
 // @@@SNIPEND
