@@ -15,30 +15,27 @@ func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWo
 	knownaddresses := input.SSNTraceResult
 	var crimes []string
 
-	// s := workflow.NewSelector(ctx)
-
 	for _, address := range knownaddresses {
+		activityInput := types.StateCriminalSearchInput{
+			FullName: name,
+			Address:  address,
+		}
 		var activityResult types.StateCriminalSearchResult
-		var activityInput types.StateCriminalSearchInput
-		activityInput.FullName = name
-		activityInput.Address = address
 
 		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			StartToCloseTimeout: time.Minute,
 		})
 
-		statecheck := workflow.ExecuteActivity(ctx, a.StateCriminalSearch, types.StateCriminalSearchInput(activityInput))
+		statecheck := workflow.ExecuteActivity(ctx, a.StateCriminalSearch, activityInput)
 
 		err := statecheck.Get(ctx, &activityResult)
-		if err != nil {
+		if err == nil {
 			crimes = append(crimes, activityResult.Crimes...)
 		}
-
 	}
 	result.Crimes = crimes
-	var err error
 
-	return types.StateCriminalSearchWorkflowResult(result), err
-
+	return types.StateCriminalSearchWorkflowResult(result), nil
 }
+
 // @@@SNIPEND
