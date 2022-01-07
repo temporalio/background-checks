@@ -5,7 +5,6 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -21,7 +20,7 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 
 	i := types.SendAcceptEmailInput{
 		Email: input.Email,
-		Token: mappings.TokenForWorkflow(ctx),
+		Token: workflows.TokenForWorkflow(ctx),
 	}
 	f := workflow.ExecuteActivity(ctx, a.SendAcceptEmail, i)
 	return f.Get(ctx, nil)

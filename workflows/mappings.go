@@ -1,4 +1,4 @@
-package mappings
+package workflows
 
 import (
 	"encoding/base64"

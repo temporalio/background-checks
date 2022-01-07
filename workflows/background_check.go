@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/log"
 	"go.temporal.io/sdk/workflow"
@@ -59,7 +58,7 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 	}
 
 	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: mappings.AcceptWorkflowID(email),
+		WorkflowID: workflows.AcceptWorkflowID(email),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
 		Email: email,
@@ -94,7 +93,7 @@ func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
 func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interface{}, checkInputs ...interface{}) {
 	f := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: mappings.CheckWorkflowID(w.Email, name),
+			WorkflowID: workflows.CheckWorkflowID(w.Email, name),
 		}),
 		checkWorkflow,
 		checkInputs...,

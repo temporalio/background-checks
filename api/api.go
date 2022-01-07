@@ -16,7 +16,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 
-	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 )
@@ -207,7 +206,7 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		client.StartWorkflowOptions{
 			TaskQueue: TaskQueue,
-			ID:        mappings.BackgroundCheckWorkflowID(input.Email),
+			ID:        workflows.BackgroundCheckWorkflowID(input.Email),
 			SearchAttributes: map[string]interface{}{
 				"CandidateEmail": input.Email,
 			},
@@ -232,7 +231,7 @@ func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 
 	v, err := h.temporalClient.QueryWorkflow(
 		r.Context(),
-		mappings.BackgroundCheckWorkflowID(email),
+		workflows.BackgroundCheckWorkflowID(email),
 		"",
 		workflows.BackgroundCheckStatusQuery,
 	)
@@ -259,7 +258,7 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	token := vars["token"]
 
-	wfid, runid, err := mappings.WorkflowFromToken(token)
+	wfid, runid, err := workflows.WorkflowFromToken(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -291,7 +290,7 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	token := vars["token"]
 
-	wfid, runid, err := mappings.WorkflowFromToken(token)
+	wfid, runid, err := workflows.WorkflowFromToken(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -318,7 +317,7 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 	vars := mux.Vars(r)
 	token := vars["token"]
 
-	wfid, runid, err := mappings.WorkflowFromToken(token)
+	wfid, runid, err := workflows.WorkflowFromToken(token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

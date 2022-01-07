@@ -11,10 +11,7 @@ RUN go mod download
 COPY activities ./activities/
 COPY api ./api/
 COPY cli ./cli/
-COPY config ./config/
-COPY mappings ./mappings/
 COPY mocks ./mocks/
-COPY signals ./signals/
 COPY types ./types/
 COPY temporal ./temporal
 COPY workflows ./workflows/
