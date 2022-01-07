@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/temporalio/background-checks/config"
+	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 	"go.temporal.io/sdk/log"
@@ -141,7 +141,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	w.Accepted = response.Accepted
 
 	if !w.Accepted {
-		return w.sendDeclineEmail(config.HiringManagerEmail)
+		return w.sendDeclineEmail(activities.HiringManagerEmail)
 	}
 
 	w.CandidateDetails = response.CandidateDetails
@@ -163,7 +163,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 	}
 
 	if !w.SSNTrace.SSNIsValid {
-		return w.sendReportEmail(config.HiringManagerEmail)
+		return w.sendReportEmail(activities.HiringManagerEmail)
 	}
 
 	w.startCheck(
@@ -192,7 +192,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	w.waitForChecks()
 
-	return w.sendReportEmail(config.HiringManagerEmail)
+	return w.sendReportEmail(activities.HiringManagerEmail)
 }
 
 // @@@SNIPEND
