@@ -20,7 +20,7 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 
 	i := types.SendAcceptEmailInput{
 		Email: input.Email,
-		Token: workflows.TokenForWorkflow(ctx),
+		Token: TokenForWorkflow(ctx),
 	}
 	f := workflow.ExecuteActivity(ctx, a.SendAcceptEmail, i)
 	return f.Get(ctx, nil)

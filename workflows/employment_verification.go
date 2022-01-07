@@ -42,7 +42,7 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput{
 		Email:            email,
 		CandidateDetails: input.CandidateDetails,
-		Token:            workflows.TokenForWorkflow(ctx),
+		Token:            TokenForWorkflow(ctx),
 	})
 	return evsend.Get(ctx, nil)
 }

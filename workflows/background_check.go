@@ -58,7 +58,7 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 	}
 
 	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-		WorkflowID: workflows.AcceptWorkflowID(email),
+		WorkflowID: AcceptWorkflowID(email),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
 		Email: email,
@@ -93,7 +93,7 @@ func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
 func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interface{}, checkInputs ...interface{}) {
 	f := workflow.ExecuteChildWorkflow(
 		workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
-			WorkflowID: workflows.CheckWorkflowID(w.Email, name),
+			WorkflowID: CheckWorkflowID(w.Email, name),
 		}),
 		checkWorkflow,
 		checkInputs...,
