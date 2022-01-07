@@ -37,13 +37,13 @@ func GetJSON(url *url.URL, result interface{}) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 
 	if r.StatusCode >= 200 && r.StatusCode < 300 {
 		err = json.NewDecoder(r.Body).Decode(result)
 		return r, err
 	}
 
-	defer r.Body.Close()
 	message, _ := ioutil.ReadAll(r.Body)
 
 	return r, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), message)

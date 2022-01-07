@@ -44,8 +44,8 @@ var cancelCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("request error: %v", err)
 		}
-
 		defer response.Body.Close()
+
 		body, _ := ioutil.ReadAll(response.Body)
 
 		if response.StatusCode != http.StatusOK {

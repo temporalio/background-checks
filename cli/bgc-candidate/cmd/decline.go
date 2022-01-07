@@ -43,8 +43,8 @@ var declineCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf(err.Error())
 		}
-
 		defer response.Body.Close()
+
 		body, _ := ioutil.ReadAll(response.Body)
 
 		if response.StatusCode != http.StatusOK {

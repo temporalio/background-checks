@@ -48,8 +48,8 @@ var employmentVerifyCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalln(err.Error())
 		}
-
 		defer response.Body.Close()
+
 		body, _ := ioutil.ReadAll(response.Body)
 
 		if response.StatusCode != http.StatusOK {

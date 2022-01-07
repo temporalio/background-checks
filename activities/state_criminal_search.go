@@ -41,9 +41,9 @@ func (a *Activities) StateCriminalSearch(ctx context.Context, input types.StateC
 	if err != nil {
 		return result, err
 	}
+	defer r.Body.Close()
 
 	if r.StatusCode != http.StatusOK {
-		defer r.Body.Close()
 		body, _ := ioutil.ReadAll(r.Body)
 
 		return result, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), body)
