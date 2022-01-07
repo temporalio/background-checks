@@ -4,6 +4,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const APIEndpoint = "lp-api:8081"
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "bgc-candidate",
