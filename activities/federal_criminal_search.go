@@ -25,12 +25,12 @@ func (a *Activities) FederalCriminalSearch(ctx context.Context, input types.Fede
 
 	jsonInput, err := json.Marshal(input)
 	if err != nil {
-		return result, fmt.Errorf("unable to encode input: %v", err)
+		return result, fmt.Errorf("unable to encode input: %w", err)
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), bytes.NewReader(jsonInput))
 	if err != nil {
-		return result, fmt.Errorf("unable to build request: %v", err)
+		return result, fmt.Errorf("unable to build request: %w", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
