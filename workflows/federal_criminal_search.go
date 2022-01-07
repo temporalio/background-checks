@@ -20,4 +20,5 @@ func FederalCriminalSearch(ctx workflow.Context, input types.FederalCriminalSear
 	err := f.Get(ctx, &result)
 	return types.FederalCriminalSearchWorkflowResult(result), err
 }
+
 // @@@SNIPEND

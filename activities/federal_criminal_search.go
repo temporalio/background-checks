@@ -8,9 +8,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/temporalio/background-checks/types"
 )
+
+const federalCriminalSearchAPITimeout = time.Second * 5
 
 func (a *Activities) FederalCriminalSearch(ctx context.Context, input types.FederalCriminalSearchInput) (types.FederalCriminalSearchResult, error) {
 	var result types.FederalCriminalSearchResult
@@ -25,13 +28,15 @@ func (a *Activities) FederalCriminalSearch(ctx context.Context, input types.Fede
 		return result, fmt.Errorf("unable to encode input: %v", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, requestURL.String(), bytes.NewBuffer(jsonInput))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, requestURL.String(), bytes.NewBuffer(jsonInput))
 	if err != nil {
 		return result, fmt.Errorf("unable to build request: %v", err)
 	}
 	req.Header.Set("Content-Type", "application/json")
 
-	client := http.Client{}
+	client := http.Client{
+		Timeout: federalCriminalSearchAPITimeout,
+	}
 	r, err := client.Do(req)
 	if err != nil {
 		return result, err
