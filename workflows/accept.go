@@ -5,13 +5,13 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 )
 
 const (
 	AcceptSubmissionSignal = "accept-submission"
+	AcceptGracePeriod      = time.Hour * 24 * 7
 )
 
 func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error {
@@ -40,7 +40,7 @@ func waitForSubmission(ctx workflow.Context) (types.AcceptSubmission, error) {
 
 		response = types.AcceptSubmission(submission)
 	})
-	s.AddFuture(workflow.NewTimer(ctx, config.AcceptGracePeriod), func(f workflow.Future) {
+	s.AddFuture(workflow.NewTimer(ctx, AcceptGracePeriod), func(f workflow.Future) {
 		err = f.Get(ctx, nil)
 
 		// Treat failure to accept in time as declining.

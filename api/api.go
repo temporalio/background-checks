@@ -16,10 +16,13 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
+)
+
+const (
+	TaskQueue = "background-checks-main"
 )
 
 type handlers struct {
@@ -203,7 +206,7 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 	_, err = h.temporalClient.ExecuteWorkflow(
 		r.Context(),
 		client.StartWorkflowOptions{
-			TaskQueue: config.TaskQueue,
+			TaskQueue: TaskQueue,
 			ID:        mappings.BackgroundCheckWorkflowID(input.Email),
 			SearchAttributes: map[string]interface{}{
 				"CandidateEmail": input.Email,

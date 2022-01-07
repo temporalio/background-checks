@@ -5,7 +5,6 @@ import (
 	"context"
 	"text/template"
 
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -46,7 +45,7 @@ func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context,
 		return result, err
 	}
 
-	err = a.sendMail(config.ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
+	err = a.sendMail(ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
 	if err != nil {
 		return result, err
 	}

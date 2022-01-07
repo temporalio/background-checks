@@ -14,9 +14,12 @@ import (
 	"go.temporal.io/sdk/worker"
 
 	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/temporal"
 	"github.com/temporalio/background-checks/workflows"
+)
+
+const (
+	SMTPServer = "lp-mailhog:1025"
 )
 
 // workerCmd represents the worker command
@@ -40,7 +43,7 @@ var workerCmd = &cobra.Command{
 		w.RegisterWorkflow(workflows.BackgroundCheck)
 		w.RegisterWorkflow(workflows.Accept)
 		w.RegisterWorkflow(workflows.EmploymentVerification)
-		w.RegisterActivity(&activities.Activities{SMTPServer: config.SMTPServer})
+		w.RegisterActivity(&activities.Activities{SMTPServer: SMTPServer})
 		w.RegisterWorkflow(workflows.SSNTrace)
 		w.RegisterWorkflow(workflows.FederalCriminalSearch)
 		w.RegisterWorkflow(workflows.StateCriminalSearch)

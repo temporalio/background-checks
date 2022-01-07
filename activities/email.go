@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/smtp"
-
-	"github.com/temporalio/background-checks/config"
 )
 
 func (a *Activities) sendMail(from string, to string, subject string, body io.Reader) error {
@@ -19,5 +17,5 @@ func (a *Activities) sendMail(from string, to string, subject string, body io.Re
 		return err
 	}
 
-	return smtp.SendMail(a.SMTPServer, a.SMTPAuth, config.CandidateSupportEmail, []string{to}, b.Bytes())
+	return smtp.SendMail(a.SMTPServer, a.SMTPAuth, CandidateSupportEmail, []string{to}, b.Bytes())
 }

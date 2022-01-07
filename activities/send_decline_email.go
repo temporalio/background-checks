@@ -5,7 +5,6 @@ import (
 	"context"
 	"text/template"
 
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/types"
 )
 
@@ -30,6 +29,6 @@ func (a *Activities) SendDeclineEmail(ctx context.Context, input types.SendRepor
 		return result, err
 	}
 
-	err = a.sendMail(config.HiringSupportEmail, config.HiringManagerEmail, "Background Check Declined", &body)
+	err = a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", &body)
 	return result, err
 }

@@ -6,13 +6,13 @@ import (
 
 	"go.temporal.io/sdk/workflow"
 
-	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
 	"github.com/temporalio/background-checks/types"
 )
 
 const (
 	EmploymentVerificationSubmissionSignal = "employment-verification-submission"
+	ResearchDeadline                       = time.Hour * 24 * 7
 )
 
 func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (string, error) {
@@ -65,7 +65,7 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.Employ
 
 		response = types.EmploymentVerificationSubmission(submission)
 	})
-	s.AddFuture(workflow.NewTimer(ctx, config.ResearchDeadline), func(f workflow.Future) {
+	s.AddFuture(workflow.NewTimer(ctx, ResearchDeadline), func(f workflow.Future) {
 		err = f.Get(ctx, nil)
 
 		// We should probably fail the (child) workflow here.
