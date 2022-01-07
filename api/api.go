@@ -18,7 +18,6 @@ import (
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 )
@@ -276,7 +275,7 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		wfid,
 		runid,
-		signals.AcceptSubmission,
+		workflows.AcceptSubmissionSignal,
 		result,
 	)
 	if err != nil {
@@ -303,7 +302,7 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		wfid,
 		runid,
-		signals.AcceptSubmission,
+		workflows.AcceptSubmissionSignal,
 		result,
 	)
 	if err != nil {
@@ -337,7 +336,7 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 		r.Context(),
 		wfid,
 		runid,
-		signals.EmploymentVerificationSubmission,
+		workflows.EmploymentVerificationSubmissionSignal,
 		result,
 	)
 	if err != nil {

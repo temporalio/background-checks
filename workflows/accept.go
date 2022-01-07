@@ -7,8 +7,11 @@ import (
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
+)
+
+const (
+	AcceptSubmissionSignal = "accept-submission"
 )
 
 func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error {
@@ -30,7 +33,7 @@ func waitForSubmission(ctx workflow.Context) (types.AcceptSubmission, error) {
 
 	s := workflow.NewSelector(ctx)
 
-	ch := workflow.GetSignalChannel(ctx, signals.AcceptSubmission)
+	ch := workflow.GetSignalChannel(ctx, AcceptSubmissionSignal)
 	s.AddReceive(ch, func(c workflow.ReceiveChannel, more bool) {
 		var submission types.AcceptSubmissionSignal
 		c.Receive(ctx, &submission)
@@ -60,4 +63,5 @@ func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.Accept
 
 	return types.AcceptWorkflowResult(submission), err
 }
+
 // @@@SNIPEND

@@ -8,8 +8,11 @@ import (
 
 	"github.com/temporalio/background-checks/config"
 	"github.com/temporalio/background-checks/mappings"
-	"github.com/temporalio/background-checks/signals"
 	"github.com/temporalio/background-checks/types"
+)
+
+const (
+	EmploymentVerificationSubmissionSignal = "employment-verification-submission"
 )
 
 func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (string, error) {
@@ -53,7 +56,7 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.Employ
 
 	s := workflow.NewSelector(ctx)
 
-	ch := workflow.GetSignalChannel(ctx, signals.EmploymentVerificationSubmission)
+	ch := workflow.GetSignalChannel(ctx, EmploymentVerificationSubmissionSignal)
 	s.AddReceive(ch, func(c workflow.ReceiveChannel, more bool) {
 		var submission types.EmploymentVerificationSubmissionSignal
 		c.Receive(ctx, &submission)
