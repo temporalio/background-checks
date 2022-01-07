@@ -6,7 +6,7 @@ import (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "background-checks",
+	Use:   "bgc-backend",
 	Short: "Backend for the Background Checks application",
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
