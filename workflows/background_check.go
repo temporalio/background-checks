@@ -117,6 +117,7 @@ func (w *backgroundCheckWorkflow) waitForChecks() {
 	}
 }
 
+// @@@SNIPSTART background-checks-main-workflow-definition
 func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
 	w, err := newBackgroundCheckWorkflow(
 		ctx,
@@ -190,3 +191,4 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	return w.sendReportEmail(config.HiringManagerEmail)
 }
+// @@@SNIPEND

@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+// @@@SNIPSTART background-checks-ssn-trace-workflow-definitio
 func SSNTrace(ctx workflow.Context, input types.SSNTraceWorkflowInput) (types.SSNTraceWorkflowResult, error) {
 	var result types.SSNTraceResult
 
@@ -19,3 +20,4 @@ func SSNTrace(ctx workflow.Context, input types.SSNTraceWorkflowInput) (types.SS
 	err := f.Get(ctx, &result)
 	return types.SSNTraceWorkflowResult(result), err
 }
+// @@@SNIPEND

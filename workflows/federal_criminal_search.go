@@ -7,6 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+// @@@SNIPSTART background-checks-federal-criminal-workflow-definition
 func FederalCriminalSearch(ctx workflow.Context, input types.FederalCriminalSearchWorkflowInput) (types.FederalCriminalSearchWorkflowResult, error) {
 	var result types.FederalCriminalSearchResult
 
@@ -19,3 +20,4 @@ func FederalCriminalSearch(ctx workflow.Context, input types.FederalCriminalSear
 	err := f.Get(ctx, &result)
 	return types.FederalCriminalSearchWorkflowResult(result), err
 }
+// @@@SNIPEND
