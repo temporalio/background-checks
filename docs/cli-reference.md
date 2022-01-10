@@ -45,17 +45,7 @@ Lists all Background Checks associated with the email address.
 Example:
 
 ```bash
-bgc-company list --candidate <candidate_email>
-```
-
-#### `--id` (optional)
-
-Lists a specific Background Check that matches the Id.
-
-**Example**:
-
-```bash
-bgc-company list --id <check_id>
+bgc-company list --email <candidate_email>
 ```
 
 #### `--status` (optional)
@@ -72,9 +62,9 @@ Possible `--status` values:
 
 - started
 - pending_consent
+- running
 - completed
 - cancelled
-- running
 
 ### `start`
 
@@ -88,7 +78,7 @@ bgc-company start --email <candidate_email> --package <package_type>
 
 Output:
 
-If successful, shows a check Id.
+If successful the output will show "Created check".
 
 #### `--email` (required)
 
@@ -134,22 +124,16 @@ Candidate accepts the Background Check
 **Example:**
 
 ```bash
-bgc-candidate accept --id <check_id> --ssn <ssn> --address <address> --dob <dob>
+bgc-candidate accept --token <token> --ssn <ssn> --address <address> --dob <dob>
 ```
 
 **Output:**
 
-If successful the output will show "Background Check <check_id> has been successfully accepted."
+If successful the output will show "Accepted".
 
-If the check_id value does not exist, the output will show "Background Check check_id does not exist."
+#### `--token` (required)
 
-If the Background Check has already started or completed, the output will show "Background Check check_id has already been accepted."
-
-If fields are missing, output will show "Required fields are missing."
-
-#### `--id` (required)
-
-Background Check Id.
+Background Check Token.
 
 Get this from the email.
 
@@ -165,30 +149,40 @@ Physical address of the Candidate
 
 Date of birth of the Candidate
 
+### `decline`
+
+Candidate declined the Background Check
+
+**Example:**
+
+```bash
+bgc-candidate decline --token <token>
+```
+
+**Output:**
+
+If succesful the output will show "Declined".
+
 ## `bgc-researcher`
 
 CLI tool that represents the UI for the Researcher
 
-### `submit`
+### `employmentverify`
 
 Complete a Research Request by providing input.
 
 **Example:**
 
 ```bash
-bgc-researcher resolve -id <id> -message <message>
+bgc-researcher employmentverify --token <token>
 ```
 
 **Output:**
 
-If successful the output will show "Research Request <request_id> complete."
+If successful the output will show "Employment verification received"
 
-If fields are missing out will show "Required fields are missing."
+#### `--token` (required)
 
-#### `--id` (required)
+Background Check Token.
 
-Research Request Id
-
-#### `--message` (required)
-
-Message that represents the research done by the Researcher.
+Get this from the email.

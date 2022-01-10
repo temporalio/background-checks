@@ -212,7 +212,7 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 			},
 		},
 		workflows.BackgroundCheck,
-		input,
+		&input,
 	)
 
 	if err != nil {
