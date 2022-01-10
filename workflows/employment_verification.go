@@ -51,16 +51,12 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.Employ
 	var response types.EmploymentVerificationSubmission
 	var err error
 
-	logger := workflow.GetLogger(ctx)
-
 	s := workflow.NewSelector(ctx)
 
 	ch := workflow.GetSignalChannel(ctx, EmploymentVerificationSubmissionSignal)
 	s.AddReceive(ch, func(c workflow.ReceiveChannel, more bool) {
 		var submission types.EmploymentVerificationSubmissionSignal
 		c.Receive(ctx, &submission)
-
-		logger.Info("Signal received: ", submission)
 
 		response = types.EmploymentVerificationSubmission(submission)
 	})

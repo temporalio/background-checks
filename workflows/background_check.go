@@ -1,7 +1,6 @@
 package workflows
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/temporalio/background-checks/activities"
@@ -102,7 +101,7 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 
 		err := f.Get(w.ctx, &result)
 		if err != nil {
-			w.logger.Error(fmt.Sprintf("%s search failed: %v", name, err))
+			w.logger.Error("Search failed", "name", name, "error", err)
 		}
 
 		w.Checks[name] = result
@@ -110,8 +109,6 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 }
 
 func (w *backgroundCheckWorkflow) waitForChecks() {
-	w.logger.Info("Waiting for checks")
-
 	for w.checkSelector.HasPending() {
 		w.checkSelector.Select(w.ctx)
 	}
