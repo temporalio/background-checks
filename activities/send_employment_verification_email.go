@@ -36,20 +36,20 @@ Background Check System
 
 var employmentVerificationRequestEmailTemplate = template.Must(template.New("employmentVerificationRequestEmail").Parse(employmentVerificationRequestEmailText))
 
-func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input types.SendEmploymentVerificationEmailInput) (types.SendEmploymentVerificationEmailResult, error) {
+func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input *types.SendEmploymentVerificationEmailInput) (*types.SendEmploymentVerificationEmailResult, error) {
 	var result types.SendEmploymentVerificationEmailResult
 
 	var body bytes.Buffer
 
 	err := employmentVerificationRequestEmailTemplate.Execute(&body, input)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
 	err = a.sendMail(ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
-	return result, nil
+	return &result, nil
 }

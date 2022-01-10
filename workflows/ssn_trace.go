@@ -8,16 +8,18 @@ import (
 )
 
 // @@@SNIPSTART background-checks-ssn-trace-workflow-definitio
-func SSNTrace(ctx workflow.Context, input types.SSNTraceWorkflowInput) (types.SSNTraceWorkflowResult, error) {
+func SSNTrace(ctx workflow.Context, input *types.SSNTraceWorkflowInput) (*types.SSNTraceWorkflowResult, error) {
 	var result types.SSNTraceResult
 
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.SSNTrace, types.SSNTraceWorkflowInput(input))
+	f := workflow.ExecuteActivity(ctx, a.SSNTrace, types.SSNTraceWorkflowInput(*input))
 
 	err := f.Get(ctx, &result)
-	return types.SSNTraceWorkflowResult(result), err
+	r := types.SSNTraceWorkflowResult(result)
+	return &r, err
 }
+
 // @@@SNIPEND

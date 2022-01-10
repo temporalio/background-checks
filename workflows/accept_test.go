@@ -25,8 +25,8 @@ func TestReturnsAcceptResponse(t *testing.T) {
 	}
 
 	env.OnActivity(a.SendAcceptEmail, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
-			return types.SendAcceptEmailResult{}, nil
+		func(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
+			return &types.SendAcceptEmailResult{}, nil
 		},
 	)
 
@@ -40,7 +40,7 @@ func TestReturnsAcceptResponse(t *testing.T) {
 		0,
 	)
 
-	env.ExecuteWorkflow(workflows.Accept, types.AcceptWorkflowInput{})
+	env.ExecuteWorkflow(workflows.Accept, &types.AcceptWorkflowInput{})
 
 	var result types.AcceptWorkflowResult
 	err := env.GetWorkflowResult(&result)

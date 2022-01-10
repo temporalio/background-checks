@@ -20,16 +20,16 @@ Background Check System
 
 var declineEmailTemplate = template.Must(template.New("declineEmail").Parse(declineEmailText))
 
-func (a *Activities) SendDeclineEmail(ctx context.Context, input types.SendReportEmailInput) (types.SendReportEmailResult, error) {
+func (a *Activities) SendDeclineEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
 	var result types.SendReportEmailResult
 
 	var body bytes.Buffer
 
 	err := declineEmailTemplate.Execute(&body, input)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
 	err = a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", &body)
-	return result, err
+	return &result, err
 }

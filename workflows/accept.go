@@ -13,7 +13,7 @@ const (
 	AcceptGracePeriod      = time.Hour * 24 * 7
 )
 
-func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error {
+func emailCandidate(ctx workflow.Context, input *types.AcceptWorkflowInput) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
@@ -26,7 +26,7 @@ func emailCandidate(ctx workflow.Context, input types.AcceptWorkflowInput) error
 	return f.Get(ctx, nil)
 }
 
-func waitForSubmission(ctx workflow.Context) (types.AcceptSubmission, error) {
+func waitForSubmission(ctx workflow.Context) (*types.AcceptSubmission, error) {
 	var response types.AcceptSubmission
 	var err error
 
@@ -48,19 +48,20 @@ func waitForSubmission(ctx workflow.Context) (types.AcceptSubmission, error) {
 
 	s.Select(ctx)
 
-	return response, err
+	return &response, err
 }
 
 // @@@SNIPSTART background-checks-accept-workflow-definition
-func Accept(ctx workflow.Context, input types.AcceptWorkflowInput) (types.AcceptWorkflowResult, error) {
+func Accept(ctx workflow.Context, input *types.AcceptWorkflowInput) (*types.AcceptWorkflowResult, error) {
 	err := emailCandidate(ctx, input)
 	if err != nil {
-		return types.AcceptWorkflowResult{}, err
+		return &types.AcceptWorkflowResult{}, err
 	}
 
 	submission, err := waitForSubmission(ctx)
 
-	return types.AcceptWorkflowResult(submission), err
+	result := types.AcceptWorkflowResult(*submission)
+	return &result, err
 }
 
 // @@@SNIPEND

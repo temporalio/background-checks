@@ -14,7 +14,7 @@ const (
 	ResearchDeadline                       = time.Hour * 24 * 7
 )
 
-func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (string, error) {
+func chooseResearcher(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput) (string, error) {
 	researchers := []string{
 		"researcher1@example.com",
 		"researcher2@example.com",
@@ -34,7 +34,7 @@ func chooseResearcher(ctx workflow.Context, input types.EmploymentVerificationWo
 	return researcher, err
 }
 
-func emailEmploymentVerificationRequest(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput, email string) error {
+func emailEmploymentVerificationRequest(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput, email string) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
@@ -47,7 +47,7 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input types.Employ
 	return evsend.Get(ctx, nil)
 }
 
-func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.EmploymentVerificationSubmission, error) {
+func waitForEmploymentVerificationSubmission(ctx workflow.Context) (*types.EmploymentVerificationSubmission, error) {
 	var response types.EmploymentVerificationSubmission
 	var err error
 
@@ -70,23 +70,24 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (types.Employ
 
 	s.Select(ctx)
 
-	return response, err
+	return &response, err
 }
 
 // @@@SNIPSTART background-checks-employment-verification-workflow-definition
-func EmploymentVerification(ctx workflow.Context, input types.EmploymentVerificationWorkflowInput) (types.EmploymentVerificationWorkflowResult, error) {
+func EmploymentVerification(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput) (*types.EmploymentVerificationWorkflowResult, error) {
 	researcher, err := chooseResearcher(ctx, input)
 	if err != nil {
-		return types.EmploymentVerificationWorkflowResult{}, err
+		return &types.EmploymentVerificationWorkflowResult{}, err
 	}
 
 	err = emailEmploymentVerificationRequest(ctx, input, researcher)
 	if err != nil {
-		return types.EmploymentVerificationWorkflowResult{}, err
+		return &types.EmploymentVerificationWorkflowResult{}, err
 	}
 	submission, err := waitForEmploymentVerificationSubmission(ctx)
 
-	return types.EmploymentVerificationWorkflowResult(submission), err
+	result := types.EmploymentVerificationWorkflowResult(*submission)
+	return &result, err
 }
 
 // @@@SNIPEND

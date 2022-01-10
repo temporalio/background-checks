@@ -73,16 +73,16 @@ Background Check System
 
 var reportEmailTemplate = template.Must(template.New("reportEmail").Parse(reportEmailText))
 
-func (a *Activities) SendReportEmail(ctx context.Context, input types.SendReportEmailInput) (types.SendReportEmailResult, error) {
+func (a *Activities) SendReportEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
 	var result types.SendReportEmailResult
 
 	var body bytes.Buffer
 
 	err := reportEmailTemplate.Execute(&body, input)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
 	err = a.sendMail(CandidateSupportEmail, HiringManagerEmail, "Background Check Report", &body)
-	return result, err
+	return &result, err
 }

@@ -8,7 +8,7 @@ import (
 )
 
 // @@@SNIPSTART background-checks-state-criminal-workflow-definition
-func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWorkflowInput) (types.StateCriminalSearchWorkflowResult, error) {
+func StateCriminalSearch(ctx workflow.Context, input *types.StateCriminalSearchWorkflowInput) (*types.StateCriminalSearchWorkflowResult, error) {
 	var result types.StateCriminalSearchWorkflowResult
 
 	name := input.FullName
@@ -35,7 +35,8 @@ func StateCriminalSearch(ctx workflow.Context, input types.StateCriminalSearchWo
 	}
 	result.Crimes = crimes
 
-	return types.StateCriminalSearchWorkflowResult(result), nil
+	r := types.StateCriminalSearchWorkflowResult(result)
+	return &r, nil
 }
 
 // @@@SNIPEND

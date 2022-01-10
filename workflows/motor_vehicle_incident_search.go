@@ -7,7 +7,9 @@ import (
 )
 
 // @@@SNIPSTART background-checks-motor-vehicle-workflow-definition
-func MotorVehicleIncidentSearch(ctx workflow.Context, input types.MotorVehicleIncidentSearchWorkflowInput) (types.MotorVehicleIncidentSearchWorkflowResult, error) {
-	return mocks.MotorVehicleIncidentSearchResults[input], nil
+func MotorVehicleIncidentSearch(ctx workflow.Context, input *types.MotorVehicleIncidentSearchWorkflowInput) (*types.MotorVehicleIncidentSearchWorkflowResult, error) {
+	result := mocks.MotorVehicleIncidentSearchResults[*input]
+	return &result, nil
 }
+
 // @@@SNIPEND

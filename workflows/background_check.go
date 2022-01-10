@@ -21,9 +21,9 @@ type backgroundCheckWorkflow struct {
 	logger        log.Logger
 }
 
-func newBackgroundCheckWorkflow(ctx workflow.Context, state types.BackgroundCheckState) (*backgroundCheckWorkflow, error) {
+func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundCheckState) (*backgroundCheckWorkflow, error) {
 	w := backgroundCheckWorkflow{
-		BackgroundCheckState: state,
+		BackgroundCheckState: *state,
 		checkID:              workflow.GetInfo(ctx).WorkflowExecution.RunID,
 		ctx:                  ctx,
 		checkSelector:        workflow.NewSelector(ctx),
@@ -47,12 +47,12 @@ func (w *backgroundCheckWorkflow) pushStatus(status string) error {
 	)
 }
 
-func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmission, error) {
+func (w *backgroundCheckWorkflow) waitForAccept(email string) (*types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
 	err := w.pushStatus("pending_accept")
 	if err != nil {
-		return r, err
+		return &r, err
 	}
 
 	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
@@ -63,7 +63,7 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 	})
 	err = consentWF.Get(ctx, &r)
 
-	return r, err
+	return &r, err
 }
 
 func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
@@ -115,10 +115,10 @@ func (w *backgroundCheckWorkflow) waitForChecks() {
 }
 
 // @@@SNIPSTART background-checks-main-workflow-definition
-func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowInput) error {
+func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowInput) error {
 	w, err := newBackgroundCheckWorkflow(
 		ctx,
-		types.BackgroundCheckState{
+		&types.BackgroundCheckState{
 			Email: input.Email,
 			Tier:  input.Package,
 		},

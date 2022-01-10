@@ -33,16 +33,16 @@ Background Check System
 
 var acceptEmailTemplate = template.Must(template.New("acceptEmail").Parse(acceptEmailText))
 
-func (a *Activities) SendAcceptEmail(ctx context.Context, input types.SendAcceptEmailInput) (types.SendAcceptEmailResult, error) {
+func (a *Activities) SendAcceptEmail(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
 	var result types.SendAcceptEmailResult
 
 	var body bytes.Buffer
 
 	err := acceptEmailTemplate.Execute(&body, input)
 	if err != nil {
-		return result, err
+		return &result, err
 	}
 
 	err = a.sendMail(CandidateSupportEmail, input.Email, "Background Check Request", &body)
-	return result, err
+	return &result, err
 }
