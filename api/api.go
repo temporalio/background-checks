@@ -118,20 +118,20 @@ func candidateQuery(email string) string {
 }
 
 func statusQuery(status string) (string, error) {
-	switch types.BackgroundCheckStatusFromString(status) {
-	case types.BackgroundCheckStatusPendingAccept:
+	switch status {
+	case "pending_accept":
 		return fmt.Sprintf("ExecutionStatus = 'Running' AND BackgroundCheckStatus = '%s'", status), nil
-	case types.BackgroundCheckStatusRunning:
+	case "running":
 		return fmt.Sprintf("ExecutionStatus = 'Running' AND BackgroundCheckStatus = '%s'", status), nil
-	case types.BackgroundCheckStatusCompleted:
+	case "completed":
 		return fmt.Sprintf("ExecutionStatus = 'Completed' AND BackgroundCheckStatus = '%s'", status), nil
-	case types.BackgroundCheckStatusDeclined:
+	case "declined":
 		return fmt.Sprintf("ExecutionStatus = 'Completed' AND BackgroundCheckStatus = '%s'", status), nil
-	case types.BackgroundCheckStatusFailed:
+	case "failed":
 		return "ExecutionStatus = 'Failed'", nil
-	case types.BackgroundCheckStatusTerminated:
+	case "terminated":
 		return "ExecutionStatus = 'Terminated'", nil
-	case types.BackgroundCheckStatusCancelled:
+	case "cancelled":
 		return "ExecutionStatus = 'Cancelled'", nil
 	default:
 		return "", fmt.Errorf("unknown status: %s", status)

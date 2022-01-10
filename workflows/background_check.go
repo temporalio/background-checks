@@ -38,11 +38,11 @@ func newBackgroundCheckWorkflow(ctx workflow.Context, state types.BackgroundChec
 	return &w, err
 }
 
-func (w *backgroundCheckWorkflow) pushStatus(status types.BackgroundCheckStatus) error {
+func (w *backgroundCheckWorkflow) pushStatus(status string) error {
 	return workflow.UpsertSearchAttributes(
 		w.ctx,
 		map[string]interface{}{
-			"BackgroundCheckStatus": status.String(),
+			"BackgroundCheckStatus": status,
 		},
 	)
 }
@@ -50,7 +50,7 @@ func (w *backgroundCheckWorkflow) pushStatus(status types.BackgroundCheckStatus)
 func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
-	err := w.pushStatus(types.BackgroundCheckStatusPendingAccept)
+	err := w.pushStatus("pending_accept")
 	if err != nil {
 		return r, err
 	}
@@ -67,7 +67,7 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (types.AcceptSubmi
 }
 
 func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
-	w.pushStatus(types.BackgroundCheckStatusDeclined)
+	w.pushStatus("declined")
 
 	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -78,7 +78,7 @@ func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
 }
 
 func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
-	w.pushStatus(types.BackgroundCheckStatusCompleted)
+	w.pushStatus("completed")
 
 	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -140,7 +140,7 @@ func BackgroundCheck(ctx workflow.Context, input types.BackgroundCheckWorkflowIn
 
 	w.CandidateDetails = response.CandidateDetails
 
-	err = w.pushStatus(types.BackgroundCheckStatusRunning)
+	err = w.pushStatus("running")
 	if err != nil {
 		return err
 	}
