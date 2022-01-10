@@ -1,7 +1,6 @@
 package activities
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -17,21 +16,7 @@ const stateCriminalSearchAPITimeout = time.Second * 5
 func (*Activities) StateCriminalSearch(ctx context.Context, input *types.StateCriminalSearchInput) (*types.StateCriminalSearchResult, error) {
 	var result types.StateCriminalSearchResult
 
-	jsonInput, err := json.Marshal(input)
-	if err != nil {
-		return &result, fmt.Errorf("unable to encode input: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "http://thirdparty:8082/statecriminalsearch", bytes.NewReader(jsonInput))
-	if err != nil {
-		return &result, fmt.Errorf("unable to build request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := http.Client{
-		Timeout: stateCriminalSearchAPITimeout,
-	}
-	r, err := client.Do(req)
+	r, err := PostJSON(ctx, "http://thirdparty:8082/statecriminalsearch", input, PostJSONOptions{Timeout: stateCriminalSearchAPITimeout})
 	if err != nil {
 		return &result, err
 	}
