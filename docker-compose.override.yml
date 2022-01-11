@@ -37,6 +37,7 @@ services:
   mailhog:
     container_name: lp-mailhog
     image: mailhog/mailhog:v1.0.1
+    command: -invite-jim
     networks:
       - temporal-network
     ports:
