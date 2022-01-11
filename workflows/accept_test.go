@@ -12,7 +12,7 @@ import (
 	"go.temporal.io/sdk/testsuite"
 )
 
-func TestReturnsAcceptResponse(t *testing.T) {
+func TestReturnsAcceptWorkflow(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
 	var a *activities.Activities
@@ -47,4 +47,24 @@ func TestReturnsAcceptResponse(t *testing.T) {
 	assert.NoError(t, err)
 
 	assert.Equal(t, types.AcceptWorkflowResult{Accepted: true, CandidateDetails: details}, result)
+}
+
+func TestReturnsAcceptWorkflowTimeout(t *testing.T) {
+	s := testsuite.WorkflowTestSuite{}
+	env := s.NewTestWorkflowEnvironment()
+	var a *activities.Activities
+
+	env.OnActivity(a.SendAcceptEmail, mock.Anything, mock.Anything).Return(
+		func(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
+			return &types.SendAcceptEmailResult{}, nil
+		},
+	)
+
+	env.ExecuteWorkflow(workflows.Accept, &types.AcceptWorkflowInput{})
+
+	var result types.AcceptWorkflowResult
+	err := env.GetWorkflowResult(&result)
+	assert.NoError(t, err)
+
+	assert.Equal(t, types.AcceptWorkflowResult{Accepted: false, CandidateDetails: types.CandidateDetails{}}, result)
 }
