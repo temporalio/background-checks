@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/github/go-fault"
 	"github.com/gorilla/mux"
 
 	"github.com/temporalio/background-checks/types"
@@ -121,8 +122,16 @@ func Router() *mux.Router {
 func Run() {
 	var err error
 
+	errorInjector, _ := fault.NewErrorInjector(http.StatusInternalServerError)
+	errorFault, _ := fault.NewFault(errorInjector,
+		fault.WithEnabled(true),
+		fault.WithParticipation(0.3),
+	)
+
+	handlerChain := errorFault.Handler(Router())
+
 	srv := &http.Server{
-		Handler: Router(),
+		Handler: handlerChain,
 		Addr:    DefaultEndpoint,
 	}
 
