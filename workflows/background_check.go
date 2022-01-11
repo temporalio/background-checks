@@ -17,6 +17,7 @@ type backgroundCheckWorkflow struct {
 	types.BackgroundCheckState
 	checkID       string
 	ctx           workflow.Context
+	checkFutures  []workflow.Future
 	checkSelector workflow.Selector
 	logger        log.Logger
 }
@@ -96,6 +97,7 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 		checkWorkflow,
 		checkInputs...,
 	)
+	w.checkFutures = append(w.checkFutures, f)
 	w.checkSelector.AddFuture(f, func(f workflow.Future) {
 		var result interface{}
 
@@ -109,7 +111,7 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 }
 
 func (w *backgroundCheckWorkflow) waitForChecks() {
-	for w.checkSelector.HasPending() {
+	for i := 0; i < len(w.checkFutures); i++ {
 		w.checkSelector.Select(w.ctx)
 	}
 }
