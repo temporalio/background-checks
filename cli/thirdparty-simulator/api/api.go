@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
 
 	"github.com/gorilla/mux"
 
@@ -117,10 +119,23 @@ func Router() *mux.Router {
 }
 
 func Run() {
+	var err error
+
 	srv := &http.Server{
 		Handler: Router(),
 		Addr:    DefaultEndpoint,
 	}
 
-	log.Fatal(srv.ListenAndServe())
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.ListenAndServe() }()
+
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt)
+
+	select {
+	case <-sigCh:
+		srv.Close()
+	case err = <-errCh:
+		log.Fatalf("error: %v", err)
+	}
 }
