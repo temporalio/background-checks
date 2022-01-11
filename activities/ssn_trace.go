@@ -13,10 +13,16 @@ import (
 
 const ssnTraceAPITimeout = time.Second * 5
 
-func (*Activities) SSNTrace(ctx context.Context, input *types.SSNTraceInput) (*types.SSNTraceResult, error) {
+func (a *Activities) SSNTrace(ctx context.Context, input *types.SSNTraceInput) (*types.SSNTraceResult, error) {
 	var result types.SSNTraceResult
 
-	r, err := PostJSON(ctx, "http://thirdparty:8082/ssntrace", input, PostJSONOptions{Timeout: ssnTraceAPITimeout})
+	if a.HTTPStub {
+		return &types.SSNTraceResult{
+			SSNIsValid: true,
+		}, nil
+	}
+
+	r, err := a.postJSON(ctx, "http://thirdparty:8082/ssntrace", input, PostJSONOptions{Timeout: ssnTraceAPITimeout})
 	if err != nil {
 		return &result, err
 	}

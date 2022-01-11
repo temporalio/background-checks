@@ -5,6 +5,8 @@ type BackgroundCheckWorkflowInput struct {
 	Package string
 }
 
+type BackgroundCheckWorkflowResult struct{}
+
 type BackgroundCheckState struct {
 	Email            string
 	Tier             string

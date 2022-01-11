@@ -1,11 +1,9 @@
 package workflows_test
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/temporalio/background-checks/activities"
 	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
@@ -15,7 +13,9 @@ import (
 func TestReturnsAcceptWorkflow(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
-	var a *activities.Activities
+	a := activities.Activities{SMTPStub: true}
+
+	env.RegisterActivity(a.SendAcceptEmail)
 
 	details := types.CandidateDetails{
 		FullName: "John Smith",
@@ -23,12 +23,6 @@ func TestReturnsAcceptWorkflow(t *testing.T) {
 		DOB:      "1981-01-01",
 		Address:  "1 Chestnut Avenue",
 	}
-
-	env.OnActivity(a.SendAcceptEmail, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
-			return &types.SendAcceptEmailResult{}, nil
-		},
-	)
 
 	env.RegisterDelayedCallback(
 		func() {
@@ -52,13 +46,9 @@ func TestReturnsAcceptWorkflow(t *testing.T) {
 func TestReturnsAcceptWorkflowTimeout(t *testing.T) {
 	s := testsuite.WorkflowTestSuite{}
 	env := s.NewTestWorkflowEnvironment()
-	var a *activities.Activities
+	a := activities.Activities{SMTPStub: true}
 
-	env.OnActivity(a.SendAcceptEmail, mock.Anything, mock.Anything).Return(
-		func(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
-			return &types.SendAcceptEmailResult{}, nil
-		},
-	)
+	env.RegisterActivity(a.SendAcceptEmail)
 
 	env.ExecuteWorkflow(workflows.Accept, &types.AcceptWorkflowInput{})
 

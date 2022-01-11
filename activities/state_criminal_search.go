@@ -13,10 +13,10 @@ import (
 
 const stateCriminalSearchAPITimeout = time.Second * 5
 
-func (*Activities) StateCriminalSearch(ctx context.Context, input *types.StateCriminalSearchInput) (*types.StateCriminalSearchResult, error) {
+func (a *Activities) StateCriminalSearch(ctx context.Context, input *types.StateCriminalSearchInput) (*types.StateCriminalSearchResult, error) {
 	var result types.StateCriminalSearchResult
 
-	r, err := PostJSON(ctx, "http://thirdparty:8082/statecriminalsearch", input, PostJSONOptions{Timeout: stateCriminalSearchAPITimeout})
+	r, err := a.postJSON(ctx, "http://thirdparty:8082/statecriminalsearch", input, PostJSONOptions{Timeout: stateCriminalSearchAPITimeout})
 	if err != nil {
 		return &result, err
 	}
