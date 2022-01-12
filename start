@@ -21,12 +21,6 @@ until docker compose exec tools tctl --auto_confirm admin cluster add-search-att
 done
 
 echo
-echo " * Restarting worker (it may have died if Temporal wasn't quite ready yet...)"
-echo
-
-docker compose up -d worker
-
-echo
 echo " * All services are up"
 echo
 

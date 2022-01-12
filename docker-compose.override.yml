@@ -47,6 +47,7 @@ services:
     container_name: lp-api
     build: .
     command: bgc-backend api
+    restart: unless-stopped
     networks:
       - temporal-network
     ports:
@@ -57,6 +58,7 @@ services:
     container_name: lp-thirdparty-api
     build: .
     command: thirdparty-simulator api
+    restart: unless-stopped
     networks:
       - temporal-network
     ports:
@@ -67,6 +69,7 @@ services:
     container_name: lp-worker 
     build: .
     command: bgc-backend worker
+    restart: unless-stopped
     networks:
       - temporal-network
     environment:
@@ -84,6 +87,7 @@ services:
     build: .
     command:
       tctl dc web --web_ui_url http://localhost:8088
+    restart: unless-stopped
     networks:
       - temporal-network
     ports:
