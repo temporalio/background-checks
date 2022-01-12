@@ -16,7 +16,6 @@ const (
 type backgroundCheckWorkflow struct {
 	types.BackgroundCheckState
 	checkID       string
-	ctx           workflow.Context
 	checkFutures  []workflow.Future
 	checkSelector workflow.Selector
 	logger        log.Logger
@@ -26,7 +25,6 @@ func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundChe
 	w := backgroundCheckWorkflow{
 		BackgroundCheckState: *state,
 		checkID:              workflow.GetInfo(ctx).WorkflowExecution.RunID,
-		ctx:                  ctx,
 		checkSelector:        workflow.NewSelector(ctx),
 		logger:               workflow.GetLogger(ctx),
 	}
@@ -39,24 +37,24 @@ func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundChe
 	return &w, err
 }
 
-func (w *backgroundCheckWorkflow) pushStatus(status string) error {
+func (w *backgroundCheckWorkflow) pushStatus(ctx workflow.Context, status string) error {
 	return workflow.UpsertSearchAttributes(
-		w.ctx,
+		ctx,
 		map[string]interface{}{
 			"BackgroundCheckStatus": status,
 		},
 	)
 }
 
-func (w *backgroundCheckWorkflow) waitForAccept(email string) (*types.AcceptSubmission, error) {
+func (w *backgroundCheckWorkflow) waitForAccept(ctx workflow.Context, email string) (*types.AcceptSubmission, error) {
 	var r types.AcceptSubmission
 
-	err := w.pushStatus("pending_accept")
+	err := w.pushStatus(ctx, "pending_accept")
 	if err != nil {
 		return &r, err
 	}
 
-	ctx := workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
+	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 		WorkflowID: AcceptWorkflowID(email),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, types.AcceptWorkflowInput{
@@ -67,21 +65,21 @@ func (w *backgroundCheckWorkflow) waitForAccept(email string) (*types.AcceptSubm
 	return &r, err
 }
 
-func (w *backgroundCheckWorkflow) sendDeclineEmail(email string) error {
-	w.pushStatus("declined")
+func (w *backgroundCheckWorkflow) sendDeclineEmail(ctx workflow.Context, email string) error {
+	w.pushStatus(ctx, "declined")
 
-	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
 	f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: email})
-	return f.Get(w.ctx, nil)
+	return f.Get(ctx, nil)
 }
 
-func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
-	w.pushStatus("completed")
+func (w *backgroundCheckWorkflow) sendReportEmail(ctx workflow.Context, email string) error {
+	w.pushStatus(ctx, "completed")
 
-	ctx := workflow.WithActivityOptions(w.ctx, workflow.ActivityOptions{
+	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
@@ -89,9 +87,9 @@ func (w *backgroundCheckWorkflow) sendReportEmail(email string) error {
 	return f.Get(ctx, nil)
 }
 
-func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interface{}, checkInputs ...interface{}) {
+func (w *backgroundCheckWorkflow) startCheck(ctx workflow.Context, name string, checkWorkflow interface{}, checkInputs ...interface{}) {
 	f := workflow.ExecuteChildWorkflow(
-		workflow.WithChildOptions(w.ctx, workflow.ChildWorkflowOptions{
+		workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 			WorkflowID: CheckWorkflowID(w.Email, name),
 		}),
 		checkWorkflow,
@@ -101,7 +99,7 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 	w.checkSelector.AddFuture(f, func(f workflow.Future) {
 		var result interface{}
 
-		err := f.Get(w.ctx, &result)
+		err := f.Get(ctx, &result)
 		if err != nil {
 			w.logger.Error("Search failed", "name", name, "error", err)
 		}
@@ -110,9 +108,9 @@ func (w *backgroundCheckWorkflow) startCheck(name string, checkWorkflow interfac
 	})
 }
 
-func (w *backgroundCheckWorkflow) waitForChecks() {
+func (w *backgroundCheckWorkflow) waitForChecks(ctx workflow.Context) {
 	for i := 0; i < len(w.checkFutures); i++ {
-		w.checkSelector.Select(w.ctx)
+		w.checkSelector.Select(ctx)
 	}
 }
 
@@ -129,7 +127,7 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 		return err
 	}
 
-	response, err := w.waitForAccept(w.Email)
+	response, err := w.waitForAccept(ctx, w.Email)
 	if err != nil {
 		return err
 	}
@@ -137,12 +135,12 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 	w.Accepted = response.Accepted
 
 	if !w.Accepted {
-		return w.sendDeclineEmail(activities.HiringManagerEmail)
+		return w.sendDeclineEmail(ctx, activities.HiringManagerEmail)
 	}
 
 	w.CandidateDetails = response.CandidateDetails
 
-	err = w.pushStatus("running")
+	err = w.pushStatus(ctx, "running")
 	if err != nil {
 		return err
 	}
@@ -159,10 +157,11 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 	}
 
 	if !w.SSNTrace.SSNIsValid {
-		return w.sendReportEmail(activities.HiringManagerEmail)
+		return w.sendReportEmail(ctx, activities.HiringManagerEmail)
 	}
 
 	w.startCheck(
+		ctx,
 		"FederalCriminalSearch",
 		FederalCriminalSearch,
 		types.FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
@@ -170,25 +169,28 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 
 	if w.Tier == "full" {
 		w.startCheck(
+			ctx,
 			"StateCriminalSearch",
 			StateCriminalSearch,
 			types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, SSNTraceResult: w.SSNTrace.KnownAddresses},
 		)
 		w.startCheck(
+			ctx,
 			"MotorVehicleIncidentSearch",
 			MotorVehicleIncidentSearch,
 			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
 		)
 		w.startCheck(
+			ctx,
 			"EmploymentVerification",
 			EmploymentVerification,
 			types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails},
 		)
 	}
 
-	w.waitForChecks()
+	w.waitForChecks(ctx)
 
-	return w.sendReportEmail(activities.HiringManagerEmail)
+	return w.sendReportEmail(ctx, activities.HiringManagerEmail)
 }
 
 // @@@SNIPEND
