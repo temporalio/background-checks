@@ -65,6 +65,23 @@ func (w *backgroundCheckWorkflow) waitForAccept(ctx workflow.Context, email stri
 	return &r, err
 }
 
+func (w *backgroundCheckWorkflow) ssnTrace(ctx workflow.Context) (*types.SSNTraceWorkflowResult, error) {
+	var r types.SSNTraceWorkflowResult
+
+	ssnTrace := workflow.ExecuteChildWorkflow(
+		ctx,
+		SSNTrace,
+		types.SSNTraceWorkflowInput{FullName: w.CandidateDetails.FullName, SSN: w.CandidateDetails.SSN},
+	)
+
+	err := ssnTrace.Get(ctx, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &r, err
+}
+
 func (w *backgroundCheckWorkflow) sendDeclineEmail(ctx workflow.Context, email string) error {
 	w.pushStatus(ctx, "declined")
 
@@ -145,16 +162,12 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 		return err
 	}
 
-	ssnTrace := workflow.ExecuteChildWorkflow(
-		ctx,
-		SSNTrace,
-		types.SSNTraceWorkflowInput{FullName: w.CandidateDetails.FullName, SSN: w.CandidateDetails.SSN},
-	)
-
-	err = ssnTrace.Get(ctx, &w.SSNTrace)
+	t, err := w.ssnTrace(ctx)
 	if err != nil {
 		return err
 	}
+
+	w.SSNTrace = t
 
 	if !w.SSNTrace.SSNIsValid {
 		return w.sendReportEmail(ctx, activities.HiringManagerEmail)

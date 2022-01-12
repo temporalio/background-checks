@@ -12,7 +12,7 @@ type BackgroundCheckState struct {
 	Tier             string
 	Accepted         bool
 	CandidateDetails CandidateDetails
-	SSNTrace         SSNTraceWorkflowResult
+	SSNTrace         *SSNTraceWorkflowResult
 	Checks           map[string]interface{}
 }
 
