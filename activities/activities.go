@@ -67,7 +67,6 @@ func (a *Activities) sendMail(from string, to string, subject string, body io.Re
 	if err != nil {
 		return err
 	}
-	defer client.Close()
 
 	return email.Send(client)
 }
