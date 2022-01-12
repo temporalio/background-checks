@@ -15,21 +15,18 @@ const (
 
 type backgroundCheckWorkflow struct {
 	types.BackgroundCheckState
-	checkID       string
-	checkFutures  []workflow.Future
-	checkSelector workflow.Selector
-	logger        log.Logger
+	checkID      string
+	checkFutures map[string]workflow.Future
+	logger       log.Logger
 }
 
 func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundCheckState) (*backgroundCheckWorkflow, error) {
 	w := backgroundCheckWorkflow{
 		BackgroundCheckState: *state,
 		checkID:              workflow.GetInfo(ctx).WorkflowExecution.RunID,
-		checkSelector:        workflow.NewSelector(ctx),
+		checkFutures:         make(map[string]workflow.Future),
 		logger:               workflow.GetLogger(ctx),
 	}
-
-	w.Checks = make(map[string]interface{})
 
 	err := workflow.SetQueryHandler(ctx, BackgroundCheckStatusQuery, func() (types.BackgroundCheckState, error) {
 		return w.BackgroundCheckState, nil
@@ -112,22 +109,20 @@ func (w *backgroundCheckWorkflow) startCheck(ctx workflow.Context, name string, 
 		checkWorkflow,
 		checkInputs...,
 	)
-	w.checkFutures = append(w.checkFutures, f)
-	w.checkSelector.AddFuture(f, func(f workflow.Future) {
-		var result interface{}
-
-		err := f.Get(ctx, &result)
-		if err != nil {
-			w.logger.Error("Search failed", "name", name, "error", err)
-		}
-
-		w.Checks[name] = result
-	})
+	w.checkFutures[name] = f
 }
 
 func (w *backgroundCheckWorkflow) waitForChecks(ctx workflow.Context) {
-	for i := 0; i < len(w.checkFutures); i++ {
-		w.checkSelector.Select(ctx)
+	for name, f := range w.checkFutures {
+		var r interface{}
+
+		err := f.Get(ctx, &r)
+		if err != nil {
+			w.logger.Error("Search failed", "name", name, "error", err)
+			continue
+		}
+
+		w.Checks[name] = r
 	}
 }
 
@@ -136,8 +131,9 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 	w, err := newBackgroundCheckWorkflow(
 		ctx,
 		&types.BackgroundCheckState{
-			Email: input.Email,
-			Tier:  input.Package,
+			Email:  input.Email,
+			Tier:   input.Package,
+			Checks: make(map[string]interface{}),
 		},
 	)
 	if err != nil {
