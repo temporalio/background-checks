@@ -1,14 +1,3 @@
-package activities
-
-import (
-	"bytes"
-	"context"
-	"text/template"
-
-	"github.com/temporalio/background-checks/types"
-)
-
-const acceptEmailText = `
 Hello, 
 
 Your potential employer has requested that we conduct a background check on their behalf.
@@ -29,20 +18,3 @@ If you would rather we did not run the check you can decline by running this com
 Thanks,
 
 Background Check System
-`
-
-var acceptEmailTemplate = template.Must(template.New("acceptEmail").Parse(acceptEmailText))
-
-func (a *Activities) SendAcceptEmail(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
-	var result types.SendAcceptEmailResult
-
-	var body bytes.Buffer
-
-	err := acceptEmailTemplate.Execute(&body, input)
-	if err != nil {
-		return &result, err
-	}
-
-	err = a.sendMail(CandidateSupportEmail, input.Email, "Background Check Request", &body)
-	return &result, err
-}
