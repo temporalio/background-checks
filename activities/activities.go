@@ -94,6 +94,10 @@ func (a *Activities) postJSON(ctx context.Context, url string, input interface{}
 func (a *Activities) FederalCriminalSearch(ctx context.Context, input *types.FederalCriminalSearchInput) (*types.FederalCriminalSearchResult, error) {
 	var result types.FederalCriminalSearchResult
 
+	if a.HTTPStub {
+		return &result, nil
+	}
+
 	r, err := a.postJSON(ctx, "http://thirdparty:8082/federalcriminalsearch", input, PostJSONOptions{Timeout: federalCriminalSearchAPITimeout})
 	if err != nil {
 		return &result, err
@@ -177,7 +181,7 @@ func (a *Activities) SendReportEmail(ctx context.Context, input *types.SendRepor
 
 	var body bytes.Buffer
 
-	err := reportEmailTemplate.Execute(&body, input)
+	err := reportEmailTemplate.Execute(&body, input.State)
 	if err != nil {
 		return &result, err
 	}
@@ -213,6 +217,10 @@ func (a *Activities) SSNTrace(ctx context.Context, input *types.SSNTraceInput) (
 
 func (a *Activities) StateCriminalSearch(ctx context.Context, input *types.StateCriminalSearchInput) (*types.StateCriminalSearchResult, error) {
 	var result types.StateCriminalSearchResult
+
+	if a.HTTPStub {
+		return &result, nil
+	}
 
 	r, err := a.postJSON(ctx, "http://thirdparty:8082/statecriminalsearch", input, PostJSONOptions{Timeout: stateCriminalSearchAPITimeout})
 	if err != nil {

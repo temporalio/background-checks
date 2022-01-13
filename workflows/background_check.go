@@ -119,54 +119,56 @@ func (w *backgroundCheckWorkflow) waitForChecks(ctx workflow.Context) {
 		err := f.Get(ctx, &r)
 		if err != nil {
 			w.logger.Error("Search failed", "name", name, "error", err)
+			w.CheckErrors[name] = err.Error()
 			continue
 		}
 
-		w.Checks[name] = r
+		w.CheckResults[name] = r
 	}
 }
 
 // @@@SNIPSTART background-checks-main-workflow-definition
-func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowInput) error {
+func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowInput) (*types.BackgroundCheckWorkflowResult, error) {
 	w, err := newBackgroundCheckWorkflow(
 		ctx,
 		&types.BackgroundCheckState{
-			Email:  input.Email,
-			Tier:   input.Package,
-			Checks: make(map[string]interface{}),
+			Email:        input.Email,
+			Tier:         input.Package,
+			CheckResults: make(map[string]interface{}),
+			CheckErrors:  make(map[string]string),
 		},
 	)
 	if err != nil {
-		return err
+		return &w.BackgroundCheckState, err
 	}
 
 	response, err := w.waitForAccept(ctx, w.Email)
 	if err != nil {
-		return err
+		return &w.BackgroundCheckState, err
 	}
 
 	w.Accepted = response.Accepted
 
 	if !w.Accepted {
-		return w.sendDeclineEmail(ctx, activities.HiringManagerEmail)
+		return &w.BackgroundCheckState, w.sendDeclineEmail(ctx, activities.HiringManagerEmail)
 	}
 
 	w.CandidateDetails = response.CandidateDetails
 
 	err = w.pushStatus(ctx, "running")
 	if err != nil {
-		return err
+		return &w.BackgroundCheckState, err
 	}
 
 	t, err := w.ssnTrace(ctx)
 	if err != nil {
-		return err
+		return &w.BackgroundCheckState, err
 	}
 
 	w.SSNTrace = t
 
 	if !w.SSNTrace.SSNIsValid {
-		return w.sendReportEmail(ctx, activities.HiringManagerEmail)
+		return &w.BackgroundCheckState, w.sendReportEmail(ctx, activities.HiringManagerEmail)
 	}
 
 	w.startCheck(
@@ -201,7 +203,7 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 
 	w.waitForChecks(ctx)
 
-	return w.sendReportEmail(ctx, activities.HiringManagerEmail)
+	return &w.BackgroundCheckState, w.sendReportEmail(ctx, activities.HiringManagerEmail)
 }
 
 // @@@SNIPEND

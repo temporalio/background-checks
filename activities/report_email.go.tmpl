@@ -1,62 +1,99 @@
-{{- $email := .State.Email -}}
-{{- $candidate := .State.CandidateDetails -}}
-{{- $ssntrace := .State.SSNTrace -}}
-{{- $checks := .State.Checks -}}
-Your background check for: {{$candidate.FullName}} <{{$email}}> has completed.
-
-The results are as follows:
-
+{{- define "SSNTrace" -}}
+{{- $result := .SSNTrace -}}
 SSN Trace:
 
-{{if not $ssntrace.SSNIsValid}}
-**SSN is not valid**
-All other checks have been skipped.
+{{if $result.SSNIsValid}}
+SSN is valid.
 {{else}}
-SSN is valid
+SSN is not valid.
+{{end}}
+{{- end -}}
 
+{{- define "EmploymentVerification" -}}
+{{- $candidate := .CandidateDetails -}}
+{{- $result := .CheckResults.EmploymentVerification -}}
+{{- $error := .CheckErrors.EmploymentVerification -}}
 Employment Verification:
-{{if not $checks.EmploymentVerification}}
+
+{{if $error}}
+An error was encountered running the search: {{$error}}
+{{else if not $result}}
 No employer was given, skipped employment verification.
-{{else}}
-{{with $checks.EmploymentVerification}}
-{{if .EmployerVerified}}
+{{else if $result.EmployerVerified}}
 Verified Employer: {{$candidate.Employer}}
 {{else}}
-**Employer could not be verified**
+Employer could not be verified
 {{end}}
-{{end}}
-{{end}}
+{{- end -}}
 
-{{with $checks.FederalCriminalSearch}}
+{{- define "FederalCriminalSearch" -}}
+{{- $result := .CheckResults.FederalCriminalSearch -}}
+{{- $error := .CheckErrors.FederalCriminalSearch -}}
+{{if $error}}
+An error was encountered running the Federal Criminal search: {{$error}}
+{{else}}
 Federal Criminal Search:
-{{range .Crimes}}
+{{range $result.Crimes}}
 - {{.}}
 {{else}}
 No record found.
 {{end}}
 {{end}}
+{{- end -}}
 
-{{with $checks.StateCriminalSearch}}
+{{- define "StateCriminalSearch" -}}
+{{- $result := .CheckResults.StateCriminalSearch -}}
+{{- $error := .CheckErrors.StateCriminalSearch -}}
+{{if $error}}
+An error was encountered running the State Criminal search: {{$error}}
+{{else}}
 State Criminal Search:
-{{range .Crimes}}
+{{range $result.Crimes}}
 - {{.}}
 {{else}}
 No record found.
 {{end}}
 {{end}}
+{{- end -}}
 
-{{with $checks.MotorVehicleIncidentSearch}}
+{{- define "MotorVehicleIncidentSearch" -}}
+{{- $result := .CheckResults.MotorVehicleIncidentSearch -}}
+{{- $error := .CheckErrors.MotorVehicleIncidentSearch -}}
+{{if $error}}
+An error was encountered running the Motor Vehicle Incident search: {{$error}}
+{{else}}
 Motor Vehicle Search:
 
-Valid License: {{if .LicenseValid}}Yes{{else}}No{{end}}
+Valid License: {{if $result.LicenseValid}}Yes{{else}}No{{end}}
 
 Incidents:
-{{range .MotorVehicleIncidents}}
+{{range $result.MotorVehicleIncidents}}
 - {{.}}
 {{else}}
 No incidents found.
 {{end}}
 {{end}}
+{{- end -}}
+
+{{- $email := .Email -}}
+{{- $candidate := .CandidateDetails -}}
+
+Your background check for: {{$candidate.FullName}} <{{$email}}> has completed.
+
+The results are as follows:
+
+{{template "SSNTrace" .}}
+
+{{if .SSNTrace.SSNIsValid}}
+{{template "EmploymentVerification" .}}
+
+{{template "FederalCriminalSearch" .}}
+
+{{template "StateCriminalSearch" .}}
+
+{{template "MotorVehicleIncidentSearch" .}}
+{{else}}
+All searches skipped as SSN was invalid.
 {{end}}
 
 Thanks,

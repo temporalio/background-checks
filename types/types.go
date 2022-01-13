@@ -5,16 +5,17 @@ type BackgroundCheckWorkflowInput struct {
 	Package string
 }
 
-type BackgroundCheckWorkflowResult struct{}
-
 type BackgroundCheckState struct {
 	Email            string
 	Tier             string
 	Accepted         bool
 	CandidateDetails CandidateDetails
 	SSNTrace         *SSNTraceWorkflowResult
-	Checks           map[string]interface{}
+	CheckResults     map[string]interface{}
+	CheckErrors      map[string]string
 }
+
+type BackgroundCheckWorkflowResult = BackgroundCheckState
 
 type CandidateDetails struct {
 	FullName string
