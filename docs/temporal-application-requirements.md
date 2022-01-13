@@ -5,8 +5,6 @@ sidebar_label: Application requirements
 description: TODO
 ---
 
-import CenteredImage from "../../components/CenteredImage.js"
-
 The application in this Learning Path is a simplified and scaled down implementation for the use case.
 As such the requirements are simplified and scaled down to match it.
 
@@ -127,11 +125,7 @@ The initial search for either package is an SSN trace meant to find additional a
 
 Now we can envision the the high level step by step flow that we could expect from the application.
 
-<CenteredImage
-imagePath="/diagrams/learning-path-step-by-step-high-level-swim-lane.svg"
-imageSize="100"
-title="High level step-by-step 'Full package' flow"
-/>
+![High level step-by-step 'Full package' flow"](./static/learning-path-step-by-step-high-level-swim-lane.svg)
 
 1. A new Background Check is started by the Company HR person.
    They have entered the Candidates email address and selected a Background Check package, and clicked "Start".
