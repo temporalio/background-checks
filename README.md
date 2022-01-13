@@ -2,7 +2,7 @@
 
 background-checks is an example Temporal Application project.
 
-This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](./docs/project-goals.md/#what-is-a-long-running-human-driven-workflow) use case.
+This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](./docs/project-narrative.md/#what-is-a-long-running-human-driven-workflow) use case.
 
 ## How to
 
