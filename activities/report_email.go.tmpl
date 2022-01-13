@@ -8,20 +8,22 @@ The results are as follows:
 
 SSN Trace:
 
-{{if $ssntrace.SSNIsValid}}
-SSN is valid
-{{else}}
+{{if not $ssntrace.SSNIsValid}}
 **SSN is not valid**
 All other checks have been skipped.
-{{end}}
+{{else}}
+SSN is valid
 
-{{with $checks.EmploymentVerification}}
 Employment Verification:
-
+{{if not $checks.EmploymentVerification}}
+No employer was given, skipped employment verification.
+{{else}}
+{{with $checks.EmploymentVerification}}
 {{if .EmployerVerified}}
 Verified Employer: {{$candidate.Employer}}
 {{else}}
 **Employer could not be verified**
+{{end}}
 {{end}}
 {{end}}
 
@@ -53,6 +55,7 @@ Incidents:
 - {{.}}
 {{else}}
 No incidents found.
+{{end}}
 {{end}}
 {{end}}
 

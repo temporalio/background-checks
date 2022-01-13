@@ -189,12 +189,14 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 			MotorVehicleIncidentSearch,
 			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
 		)
-		w.startCheck(
-			ctx,
-			"EmploymentVerification",
-			EmploymentVerification,
-			types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails},
-		)
+		if w.CandidateDetails.Employer != "" {
+			w.startCheck(
+				ctx,
+				"EmploymentVerification",
+				EmploymentVerification,
+				types.EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails},
+			)
+		}
 	}
 
 	w.waitForChecks(ctx)
