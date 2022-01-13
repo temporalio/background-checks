@@ -1,0 +1,40 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Candidate</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container">
+            <h1>Candidate</h1>
+            <hr>
+            <div class="row">
+                <div class="col-md-12">
+                    <p>The information requested below is required to process your background check.</p>
+                    <p>If you are happy for the check to proceed, please complete the form and hit 'Accept'.</p>
+                    <p>If you would rather the background check is not run, please hit 'Decline'.</p>        
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6">
+                    <form method="post" action="/candidate/{{.Token}}">
+                        <div class="form-group">
+                            <label>Full name</label>
+                            <input class="form-control" name="full_name"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Social Security Number (SSN)</label>
+                            <input class="form-control" name="ssn" placeholder="111-11-1111"/>
+                        </div>
+                        <div class="form-group">
+                            <label>Current Employer (if any)</label>
+                            <input class="form-control" name="employer"/>
+                        </div>
+                        <button class="btn btn-success" type="submit" name="action" value="accept">Accept</button>
+                        <button class="btn btn-danger" type="submit" name="action" value="decline">Decline</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

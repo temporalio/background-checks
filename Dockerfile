@@ -6,13 +6,15 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY activities ./activities/
-COPY api ./api/
-COPY cli ./cli/
-COPY mocks ./mocks/
-COPY types ./types/
+COPY activities ./activities
+COPY api ./api
+COPY cli ./cli
+COPY mocks ./mocks
 COPY temporal ./temporal
-COPY workflows ./workflows/
+COPY types ./types
+COPY utils ./utils
+COPY ui ./ui
+COPY workflows ./workflows
 
 RUN go install -v ./cli/bgc-dataconverter-plugin
 RUN go install -v ./cli/bgc-backend

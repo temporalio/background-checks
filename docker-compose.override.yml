@@ -82,6 +82,15 @@ services:
       - temporal-network
     environment:
       - TEMPORAL_CLI_ADDRESS=lp-temporal:7233
+  ui:
+    container_name: lp-ui
+    build: .
+    command: bgc-backend ui
+    restart: unless-stopped
+    networks:
+      - temporal-network
+    ports:
+      - 8083:8083
   dataconverter:
     container_name: lp-dataconverter
     build: .

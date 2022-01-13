@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/temporalio/background-checks/api"
-	"github.com/temporalio/background-checks/cli/utils"
 	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/utils"
 )
 
 // startCmd represents the start command

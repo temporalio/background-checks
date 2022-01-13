@@ -2,18 +2,7 @@ Hello,
 
 Your potential employer has requested that we conduct a background check on their behalf.
 
-The following information is needed to complete your check:
-- Full Name (as it appears on your government ID)
-- Social Security Number
-- Current Employer
-
-Please give permission for us proceed with the check by running this command and adding your details:
-
-./run-cli bgc-candidate accept --token {{.Token}} --fullname 'your name here' --ssn '111-11-1111' --employer 'Your current employer'
-
-If you would rather we did not run the check you can decline by running this command:
-
-./run-cli bgc-candidate decline --token {{.Token}}
+Please visit http://localhost:8083/candidate/{{.Token}} to accept this check.
 
 Thanks,
 
