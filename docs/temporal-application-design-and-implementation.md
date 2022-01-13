@@ -93,6 +93,10 @@ For this Learning Path application we are using Workflows for searches for a few
 3. The state of a Workflow is maintained: The results of an Activity are written to the Workflow Execution Event History. Instead of writing search results directly to our Background Check Workflow Execution, we can keep them separate in their own Workflow Execution and access them independently from Background Check Workflow.
 4. Reduces the need to version Workflows: Workflow Execution Event Histories are separated.
 
+## What happens if an Activity Execution fails?
+
+## What happens if an individual Search fails?
+
 ## Do we need a database?
 
 No. We will not need a database for this application.

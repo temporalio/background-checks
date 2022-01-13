@@ -10,8 +10,7 @@ This project showcases how to implement a Temporal Application within the contex
 
 ## Learning
 
-- [Learning goals](./docs/project-goals.md)
-- [Use case & project narrative](./docs/project-narrative.md)
+- [Learning goals & project narrative](./docs/project-narrative.md)
 - [Application requirements](./docs/temporal-application-requirements.md)
 - [Application design & implementation](./docs/temporal-design-and-implementation.md)
 - [Application deployment](./docs/temporal-application-deployment.md)
