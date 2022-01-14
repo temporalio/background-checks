@@ -65,9 +65,8 @@ type AcceptSubmissionSignal struct {
 }
 
 type SendEmploymentVerificationEmailInput struct {
-	Email            string
-	CandidateDetails CandidateDetails
-	Token            string
+	Email string
+	Token string
 }
 
 type SendEmploymentVerificationEmailResult struct {

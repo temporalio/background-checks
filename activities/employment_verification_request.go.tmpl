@@ -1,22 +1,8 @@
-{{ $candidate := .CandidateDetails -}}
 Hello Background Check Researcher, 
 
-Our candidate {{$candidate.FullName}} is undergoing a background check, and the next step is to verify their employment history. 
+A candidate is undergoing a background check we need to verify their current employer.
 
-Please reach out to their company and confirm whether they are currently employed. 
-
-Candidate Name: {{$candidate.FullName}}
-Employer: {{$candidate.Employer}}
-
-When you have completed this step, respond by updating the Background Check using the instructions below:
-
-EMPLOYMENT IS VERIFIED:
-
-./run-cli bgc-researcher employmentverify --token {{.Token}}
-
-EMPLOYMENT IS NOT VERIFIED:
-
-TBA
+Please visit http://localhost:8083/employment/{{.Token}} to perform the required verification.
 
 Thanks,
 

@@ -20,18 +20,13 @@ type backgroundCheckWorkflow struct {
 	logger       log.Logger
 }
 
-func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundCheckState) (*backgroundCheckWorkflow, error) {
-	w := backgroundCheckWorkflow{
+func newBackgroundCheckWorkflow(ctx workflow.Context, state *types.BackgroundCheckState) *backgroundCheckWorkflow {
+	return &backgroundCheckWorkflow{
 		BackgroundCheckState: *state,
 		checkID:              workflow.GetInfo(ctx).WorkflowExecution.RunID,
 		checkFutures:         make(map[string]workflow.Future),
 		logger:               workflow.GetLogger(ctx),
 	}
-
-	err := workflow.SetQueryHandler(ctx, BackgroundCheckStatusQuery, func() (types.BackgroundCheckState, error) {
-		return w.BackgroundCheckState, nil
-	})
-	return &w, err
 }
 
 func (w *backgroundCheckWorkflow) pushStatus(ctx workflow.Context, status string) error {
@@ -129,7 +124,7 @@ func (w *backgroundCheckWorkflow) waitForChecks(ctx workflow.Context) {
 
 // @@@SNIPSTART background-checks-main-workflow-definition
 func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowInput) (*types.BackgroundCheckWorkflowResult, error) {
-	w, err := newBackgroundCheckWorkflow(
+	w := newBackgroundCheckWorkflow(
 		ctx,
 		&types.BackgroundCheckState{
 			Email:        input.Email,
@@ -138,6 +133,10 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 			CheckErrors:  make(map[string]string),
 		},
 	)
+
+	err := workflow.SetQueryHandler(ctx, BackgroundCheckStatusQuery, func() (types.BackgroundCheckState, error) {
+		return w.BackgroundCheckState, nil
+	})
 	if err != nil {
 		return &w.BackgroundCheckState, err
 	}

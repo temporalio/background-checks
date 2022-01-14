@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	EmploymentVerificationDetailsQuery     = "employment-verification-details"
 	EmploymentVerificationSubmissionSignal = "employment-verification-submission"
 	ResearchDeadline                       = time.Hour * 24 * 7
 )
@@ -40,9 +41,8 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input *types.Emplo
 	})
 
 	evsend := workflow.ExecuteActivity(ctx, a.SendEmploymentVerificationRequestEmail, types.SendEmploymentVerificationEmailInput{
-		Email:            email,
-		CandidateDetails: input.CandidateDetails,
-		Token:            TokenForWorkflow(ctx),
+		Email: email,
+		Token: TokenForWorkflow(ctx),
 	})
 	return evsend.Get(ctx, nil)
 }
@@ -75,18 +75,27 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (*types.Emplo
 
 // @@@SNIPSTART background-checks-employment-verification-workflow-definition
 func EmploymentVerification(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput) (*types.EmploymentVerificationWorkflowResult, error) {
+	var result types.EmploymentVerificationWorkflowResult
+
+	err := workflow.SetQueryHandler(ctx, EmploymentVerificationDetailsQuery, func() (types.CandidateDetails, error) {
+		return input.CandidateDetails, nil
+	})
+	if err != nil {
+		return &result, err
+	}
+
 	researcher, err := chooseResearcher(ctx, input)
 	if err != nil {
-		return &types.EmploymentVerificationWorkflowResult{}, err
+		return &result, err
 	}
 
 	err = emailEmploymentVerificationRequest(ctx, input, researcher)
 	if err != nil {
-		return &types.EmploymentVerificationWorkflowResult{}, err
+		return &result, err
 	}
 	submission, err := waitForEmploymentVerificationSubmission(ctx)
 
-	result := types.EmploymentVerificationWorkflowResult(*submission)
+	result = types.EmploymentVerificationWorkflowResult(*submission)
 	return &result, err
 }
 
