@@ -11,6 +11,7 @@ Make sure you have the following installed:
 
 - [Docker Desktop](https://www.docker.com/products/docker-desktop)
 
+
 ## How to run the application
 
 Run Docker Desktop.
@@ -24,6 +25,23 @@ cd background-checks
 ```
 
 This starts up a new Docker Application with a stack of containers.
+
+## How to clean up docker containers
+
+* Stop all containers
+```
+docker kill $(docker ps -q) 
+```
+
+* Remove all container
+```
+docker rm $(docker ps -a -q)
+```
+
+* Remove all images
+```
+docker rmi $(docker images -q)
+```
 
 ### How to run a Background Check
 
