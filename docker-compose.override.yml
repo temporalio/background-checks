@@ -7,6 +7,9 @@ services:
       - 8000:8000
   prometheus:
     image: prom/prometheus
+    build: './deployment/prometheus'
+    depends_on:
+      - temporal
     ports:
       - 9090:9090
     volumes:
@@ -15,6 +18,13 @@ services:
         target: /etc/prometheus/prometheus.yml
   grafana:
     image: grafana/grafana
+    build: './deployment/grafana'
+    depends_on:
+      - prometheus
+    environment:
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
     ports:
       - 8085:3000
     volumes:
