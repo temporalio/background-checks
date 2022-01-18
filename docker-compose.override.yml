@@ -1,22 +1,10 @@
 version: "3.5"
 services:
-  elasticsearch:
-    container_name: lp-temporal-elasticsearch
-  postgresql:
-    container_name: lp-temporal-postgresql
   temporal:
-    container_name: lp-temporal
     environment:
       - PROMETHEUS_ENDPOINT=0.0.0.0:9090
-  temporal-admin-tools:
-    container_name: lp-temporal-admin-tools
-  temporal-web:
-    container_name: lp-temporal-web
   prometheus:
-    container_name: lp-prometheus
     image: prom/prometheus
-    networks:
-      - temporal-network
     ports:
       - 9090:9090
     volumes:
@@ -24,10 +12,7 @@ services:
         source: ./deployment/prometheus/prometheus.yml
         target: /etc/prometheus/prometheus.yml
   grafana:
-    container_name: lp-grafana
     image: grafana/grafana
-    networks:
-      - temporal-network
     ports:
       - 8085:3000
     volumes:
@@ -35,67 +20,46 @@ services:
         source: ./deployment/grafana/provisioning/datasources
         target: /etc/grafana/provisioning/datasources
   mailhog:
-    container_name: lp-mailhog
     image: mailhog/mailhog:v1.0.1
     command: -invite-jim
-    networks:
-      - temporal-network
     ports:
       - 8025:8025
   api:
-    container_name: lp-api
     build: .
     command: bgc-backend api
     restart: unless-stopped
-    networks:
-      - temporal-network
     environment:
-      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   thirdparty:
-    container_name: lp-thirdparty-api
     build: .
     command: thirdparty-simulator api
     restart: unless-stopped
-    networks:
-      - temporal-network
     environment:
-      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   worker:
-    container_name: lp-worker 
     build: .
     command: bgc-backend worker
     restart: unless-stopped
-    networks:
-      - temporal-network
     environment:
-      - TEMPORAL_GRPC_ENDPOINT=lp-temporal:7233
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   tools:
-    container_name: lp-tools
     build: .
     command: tail -f /dev/null
-    networks:
-      - temporal-network
     environment:
-      - TEMPORAL_CLI_ADDRESS=lp-temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
   ui:
-    container_name: lp-ui
     build: .
     command: bgc-backend ui
     restart: unless-stopped
-    networks:
-      - temporal-network
     ports:
       - 8083:8083
   dataconverter:
-    container_name: lp-dataconverter
     build: .
     command:
       tctl dc web --web_ui_url http://localhost:8088
     restart: unless-stopped
-    networks:
-      - temporal-network
     ports:
       - 8086:8086
     environment:
-      - TEMPORAL_CLI_ADDRESS=lp-temporal:7233
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
       - TEMPORAL_CLI_DATA_CONVERTER_PORT=8086

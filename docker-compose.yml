@@ -10,8 +10,8 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms100m -Xmx100m
     image: elasticsearch:7.16.2
-    networks:
-      - temporal-network
+    # networks:
+    #   - temporal-network
     # ports:
     #   - 9200:9200
   postgresql:
@@ -20,8 +20,8 @@ services:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
     image: postgres:13
-    networks:
-      - temporal-network
+    # networks:
+    #   - temporal-network
     # ports:
     #   - 5432:5432
   temporal:
@@ -40,8 +40,8 @@ services:
       - ES_SEEDS=elasticsearch
       - ES_VERSION=v7
     image: temporalio/auto-setup:1.14.2
-    networks:
-      - temporal-network
+    # networks:
+    #   - temporal-network
     # ports:
     #   - 7233:7233
     # volumes:
@@ -53,8 +53,8 @@ services:
     environment:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
     image: temporalio/admin-tools:1.14.2
-    networks:
-      - temporal-network
+    # networks:
+    #   - temporal-network
     stdin_open: true
     tty: true
   temporal-web:
@@ -65,11 +65,11 @@ services:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
       - TEMPORAL_PERMIT_WRITE_API=true
     image: temporalio/web:1.13.0
-    networks:
-      - temporal-network
+    # networks:
+    #   - temporal-network
     ports:
       - 8088:8088
-networks:
-  temporal-network:
-    driver: bridge
-    name: temporal-network
+# networks:
+#   temporal-network:
+#     driver: bridge
+#     name: temporal-network

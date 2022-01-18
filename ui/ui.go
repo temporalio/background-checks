@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	APIEndpoint = "lp-api:8081"
+	APIEndpoint = "api:8081"
 )
 
 type handlers struct{}
