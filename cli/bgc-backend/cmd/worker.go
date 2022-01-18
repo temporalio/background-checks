@@ -25,7 +25,7 @@ var workerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		c, err := temporal.NewClient(client.Options{
 			MetricsHandler: tallyhandler.NewMetricsHandler(newPrometheusScope(prometheus.Configuration{
-				ListenAddress: "0.0.0.0:9090",
+				ListenAddress: "0.0.0.0:8001",
 				TimerType:     "histogram",
 			})),
 		})

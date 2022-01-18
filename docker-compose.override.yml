@@ -2,7 +2,9 @@ version: "3.5"
 services:
   temporal:
     environment:
-      - PROMETHEUS_ENDPOINT=0.0.0.0:9090
+      - PROMETHEUS_ENDPOINT=0.0.0.0:8000
+    ports:
+      - 8000:8000
   prometheus:
     image: prom/prometheus
     ports:
@@ -42,6 +44,8 @@ services:
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+    ports:
+      - 8001:8001
   tools:
     build: .
     command: tail -f /dev/null

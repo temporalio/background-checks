@@ -7,4 +7,3 @@ scrape_configs:
     static_configs:
       - targets:
         - temporal:9090
-        - worker:9090
