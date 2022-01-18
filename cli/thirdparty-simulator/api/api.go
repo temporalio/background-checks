@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 
 	"github.com/github/go-fault"
 	"github.com/gorilla/mux"
@@ -25,15 +26,32 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result types.SSNTraceWorkflowResult
-	if input.SSN == "111-11-1111" {
-		Addresses := []string{
-			"123 Broadway, New York, NY 10011",
-			"500 Market Street, San Francisco, CA 94110",
-			"111 Dearborn Ave, Detroit, MI 44014",
+
+	var validSSN = regexp.MustCompile(`\d{3}-\d{2}-\d{4}$`)
+	result.SSNIsValid = validSSN.MatchString(input.SSN)
+
+	addressMap := map[string][]string{
+		"111-11-1111": {"123 Broadway, New York, NY 10011", "1 E. 161 St, Bronx, NY 10451", "41 Seaver Way, Queens, NY 11368"},
+		"222-22-2222": {"456 Oak Street, Springfield, IL 62706", "1060 W. Addison St, Chicago, IL 60613"},
+		"333-33-3333": {"4 Jersey St, Boston, MA 02215"},
+		"444-44-4444": {"1 Royal Way, Kansas City, MO 64129", "", "700 Clark Ave, St Louis, MO 63102"}}
+
+	result.KnownAddresses = addressMap[input.SSN]
+
+	/*
+		if input.SSN == "111-11-1111" {
+			Addresses := []string{
+				"123 Broadway, New York, NY 10011",
+				"500 Market Street, San Francisco, CA 94110",
+				"111 Dearborn Ave, Detroit, MI 44014",
+			}
+			var validSSN = regexp.MustCompile(`\d{3}-\d{2}-\d{4}$`)
+
+			result.SSNIsValid = validSSN.MatchString(input.SSN)
+			result.KnownAddresses = Addresses
+
 		}
-		result.SSNIsValid = true
-		result.KnownAddresses = Addresses
-	}
+	*/
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
