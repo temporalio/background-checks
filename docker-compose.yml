@@ -12,8 +12,8 @@ services:
     image: elasticsearch:7.16.2
     networks:
       - temporal-network
-    ports:
-      - 9200:9200
+    # ports:
+    #   - 9200:9200
   postgresql:
     container_name: temporal-postgresql
     environment:
@@ -22,8 +22,8 @@ services:
     image: postgres:13
     networks:
       - temporal-network
-    ports:
-      - 5432:5432
+    # ports:
+    #   - 5432:5432
   temporal:
     container_name: temporal
     depends_on:
@@ -42,8 +42,8 @@ services:
     image: temporalio/auto-setup:1.14.2
     networks:
       - temporal-network
-    ports:
-      - 7233:7233
+    # ports:
+    #   - 7233:7233
     # volumes:
     #   - ./dynamicconfig:/etc/temporal/config/dynamicconfig
   temporal-admin-tools:
