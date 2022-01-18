@@ -38,11 +38,6 @@ docker compose stop
 docker compose rm
 ```
 
-* Remove all images
-```
-docker rmi $(docker images -q)
-```
-
 ### How to run a Background Check
 
 **While pretending to be the Company HR person...**
