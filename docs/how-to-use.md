@@ -35,7 +35,7 @@ docker compose stop
 
 * Remove all container
 ```
-docker rm $(docker ps -a -q)
+docker compose rm
 ```
 
 * Remove all images
