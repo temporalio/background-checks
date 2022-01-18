@@ -30,7 +30,7 @@ This starts up a new Docker Application with a stack of containers.
 
 * Stop all containers
 ```
-docker kill $(docker ps -q) 
+docker compose stop
 ```
 
 * Remove all container
