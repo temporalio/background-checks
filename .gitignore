@@ -1,0 +1,14 @@
+.gobincache
+*.out
+*.test
+*.xml
+*.swp
+.idea/
+*.iml
+*.cov
+*.html
+.tmp/
+.DS_Store
+test
+test.log
+vendor/
