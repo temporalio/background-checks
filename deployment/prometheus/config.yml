@@ -9,4 +9,4 @@ scrape_configs:
     static_configs:
       - targets:
           - 'temporal:8000'
-          - 'temporal:8001'
+          - 'worker:8001'

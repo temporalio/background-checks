@@ -67,7 +67,7 @@ func newPrometheusScope(c prometheus.Configuration) tally.Scope {
 	scopeOpts := tally.ScopeOptions{
 		CachedReporter: reporter,
 		Separator:      prometheus.DefaultSeparator,
-		Prefix:         "background_checks",
+		Prefix:         "",
 	}
 	scope, _ := tally.NewRootScope(scopeOpts, time.Second)
 
