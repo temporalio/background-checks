@@ -217,7 +217,7 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("failed to start workflow: %v", err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
