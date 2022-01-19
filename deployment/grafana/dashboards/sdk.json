@@ -44,10 +44,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -90,10 +87,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum(rate(temporal_request[5m]))",
           "interval": "",
@@ -101,10 +95,7 @@
           "refId": "A"
         },
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum(rate(temporal_request_failure[5m]))",
           "hide": false,
@@ -148,10 +139,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -194,10 +182,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (operation) ((rate(temporal_request[5m])))",
           "interval": "",
@@ -240,10 +225,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -286,10 +268,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (operation) (rate(temporal_request_failure[5m]))",
           "interval": "",
@@ -332,10 +311,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -378,10 +354,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum by (temporal_namespace, operation, le) (rate(temporal_request_latency_bucket[5m])))",
           "interval": "",
@@ -434,10 +407,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -480,10 +450,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum(rate(temporal_workflow_completed[5m]))",
               "interval": "",
@@ -491,10 +458,7 @@
               "refId": "A"
             },
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum(rate(temporal_workflow_failed[5m]))",
               "hide": false,
@@ -503,10 +467,7 @@
               "refId": "B"
             },
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum(rate(temporal_workflow_canceled[5m]))",
               "hide": false,
@@ -515,10 +476,7 @@
               "refId": "C"
             },
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum(rate(temporal_workflow_continue_as_new[5m]))",
               "hide": false,
@@ -562,10 +520,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -608,10 +563,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "histogram_quantile(0.95, sum(rate(temporal_workflow_endtoend_latency_bucket[5m])) by (temporal_namespace, workflow_type, le))",
               "interval": "",
@@ -654,10 +606,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -700,10 +649,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum by (temporal_namespace, workflow_type) (rate(temporal_workflow_completed[5m]))",
               "interval": "",
@@ -746,10 +692,7 @@
           "bars": false,
           "dashLength": 10,
           "dashes": false,
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "fieldConfig": {
             "defaults": {
               "links": []
@@ -792,10 +735,7 @@
           "steppedLine": false,
           "targets": [
             {
-              "datasource": {
-                "type": "prometheus",
-                "uid": "P6BD4A33176E60A94"
-              },
+              "datasource": "$datasource",
               "exemplar": true,
               "expr": "sum by (temporal_namespace, workflow_type) (rate(temporal_workflow_failed[5m]))",
               "interval": "",
@@ -855,10 +795,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -901,10 +838,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace, workflow_type) (rate(temporal_workflow_task_queue_poll_succeed[5m]))",
           "interval": "",
@@ -947,10 +881,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -993,10 +924,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace) (rate(temporal_workflow_task_queue_poll_succeed[5m]))",
           "interval": "",
@@ -1039,10 +967,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1085,10 +1010,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace) (rate(temporal_workflow_task_queue_poll_empty[5m]))",
           "interval": "",
@@ -1131,10 +1053,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1177,10 +1096,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_workflow_task_execution_latency_bucket[5m])) by (temporal_namespace, le))",
           "interval": "",
@@ -1223,10 +1139,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1269,10 +1182,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_workflow_task_execution_latency_bucket[5m])) by (temporal_namespace, workflow_type, le))",
           "interval": "",
@@ -1328,10 +1238,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1374,10 +1281,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace) (rate(temporal_activity_execution_latency_count[5m]))",
           "interval": "",
@@ -1420,10 +1324,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1466,10 +1367,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace, activity_type) (rate(temporal_activity_execution_latency_count[5m]))",
           "interval": "",
@@ -1512,10 +1410,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1558,10 +1453,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace, activity_type) (rate(temporal_activity_execution_failed[5m]))",
           "interval": "",
@@ -1604,10 +1496,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1650,10 +1539,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_execution_latency_bucket[5m])) by (temporal_namespace, activity_type, le))",
           "interval": "",
@@ -1696,10 +1582,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1742,10 +1625,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_endtoend_latency_bucket[5m])) by (temporal_namespace, activity_type, le))",
           "interval": "",
@@ -1801,10 +1681,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1847,10 +1724,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "sum by (temporal_namespace) (rate(temporal_activity_poll_no_task[5m]))",
           "interval": "",
@@ -1893,10 +1767,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -1939,10 +1810,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_schedule_to_start_latency_bucket[5m])) by (temporal_namespace, le))",
           "interval": "",
@@ -1985,10 +1853,7 @@
       "bars": false,
       "dashLength": 10,
       "dashes": false,
-      "datasource": {
-        "type": "prometheus",
-        "uid": "P6BD4A33176E60A94"
-      },
+      "datasource": "$datasource",
       "fieldConfig": {
         "defaults": {
           "links": []
@@ -2031,10 +1896,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "P6BD4A33176E60A94"
-          },
+          "datasource": "$datasource",
           "exemplar": true,
           "expr": "histogram_quantile(0.95, sum(rate(temporal_activity_schedule_to_start_latency_bucket[5m])) by (temporal_namespace, activity_type, le))",
           "interval": "",
@@ -2078,6 +1940,27 @@
   "tags": [],
   "templating": {
     "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "default",
+          "value": "default"
+        },
+        "description": null,
+        "error": null,
+        "hide": 0,
+        "includeAll": false,
+        "label": null,
+        "multi": false,
+        "name": "datasource",
+        "options": [],
+        "query": "prometheus",
+        "queryValue": "",
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "type": "datasource"
+      },
       {
         "allValue": ".*",
         "current": {
