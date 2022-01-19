@@ -27,8 +27,7 @@ This starts up a new Docker Application with a stack of containers.
 
 ## How to monitor the application
 
-Once the applications has started you can navigate to [http://localhost:3000/](http://localhost:3000/)
-and log into Grafana with credentials `admin`, `admin`.
+Once the applications has started you can navigate to Grafana at [http://localhost:3000/](http://localhost:3000/).
 
 Click the `Dashboards`->`Home` button and click on the `Temporal` dashboard. 
 This dashboards contains information about your Temporal server, as well as information about your
