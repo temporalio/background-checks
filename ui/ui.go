@@ -189,6 +189,37 @@ func (h *handlers) handleEmploymentVerificationSubmission(w http.ResponseWriter,
 	}
 }
 
+//go:embed report.go.html
+var reportHTML string
+var reportHTMLTemplate = template.Must(template.New("report").Parse(reportHTML))
+
+func (h *handlers) handleReport(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+
+	router := api.Router(nil)
+
+	requestURL, err := router.Get("check_report").Host(APIEndpoint).URL("token", token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var status types.BackgroundCheckState
+
+	_, err = utils.GetJSON(requestURL, &status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = reportHTMLTemplate.Execute(w, status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 func Router() *mux.Router {
 	r := mux.NewRouter()
 
@@ -199,6 +230,8 @@ func Router() *mux.Router {
 
 	r.HandleFunc("/employment/{token}", h.handleEmploymentVerification).Methods("GET")
 	r.HandleFunc("/employment/{token}", h.handleEmploymentVerificationSubmission).Methods("POST")
+
+	r.HandleFunc("/report/{token}", h.handleReport).Methods("GET")
 
 	return r
 }

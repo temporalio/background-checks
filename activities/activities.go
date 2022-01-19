@@ -181,7 +181,7 @@ func (a *Activities) SendReportEmail(ctx context.Context, input *types.SendRepor
 
 	var body bytes.Buffer
 
-	err := reportEmailTemplate.Execute(&body, input.State)
+	err := reportEmailTemplate.Execute(&body, input)
 	if err != nil {
 		return &result, err
 	}

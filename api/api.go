@@ -252,6 +252,35 @@ func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlers) handleCheckReport(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+
+	wfid, runid, err := workflows.WorkflowFromToken(token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	enc, err := h.temporalClient.QueryWorkflow(
+		r.Context(),
+		wfid,
+		runid,
+		workflows.BackgroundCheckStatusQuery,
+	)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var result types.BackgroundCheckState
+	err = enc.Get(&result)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(result)
 }
 
 func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
@@ -404,13 +433,14 @@ func Router(c client.Client) *mux.Router {
 	r.HandleFunc("/checks", h.handleCheckCreate).Methods("POST").Name("checks_create")
 	r.HandleFunc("/checks/{email}/{id}/cancel", h.handleCheckCancel).Methods("POST").Name("check_cancel")
 	r.HandleFunc("/checks/{email}", h.handleCheckStatus).Methods("GET").Name("check")
-	r.HandleFunc("/checks/{email}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
 	r.HandleFunc("/checks/{token}/accept", h.handleAccept).Methods("POST").Name("accept")
 	r.HandleFunc("/checks/{token}/decline", h.handleDecline).Methods("POST").Name("decline")
 
 	r.HandleFunc("/checks/{token}/employment", h.handleEmploymentVerificationDetails).Methods("GET").Name("employmentverify_details")
 	r.HandleFunc("/checks/{token}/employment", h.handleEmploymentVerificationSubmission).Methods("POST").Name("employmentverify")
+
+	r.HandleFunc("/checks/{token}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
 	return r
 }

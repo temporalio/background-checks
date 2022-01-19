@@ -1,100 +1,10 @@
-{{- define "SSNTrace" -}}
-{{- $result := .SSNTrace -}}
-SSN Trace:
+Hello, 
 
-{{if $result.SSNIsValid}}
-SSN is valid.
-{{else}}
-SSN is not valid.
-{{end}}
-{{- end -}}
+Your background check for {{.Email}} is complete.
 
-{{- define "EmploymentVerification" -}}
-{{- $candidate := .CandidateDetails -}}
-{{- $result := .CheckResults.EmploymentVerification -}}
-{{- $error := .CheckErrors.EmploymentVerification -}}
-Employment Verification:
+To see the report please visit:
 
-{{if $error}}
-An error was encountered running the search: {{$error}}
-{{else if not $result}}
-No employer was given, skipped employment verification.
-{{else if $result.EmployerVerified}}
-Verified Employer: {{$candidate.Employer}}
-{{else}}
-Employer could not be verified
-{{end}}
-{{- end -}}
-
-{{- define "FederalCriminalSearch" -}}
-{{- $result := .CheckResults.FederalCriminalSearch -}}
-{{- $error := .CheckErrors.FederalCriminalSearch -}}
-{{if $error}}
-An error was encountered running the Federal Criminal search: {{$error}}
-{{else}}
-Federal Criminal Search:
-{{range $result.Crimes}}
-- {{.}}
-{{else}}
-No record found.
-{{end}}
-{{end}}
-{{- end -}}
-
-{{- define "StateCriminalSearch" -}}
-{{- $result := .CheckResults.StateCriminalSearch -}}
-{{- $error := .CheckErrors.StateCriminalSearch -}}
-{{if $error}}
-An error was encountered running the State Criminal search: {{$error}}
-{{else}}
-State Criminal Search:
-{{range $result.Crimes}}
-- {{.}}
-{{else}}
-No record found.
-{{end}}
-{{end}}
-{{- end -}}
-
-{{- define "MotorVehicleIncidentSearch" -}}
-{{- $result := .CheckResults.MotorVehicleIncidentSearch -}}
-{{- $error := .CheckErrors.MotorVehicleIncidentSearch -}}
-{{if $error}}
-An error was encountered running the Motor Vehicle Incident search: {{$error}}
-{{else}}
-Motor Vehicle Search:
-
-Valid License: {{if $result.LicenseValid}}Yes{{else}}No{{end}}
-
-Incidents:
-{{range $result.MotorVehicleIncidents}}
-- {{.}}
-{{else}}
-No incidents found.
-{{end}}
-{{end}}
-{{- end -}}
-
-{{- $email := .Email -}}
-{{- $candidate := .CandidateDetails -}}
-
-Your background check for: {{$candidate.FullName}} <{{$email}}> has completed.
-
-The results are as follows:
-
-{{template "SSNTrace" .}}
-
-{{if .SSNTrace.SSNIsValid}}
-{{template "EmploymentVerification" .}}
-
-{{template "FederalCriminalSearch" .}}
-
-{{template "StateCriminalSearch" .}}
-
-{{template "MotorVehicleIncidentSearch" .}}
-{{else}}
-All searches skipped as SSN was invalid.
-{{end}}
+http://localhost:8083/report/{{.Token}}
 
 Thanks,
 

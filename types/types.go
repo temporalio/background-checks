@@ -34,7 +34,7 @@ type SendAcceptEmailResult struct{}
 
 type SendReportEmailInput struct {
 	Email string
-	State BackgroundCheckState
+	Token string
 }
 
 type SendReportEmailResult struct{}
