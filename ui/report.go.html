@@ -33,7 +33,19 @@
                 <div class="col-md-6">
                     <table>
                         <tr>
-                            <td>Valid SSN</td><td>{{ .SSNTrace.SSNIsValid }}</td>
+                            <td>SSN Valid</td><td>{{ .SSNTrace.SSNIsValid }}</td>
+                        </tr>
+                        <tr>
+                          <td>Employment Verification Results</td><td>{{ .CheckResults.EmploymentVerification.EmployerVerified }}</td>
+                        </tr>
+                        <tr>
+                          <td>Motor Vehicle Incident Search Results</td><td>{{ .CheckResults.MotorVehicleIncidentSearch.MotorVehicleIncidents }}</td>
+                        </tr>
+                        <tr>
+                          <td>State Criminal Search Results</td><td>{{ .CheckResults.StateCriminalSearch.Crimes }}</td>
+                        </tr>
+                        <tr>
+                          <td>Federal Criminal Search Results</td><td>{{ .CheckResults.FederalCriminalSearch.Crimes }}</td>
                         </tr>
                     </table>
                 </div>
