@@ -2,20 +2,20 @@
 
 background-checks is an example Temporal Application project.
 
-This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](./docs/project-narrative.md/#what-is-a-long-running-human-driven-workflow) use case.
+This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/project-narrative#what-is-a-long-running-human-driven-workflow) use case.
 
 ## How to
 
-- [Guide to using this application](./docs/how-to-use.md)
+- [Guide to using this application](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/how-to-use)
 
 ## Learning
 
-- [Learning goals & project narrative](./docs/project-narrative.md)
-- [Application requirements](./docs/temporal-application-requirements.md)
-- [Application design & implementation](./docs/temporal-design-and-implementation.md)
-- [Application deployment](./docs/temporal-application-deployment.md)
+- [Learning goals & project narrative](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/project-narrative)
+- [Application requirements](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/application-requirements)
+- [Application design & implementation](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/application-design)
+- [Application deployment](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/application-deployment)
 
 ## References
 
-- [CLI reference](,/docs/cli-reference.md)
-- [API reference](./docs/api-reference.md)
+- [CLI reference](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/cli-reference)
+- [API reference](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/api-reference)
