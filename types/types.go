@@ -95,7 +95,6 @@ type SSNTraceInput struct {
 	FullName string
 	SSN      string
 }
-
 type SSNTraceWorkflowInput struct {
 	FullName string
 	SSN      string
@@ -144,7 +143,6 @@ type StateCriminalSearchWorkflowInput struct {
 type StateCriminalSearchWorkflowResult struct {
 	Crimes []string
 }
-
 type StateCriminalSearchInput struct {
 	FullName string
 	Address  string

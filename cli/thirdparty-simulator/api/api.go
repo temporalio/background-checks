@@ -12,55 +12,14 @@ import (
 
 	"github.com/github/go-fault"
 	"github.com/gorilla/mux"
+
+	"github.com/temporalio/background-checks/types"
 )
 
 const DefaultEndpoint = "0.0.0.0:8082"
 
-// For convenience this fake third party API happens to take the same shape inputs and return the same
-// shape results as our application uses.
-
-type SSNTraceInput struct {
-	FullName string
-	SSN      string
-}
-
-type SSNTraceResult struct {
-	SSNIsValid     bool
-	KnownAddresses []string
-}
-
-type MotorVehicleIncidentSearchInput struct {
-	FullName string
-	Address  string
-}
-
-type MotorVehicleIncidentSearchResult struct {
-	LicenseValid          bool
-	MotorVehicleIncidents []string
-}
-
-type FederalCriminalSearchInput struct {
-	FullName string
-	Address  string
-}
-
-type FederalCriminalSearchResult struct {
-	Crimes []string
-}
-
-type StateCriminalSearchInput struct {
-	FullName string
-	Address  string
-}
-
-type StateCriminalSearchResult struct {
-	FullName string
-	Address  string
-	Crimes   []string
-}
-
 func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
-	var input SSNTraceInput
+	var input types.SSNTraceWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -68,7 +27,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result SSNTraceResult
+	var result types.SSNTraceWorkflowResult
 
 	var validSSN = regexp.MustCompile(`\d{3}-\d{2}-\d{4}$`)
 	result.SSNIsValid = validSSN.MatchString(input.SSN)
@@ -83,10 +42,11 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+
 }
 
 func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
-	var input MotorVehicleIncidentSearchInput
+	var input types.MotorVehicleIncidentSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -94,7 +54,7 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result MotorVehicleIncidentSearchResult
+	var result types.MotorVehicleIncidentSearchResult
 	var motorVehicleIncidents []string
 
 	possibleMotorVehicleIncidents := []string{
@@ -117,10 +77,11 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+
 }
 
 func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input FederalCriminalSearchInput
+	var input types.FederalCriminalSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -128,7 +89,7 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result FederalCriminalSearchResult
+	var result types.FederalCriminalSearchResult
 	var crimes []string
 
 	possibleCrimes := []string{
@@ -147,10 +108,11 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+
 }
 
 func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
-	var input StateCriminalSearchInput
+	var input types.StateCriminalSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -158,7 +120,7 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result StateCriminalSearchResult
+	var result types.StateCriminalSearchResult
 	var crimes []string
 
 	possibleCrimes := []string{
@@ -179,6 +141,7 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
+
 }
 
 func Router() *mux.Router {

@@ -3,7 +3,7 @@ package cmd
 import (
 	"github.com/spf13/cobra"
 
-	"github.com/temporalio/background-checks/deployment/thirdparty-simulator/api"
+	"github.com/temporalio/background-checks/cli/thirdparty-simulator/api"
 )
 
 // apiCmd represents the thirdparty command
