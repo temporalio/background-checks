@@ -118,8 +118,8 @@ type SSNTraceResult struct {
 }
 
 type FederalCriminalSearchWorkflowInput struct {
-	FullName string
-	Address  string
+	FullName       string
+	KnownAddresses []string
 }
 
 type FederalCriminalSearchWorkflowResult struct {
@@ -137,7 +137,7 @@ type FederalCriminalSearchResult struct {
 
 type StateCriminalSearchWorkflowInput struct {
 	FullName       string
-	SSNTraceResult []string
+	KnownAddresses []string
 }
 
 type StateCriminalSearchWorkflowResult struct {
@@ -160,7 +160,16 @@ type MotorVehicleIncidentSearchWorkflowInput struct {
 }
 
 type MotorVehicleIncidentSearchWorkflowResult struct {
-	CurrentLicenseState   string
+	LicenseValid          bool
+	MotorVehicleIncidents []string
+}
+
+type MotorVehicleIncidentSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type MotorVehicleIncidentSearchResult struct {
 	LicenseValid          bool
 	MotorVehicleIncidents []string
 }

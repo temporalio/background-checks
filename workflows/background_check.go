@@ -174,7 +174,7 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 		ctx,
 		"FederalCriminalSearch",
 		FederalCriminalSearch,
-		types.FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
+		types.FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
 	)
 
 	if w.Tier == "full" {
@@ -182,13 +182,13 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 			ctx,
 			"StateCriminalSearch",
 			StateCriminalSearch,
-			types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, SSNTraceResult: w.SSNTrace.KnownAddresses},
+			types.StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
 		)
 		w.startCheck(
 			ctx,
 			"MotorVehicleIncidentSearch",
 			MotorVehicleIncidentSearch,
-			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.CandidateDetails.Address},
+			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: w.SSNTrace.KnownAddresses[0]},
 		)
 		if w.CandidateDetails.Employer != "" {
 			w.startCheck(

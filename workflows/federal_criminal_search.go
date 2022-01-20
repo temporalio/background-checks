@@ -11,15 +11,30 @@ import (
 func FederalCriminalSearch(ctx workflow.Context, input *types.FederalCriminalSearchWorkflowInput) (*types.FederalCriminalSearchWorkflowResult, error) {
 	var result types.FederalCriminalSearchResult
 
+	name := input.FullName
+	address := input.KnownAddresses[0]
+	var crimes []string
+
+	activityInput := types.FederalCriminalSearchInput{
+		FullName: name,
+		Address:  address,
+	}
+	var activityResult types.FederalCriminalSearchResult
+
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.FederalCriminalSearch, types.FederalCriminalSearchInput(*input))
+	federalcheck := workflow.ExecuteActivity(ctx, a.FederalCriminalSearch, activityInput)
 
-	err := f.Get(ctx, &result)
+	err := federalcheck.Get(ctx, &activityResult)
+	if err == nil {
+		crimes = append(crimes, activityResult.Crimes...)
+	}
+	result.Crimes = crimes
+
 	r := types.FederalCriminalSearchWorkflowResult(result)
-	return &r, err
+	return &r, nil
 }
 
 // @@@SNIPEND

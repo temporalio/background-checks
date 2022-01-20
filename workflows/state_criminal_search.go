@@ -12,7 +12,7 @@ func StateCriminalSearch(ctx workflow.Context, input *types.StateCriminalSearchW
 	var result types.StateCriminalSearchWorkflowResult
 
 	name := input.FullName
-	knownaddresses := input.SSNTraceResult
+	knownaddresses := input.KnownAddresses
 	var crimes []string
 
 	for _, address := range knownaddresses {

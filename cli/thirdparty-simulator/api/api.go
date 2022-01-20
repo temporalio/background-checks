@@ -3,10 +3,12 @@ package api
 import (
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"os/signal"
 	"regexp"
+	"time"
 
 	"github.com/github/go-fault"
 	"github.com/gorilla/mux"
@@ -33,25 +35,10 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 	addressMap := map[string][]string{
 		"111-11-1111": {"123 Broadway, New York, NY 10011", "1 E. 161 St, Bronx, NY 10451", "41 Seaver Way, Queens, NY 11368"},
 		"222-22-2222": {"456 Oak Street, Springfield, IL 62706", "1060 W. Addison St, Chicago, IL 60613"},
-		"333-33-3333": {"4 Jersey St, Boston, MA 02215"},
+		"333-33-3333": {"4 Jersey St, Boston, MA 02215", "333 W Camden St, Baltimore, MD 21201"},
 		"444-44-4444": {"1 Royal Way, Kansas City, MO 64129", "", "700 Clark Ave, St Louis, MO 63102"}}
 
 	result.KnownAddresses = addressMap[input.SSN]
-
-	/*
-		if input.SSN == "111-11-1111" {
-			Addresses := []string{
-				"123 Broadway, New York, NY 10011",
-				"500 Market Street, San Francisco, CA 94110",
-				"111 Dearborn Ave, Detroit, MI 44014",
-			}
-			var validSSN = regexp.MustCompile(`\d{3}-\d{2}-\d{4}$`)
-
-			result.SSNIsValid = validSSN.MatchString(input.SSN)
-			result.KnownAddresses = Addresses
-
-		}
-	*/
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -59,7 +46,7 @@ func handleSsnTrace(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
-	var input types.MotorVehicleIncidentSearchWorkflowInput
+	var input types.MotorVehicleIncidentSearchInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -67,16 +54,26 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Test Input - {"FullName" : "Joe Bloggs", "Address" : "123 Main St"}
+	var result types.MotorVehicleIncidentSearchResult
+	var motorVehicleIncidents []string
 
-	var result types.MotorVehicleIncidentSearchWorkflowResult
-	result.LicenseValid = false
-	if input.FullName == "John Smith" {
-		result.LicenseValid = true
-		result.CurrentLicenseState = "CA"
-		incident := []string{"License Revoked 12/1/2020"}
-		result.MotorVehicleIncidents = incident
+	possibleMotorVehicleIncidents := []string{
+		"Speeding",
+		"Reckless Driving",
+		"Driving Without Insurance",
+		"Driving Under the Influence",
 	}
+
+	rand.Seed(time.Now().Unix())
+	rndnum := rand.Intn(100)
+	if rndnum > 25 {
+		motorVehicleIncidents = append(motorVehicleIncidents, possibleMotorVehicleIncidents[rand.Intn(len(possibleMotorVehicleIncidents))])
+		result.LicenseValid = false
+	} else {
+		result.LicenseValid = true
+	}
+
+	result.MotorVehicleIncidents = motorVehicleIncidents
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -93,10 +90,21 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result types.FederalCriminalSearchResult
-	if input.FullName == "John Smith" {
-		crimes := []string{"Money Laundering", "Pick-pocketing"}
-		result.Crimes = crimes
+	var crimes []string
+
+	possibleCrimes := []string{
+		"Money Laundering",
+		"Racketeering",
+		"Counterfeiting",
+		"Espionage",
 	}
+
+	rand.Seed(time.Now().Unix())
+	rndnum := rand.Intn(100)
+	if rndnum > 75 {
+		crimes = append(crimes, possibleCrimes[rand.Intn(len(possibleCrimes))])
+	}
+	result.Crimes = crimes
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)
@@ -113,13 +121,23 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var result types.StateCriminalSearchResult
+	var crimes []string
+
+	possibleCrimes := []string{
+		"Jaywalking",
+		"Burglary",
+		"Foul Play",
+		"Smoking in a Public Place",
+	}
+
+	rand.Seed(time.Now().Unix())
+	rndnum := rand.Intn(100)
+	if rndnum > 75 {
+		crimes = append(crimes, possibleCrimes[rand.Intn(len(possibleCrimes))])
+	}
 	result.FullName = input.FullName
 	result.Address = input.Address
-
-	if input.Address == "500 Market Street, San Francisco, CA 94110" && input.FullName == "John Smith" {
-		crimes := []string{"Jay-walking", "Littering"}
-		result.Crimes = crimes
-	}
+	result.Crimes = crimes
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(result)

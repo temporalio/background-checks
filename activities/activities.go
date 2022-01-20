@@ -237,3 +237,26 @@ func (a *Activities) StateCriminalSearch(ctx context.Context, input *types.State
 	err = json.NewDecoder(r.Body).Decode(&result)
 	return &result, err
 }
+
+func (a *Activities) MotorVehicleIncidentSearch(ctx context.Context, input *types.MotorVehicleIncidentSearchInput) (*types.MotorVehicleIncidentSearchResult, error) {
+	var result types.MotorVehicleIncidentSearchResult
+
+	if a.HTTPStub {
+		return &result, nil
+	}
+
+	r, err := a.postJSON(ctx, "http://thirdparty:8082/motorvehiclesearch", input, PostJSONOptions{Timeout: stateCriminalSearchAPITimeout})
+	if err != nil {
+		return &result, err
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(r.Body)
+
+		return &result, fmt.Errorf("%s: %s", http.StatusText(r.StatusCode), body)
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&result)
+	return &result, err
+}
