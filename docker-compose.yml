@@ -1,7 +1,7 @@
 version: "3.5"
 services:
   elasticsearch:
-    container_name: temporal-elasticsearch
+    # container_name: temporal-elasticsearch
     environment:
       - cluster.routing.allocation.disk.threshold_enabled=true
       - cluster.routing.allocation.disk.watermark.low=512mb
@@ -15,7 +15,7 @@ services:
     # ports:
     #   - 9200:9200
   postgresql:
-    container_name: temporal-postgresql
+    # container_name: temporal-postgresql
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
@@ -25,7 +25,7 @@ services:
     # ports:
     #   - 5432:5432
   temporal:
-    container_name: temporal
+    # container_name: temporal
     depends_on:
       - postgresql
       - elasticsearch
@@ -47,7 +47,7 @@ services:
     # volumes:
     #   - ./dynamicconfig:/etc/temporal/config/dynamicconfig
   temporal-admin-tools:
-    container_name: temporal-admin-tools
+    # container_name: temporal-admin-tools
     depends_on:
       - temporal
     environment:
@@ -58,7 +58,7 @@ services:
     stdin_open: true
     tty: true
   temporal-web:
-    container_name: temporal-web
+    # container_name: temporal-web
     depends_on:
       - temporal
     environment:
