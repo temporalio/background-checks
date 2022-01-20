@@ -9,7 +9,6 @@ RUN go mod download
 COPY activities ./activities
 COPY api ./api
 COPY cli ./cli
-COPY mocks ./mocks
 COPY temporal ./temporal
 COPY types ./types
 COPY utils ./utils
@@ -27,7 +26,7 @@ FROM golang:1.17
 
 ENV TEMPORAL_CLI_PLUGIN_DATA_CONVERTER=bgc-dataconverter-plugin
 
-COPY --from=temporalio/admin-tools /usr/local/bin/tctl /usr/local/bin/tctl
+COPY --from=temporalio/admin-tools:1.14.0 /usr/local/bin/tctl /usr/local/bin/tctl
 
 COPY --from=build /go/bin/bgc-dataconverter-plugin /usr/local/bin/bgc-dataconverter-plugin
 COPY --from=build /go/bin/bgc-backend /usr/local/bin/bgc-backend
