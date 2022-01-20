@@ -37,8 +37,15 @@ type PostJSONOptions struct {
 	Timeout time.Duration
 }
 
-func (a *Activities) sendMail(from string, to string, subject string, body io.Reader) error {
-	content, err := io.ReadAll(body)
+func (a *Activities) sendMail(from string, to string, subject string, htmlTemplate *template.Template, textTemplate *template.Template, input interface{}) error {
+	var htmlContent, textContent bytes.Buffer
+
+	err := htmlTemplate.Execute(&htmlContent, input)
+	if err != nil {
+		return err
+	}
+
+	err = textTemplate.Execute(&textContent, input)
 	if err != nil {
 		return err
 	}
@@ -47,7 +54,8 @@ func (a *Activities) sendMail(from string, to string, subject string, body io.Re
 	email.SetFrom(from).
 		AddTo(to).
 		SetSubject(subject).
-		SetBodyData(mail.TextPlain, content)
+		SetBody(mail.TextHTML, htmlContent.String()).
+		AddAlternative(mail.TextPlain, textContent.String())
 
 	if email.Error != nil {
 		return email.Error
@@ -114,79 +122,64 @@ func (a *Activities) FederalCriminalSearch(ctx context.Context, input *types.Fed
 	return &result, err
 }
 
+//go:embed accept_email.go.html
+var acceptEmailHTML string
+var acceptEmailHTMLTemplate = template.Must(template.New("acceptEmailHTML").Parse(acceptEmailHTML))
+
 //go:embed accept_email.go.tmpl
 var acceptEmailText string
-var acceptEmailTemplate = template.Must(template.New("acceptEmail").Parse(acceptEmailText))
+var acceptEmailTextTemplate = template.Must(template.New("acceptEmailText").Parse(acceptEmailText))
 
 func (a *Activities) SendAcceptEmail(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
 	var result types.SendAcceptEmailResult
 
-	var body bytes.Buffer
-
-	err := acceptEmailTemplate.Execute(&body, input)
-	if err != nil {
-		return &result, err
-	}
-
-	err = a.sendMail(CandidateSupportEmail, input.Email, "Background Check Request", &body)
+	err := a.sendMail(CandidateSupportEmail, input.Email, "Background Check Request", acceptEmailHTMLTemplate, acceptEmailTextTemplate, input)
 	return &result, err
 }
 
+//go:embed decline_email.go.html
+var declineEmailHTML string
+var declineEmailHTMLTemplate = template.Must(template.New("declineEmailHTML").Parse(declineEmailHTML))
+
 //go:embed decline_email.go.tmpl
 var declineEmailText string
-var declineEmailTemplate = template.Must(template.New("declineEmail").Parse(declineEmailText))
+var declineEmailTextTemplate = template.Must(template.New("declineEmailText").Parse(declineEmailText))
 
 func (a *Activities) SendDeclineEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
 	var result types.SendReportEmailResult
 
-	var body bytes.Buffer
-
-	err := declineEmailTemplate.Execute(&body, input)
-	if err != nil {
-		return &result, err
-	}
-
-	err = a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", &body)
+	err := a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", declineEmailHTMLTemplate, declineEmailTextTemplate, input)
 	return &result, err
 }
 
+//go:embed employment_verification_request.go.html
+var employmentVerificationRequestEmailHTML string
+var employmentVerificationRequestEmailHTMLTemplate = template.Must(template.New("employmentVerificationRequestEmailHTML").Parse(employmentVerificationRequestEmailHTML))
+
 //go:embed employment_verification_request.go.tmpl
 var employmentVerificationRequestEmailText string
-var employmentVerificationRequestEmailTemplate = template.Must(template.New("employmentVerificationRequestEmail").Parse(employmentVerificationRequestEmailText))
+var employmentVerificationRequestEmailTextTemplate = template.Must(template.New("employmentVerificationRequestEmailText").Parse(employmentVerificationRequestEmailText))
 
 func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input *types.SendEmploymentVerificationEmailInput) (*types.SendEmploymentVerificationEmailResult, error) {
 	var result types.SendEmploymentVerificationEmailResult
 
-	var body bytes.Buffer
+	err := a.sendMail(ResearcherSupportEmail, input.Email, "Employment Verification Request", employmentVerificationRequestEmailHTMLTemplate, employmentVerificationRequestEmailTextTemplate, input)
 
-	err := employmentVerificationRequestEmailTemplate.Execute(&body, input)
-	if err != nil {
-		return &result, err
-	}
-
-	err = a.sendMail(ResearcherSupportEmail, input.Email, "Employment Verification Request", &body)
-	if err != nil {
-		return &result, err
-	}
-
-	return &result, nil
+	return &result, err
 }
+
+//go:embed report_email.go.html
+var reportEmailHTML string
+var reportEmailHTMLTemplate = template.Must(template.New("reportEmailHTML").Parse(reportEmailHTML))
 
 //go:embed report_email.go.tmpl
 var reportEmailText string
-var reportEmailTemplate = template.Must(template.New("reportEmail").Parse(reportEmailText))
+var reportEmailTextTemplate = template.Must(template.New("reportEmailText").Parse(reportEmailText))
 
 func (a *Activities) SendReportEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
 	var result types.SendReportEmailResult
 
-	var body bytes.Buffer
-
-	err := reportEmailTemplate.Execute(&body, input)
-	if err != nil {
-		return &result, err
-	}
-
-	err = a.sendMail(CandidateSupportEmail, HiringManagerEmail, "Background Check Report", &body)
+	err := a.sendMail(CandidateSupportEmail, HiringManagerEmail, "Background Check Report", reportEmailHTMLTemplate, reportEmailTextTemplate, input)
 	return &result, err
 }
 
