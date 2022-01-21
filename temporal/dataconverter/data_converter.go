@@ -1,13 +1,11 @@
 package dataconverter
 
 import (
-	"context"
 	"fmt"
 
 	commonpb "go.temporal.io/api/common/v1"
 
 	"go.temporal.io/sdk/converter"
-	"go.temporal.io/sdk/workflow"
 )
 
 const (
@@ -18,58 +16,13 @@ const (
 	MetadataEncryptionKeyID = "encryption-key-id"
 )
 
-type DataConverter struct {
-	// Until EncodingDataConverter supports workflow.ContextAware we'll store parent here.
-	parent converter.DataConverter
-	converter.EncodingDataConverter
-	options DataConverterOptions
-}
-
 type DataConverterOptions struct {
 	KeyID string
-	// Enable ZLib compression before encryption.
-	Compress bool
 }
 
 // Encoder implements PayloadEncoder using AES Crypt.
 type Encoder struct {
 	KeyID string
-}
-
-// TODO: Implement workflow.ContextAware in EncodingDataConverter
-// Note that you only need to implement this function if you need to vary the encryption KeyID per workflow.
-func (dc *DataConverter) WithWorkflowContext(ctx workflow.Context) converter.DataConverter {
-	if val, ok := ctx.Value(PropagateKey).(CryptContext); ok {
-		parent := dc.parent
-		if parentWithContext, ok := parent.(workflow.ContextAware); ok {
-			parent = parentWithContext.WithWorkflowContext(ctx)
-		}
-
-		options := dc.options
-		options.KeyID = val.KeyID
-
-		return NewEncryptionDataConverter(parent, options)
-	}
-
-	return dc
-}
-
-// TODO: Implement workflow.ContextAware in EncodingDataConverter
-// Note that you only need to implement this function if you need to vary the encryption KeyID per workflow.
-func (dc *DataConverter) WithContext(ctx context.Context) converter.DataConverter {
-	if val, ok := ctx.Value(PropagateKey).(CryptContext); ok {
-		parent := dc.parent
-		if parentWithContext, ok := parent.(workflow.ContextAware); ok {
-			parent = parentWithContext.WithContext(ctx)
-		}
-
-		options := dc.options
-		options.KeyID = val.KeyID
-
-		return NewEncryptionDataConverter(parent, options)
-	}
-
-	return dc
 }
 
 func (e *Encoder) getKey(keyID string) (key []byte) {
@@ -79,26 +32,21 @@ func (e *Encoder) getKey(keyID string) (key []byte) {
 }
 
 // NewEncryptionDataConverter creates a new instance of EncryptionDataConverter wrapping a DataConverter
-func NewEncryptionDataConverter(dataConverter converter.DataConverter, options DataConverterOptions) *DataConverter {
+func NewEncryptionDataConverter(dataConverter converter.DataConverter, options DataConverterOptions) converter.DataConverter {
 	encoders := []converter.PayloadEncoder{
 		&Encoder{KeyID: options.KeyID},
 	}
-	// Enable compression if requested.
-	// Note that this must be done before encryption to provide any value. Encrypted data should by design not compress very well.
-	// This means the compression encoder must come after the encryption encoder here as encoders are applied last -> first.
-	if options.Compress {
-		encoders = append(encoders, converter.NewZlibEncoder(converter.ZlibEncoderOptions{AlwaysEncode: true}))
-	}
 
-	return &DataConverter{
-		parent:                dataConverter,
-		EncodingDataConverter: *converter.NewEncodingDataConverter(dataConverter, encoders...),
-		options:               options,
-	}
+	return converter.NewEncodingDataConverter(dataConverter, encoders...)
 }
 
 // Encode implements converter.PayloadEncoder.Encode.
 func (e *Encoder) Encode(p *commonpb.Payload) error {
+	// Ensure that we never send plaintext Payloads to Temporal
+	if e.KeyID == "" {
+		return fmt.Errorf("no encryption key ID configured for data converter")
+	}
+
 	origBytes, err := p.Marshal()
 	if err != nil {
 		return err

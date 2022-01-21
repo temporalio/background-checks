@@ -6,7 +6,6 @@ import (
 	"github.com/temporalio/background-checks/temporal/dataconverter"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
-	"go.temporal.io/sdk/workflow"
 )
 
 func NewClient(options client.Options) (client.Client, error) {
@@ -16,9 +15,8 @@ func NewClient(options client.Options) (client.Client, error) {
 
 	options.DataConverter = dataconverter.NewEncryptionDataConverter(
 		converter.GetDefaultDataConverter(),
-		dataconverter.DataConverterOptions{},
+		dataconverter.DataConverterOptions{KeyID: os.Getenv("DATACONVERTER_ENCRYPTION_KEY_ID")},
 	)
-	options.ContextPropagators = []workflow.ContextPropagator{dataconverter.NewContextPropagator()}
 
 	return client.NewClient(options)
 }

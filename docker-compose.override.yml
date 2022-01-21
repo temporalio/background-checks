@@ -29,29 +29,32 @@ services:
     command: -invite-jim
     ports:
       - 8025:8025
-  api:
-    build: .
-    command: bgc-backend api
-    restart: unless-stopped
-    environment:
-      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   thirdparty:
     build: .
     command: thirdparty-simulator api
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+  api:
+    build: .
+    command: bgc-backend api
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+      - DATACONVERTER_ENCRYPTION_KEY_ID=secret
   worker:
     build: .
     command: bgc-backend worker
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+      - DATACONVERTER_ENCRYPTION_KEY_ID=secret
   tools:
     build: .
     command: tail -f /dev/null
     environment:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
+      - DATACONVERTER_ENCRYPTION_KEY_ID=secret
   ui:
     build: .
     command: bgc-backend ui

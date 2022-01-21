@@ -13,7 +13,7 @@ func main() {
 		cliplugin.DataConverterPluginType: &cliplugin.DataConverterPlugin{
 			Impl: dataconverter.NewEncryptionDataConverter(
 				converter.GetDefaultDataConverter(),
-				dataconverter.DataConverterOptions{Compress: true},
+				dataconverter.DataConverterOptions{},
 			),
 		},
 	}
