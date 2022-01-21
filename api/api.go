@@ -415,9 +415,10 @@ func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	email := vars["email"]
+	wfid := workflows.BackgroundCheckWorkflowID(email)
 	id := vars["id"]
 
-	err := h.temporalClient.CancelWorkflow(r.Context(), email, id)
+	err := h.temporalClient.CancelWorkflow(r.Context(), wfid, id)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
