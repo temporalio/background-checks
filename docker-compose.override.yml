@@ -1,8 +1,52 @@
 version: "3.5"
 services:
-  temporal:
+  elasticsearch:
     environment:
+      - cluster.routing.allocation.disk.threshold_enabled=true
+      - cluster.routing.allocation.disk.watermark.low=512mb
+      - cluster.routing.allocation.disk.watermark.high=256mb
+      - cluster.routing.allocation.disk.watermark.flood_stage=128mb
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms100m -Xmx100m
+    image: elasticsearch:7.16.2
+  postgresql:
+    environment:
+      POSTGRES_PASSWORD: temporal
+      POSTGRES_USER: temporal
+    image: postgres:13
+  temporal:
+    depends_on:
+      - postgresql
+      - elasticsearch
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_SEEDS=postgresql
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development_es.yaml
+      - ENABLE_ES=true
+      - ES_SEEDS=elasticsearch
+      - ES_VERSION=v7
       - PROMETHEUS_ENDPOINT=0.0.0.0:8000
+    image: temporalio/auto-setup:1.14.0
+  temporal-admin-tools:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_CLI_ADDRESS=temporal:7233
+    image: temporalio/admin-tools:1.14.0
+    stdin_open: true
+    tty: true
+  temporal-web:
+    depends_on:
+      - temporal
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+      - TEMPORAL_PERMIT_WRITE_API=true
+    image: temporalio/web:1.13.0
+    ports:
+      - 8088:8088
   prometheus:
     image: prom/prometheus
     ports:
@@ -12,7 +56,6 @@ services:
         source: ./deployment/prometheus/config.yml
         target: /etc/prometheus/prometheus.yml
   grafana:
-    image: grafana/grafana
     build: './deployment/grafana'
     environment:
       - GF_AUTH_DISABLE_LOGIN_FORM=true
@@ -30,41 +73,33 @@ services:
     ports:
       - 8025:8025
   thirdparty:
-    build: .
+    build: deployment/thirdparty-simulator
     command: thirdparty-simulator api
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   api:
-    build: .
-    command: bgc-backend api
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
       - DATACONVERTER_ENCRYPTION_KEY_ID=secret
+  ui:
+    restart: unless-stopped
+    environment:
+      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   worker:
-    build: .
-    command: bgc-backend worker
     restart: unless-stopped
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
       - DATACONVERTER_ENCRYPTION_KEY_ID=secret
   tools:
-    build: .
-    command: tail -f /dev/null
     environment:
       - TEMPORAL_CLI_ADDRESS=temporal:7233
-      - DATACONVERTER_ENCRYPTION_KEY_ID=secret
-  ui:
-    build: .
-    command: bgc-backend ui
-    restart: unless-stopped
-    ports:
-      - 8083:8083
   dataconverter:
-    build: .
-    command:
-      tctl dc web --web_ui_url http://localhost:8088
+    build:
+      context: .
+      target: app
+    command: tctl dc web --web_ui_url http://localhost:8088
     restart: unless-stopped
     ports:
       - 8086:8086
