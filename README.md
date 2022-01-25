@@ -1,4 +1,4 @@
-# Background Checks Application
+# Background Check application
 
 This project showcases the implementation of a background checks application with Temporal.
 The application is written in the [Go programming language](https://go.dev/), and uses the 
