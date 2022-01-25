@@ -27,8 +27,8 @@ var startCmd = &cobra.Command{
 		}
 
 		input := types.BackgroundCheckWorkflowInput{
-			Email:   email,
-			Package: pkg,
+			Email: email,
+			Tier:  pkg,
 		}
 
 		response, err := utils.PostJSON(requestURL, input)

@@ -42,7 +42,7 @@ func TestBackgroundCheckWorkflowStandard(t *testing.T) {
 		}
 	})
 
-	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Package: "standard"})
+	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "standard"})
 
 	var result types.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)
@@ -85,7 +85,7 @@ func TestBackgroundCheckWorkflowFull(t *testing.T) {
 		}
 	})
 
-	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Package: "full"})
+	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "full"})
 
 	var result types.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)

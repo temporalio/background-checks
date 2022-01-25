@@ -145,7 +145,7 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 		ctx,
 		&types.BackgroundCheckState{
 			Email:         input.Email,
-			Tier:          input.Package,
+			Tier:          input.Tier,
 			SearchResults: make(map[string]interface{}),
 			SearchErrors:  make(map[string]string),
 		},

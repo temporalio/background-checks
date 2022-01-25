@@ -1,8 +1,8 @@
 package types
 
 type BackgroundCheckWorkflowInput struct {
-	Email   string
-	Package string
+	Email string
+	Tier  string
 }
 
 type BackgroundCheckState struct {
