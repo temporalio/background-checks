@@ -221,6 +221,8 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 			MotorVehicleIncidentSearch,
 			types.MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: primaryAddress},
 		)
+
+		// Verify their employment if they provided an employer
 		if w.CandidateDetails.Employer != "" {
 			w.startSearch(
 				ctx,
