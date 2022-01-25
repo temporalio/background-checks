@@ -145,8 +145,8 @@ var declineEmailHTMLTemplate = template.Must(template.New("declineEmailHTML").Pa
 var declineEmailText string
 var declineEmailTextTemplate = template.Must(template.New("declineEmailText").Parse(declineEmailText))
 
-func (a *Activities) SendDeclineEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
-	var result types.SendReportEmailResult
+func (a *Activities) SendDeclineEmail(ctx context.Context, input *types.SendDeclineEmailInput) (*types.SendDeclineEmailResult, error) {
+	var result types.SendDeclineEmailResult
 
 	err := a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", declineEmailHTMLTemplate, declineEmailTextTemplate, input)
 	return &result, err
