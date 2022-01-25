@@ -102,7 +102,7 @@ func (w *backgroundCheckWorkflow) sendReportEmail(ctx workflow.Context, email st
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.SendReportEmail, types.SendReportEmailInput{Email: email, Token: TokenForWorkflow(ctx)})
+	f := workflow.ExecuteActivity(ctx, a.SendReportEmail, types.SendReportEmailInput{Email: w.Email, Token: TokenForWorkflow(ctx)})
 	return f.Get(ctx, nil)
 }
 
