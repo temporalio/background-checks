@@ -181,12 +181,10 @@ func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowI
 	}
 
 	// Run an SSN trace on the SSN the candidate provided when accepting the background check.
-	t, err := w.ssnTrace(ctx)
+	w.SSNTrace, err = w.ssnTrace(ctx)
 	if err != nil {
 		return &w.BackgroundCheckState, err
 	}
-
-	w.SSNTrace = t
 
 	// If the SSN the candidate gave us was not valid then send a report email to the Hiring Manager and end the workflow.
 	// In this case all the searches are skipped.
