@@ -12,7 +12,10 @@ func FederalCriminalSearch(ctx workflow.Context, input *types.FederalCriminalSea
 	var result types.FederalCriminalSearchResult
 
 	name := input.FullName
-	address := input.KnownAddresses[0]
+	var address string
+	if len(input.KnownAddresses) > 0 {
+		address = input.KnownAddresses[0]
+	}
 	var crimes []string
 
 	activityInput := types.FederalCriminalSearchInput{

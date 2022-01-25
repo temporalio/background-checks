@@ -20,7 +20,7 @@ func EmploymentVerificationWorkflowID(email string) string {
 	return fmt.Sprintf("EmploymentVerification:%s", email)
 }
 
-func CheckWorkflowID(email string, name string) string {
+func SearchWorkflowID(email string, name string) string {
 	return fmt.Sprintf("%s:%s", name, email)
 }
 

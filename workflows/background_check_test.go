@@ -47,7 +47,7 @@ func TestBackgroundCheckWorkflowStandard(t *testing.T) {
 	var result types.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
-	assert.Empty(t, result.CheckErrors)
+	assert.Empty(t, result.SearchErrors)
 }
 
 func TestBackgroundCheckWorkflowFull(t *testing.T) {
@@ -90,5 +90,5 @@ func TestBackgroundCheckWorkflowFull(t *testing.T) {
 	var result types.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
-	assert.Empty(t, result.CheckErrors)
+	assert.Empty(t, result.SearchErrors)
 }

@@ -11,8 +11,8 @@ type BackgroundCheckState struct {
 	Accepted         bool
 	CandidateDetails CandidateDetails
 	SSNTrace         *SSNTraceWorkflowResult
-	CheckResults     map[string]interface{}
-	CheckErrors      map[string]string
+	SearchResults    map[string]interface{}
+	SearchErrors     map[string]string
 }
 
 type BackgroundCheckWorkflowResult = BackgroundCheckState
