@@ -81,7 +81,7 @@ func (w *backgroundCheckWorkflow) sendDeclineEmail(ctx workflow.Context, email s
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: email})
+	f := workflow.ExecuteActivity(ctx, a.SendDeclineEmail, types.SendDeclineEmailInput{Email: w.Email})
 	return f.Get(ctx, nil)
 }
 
