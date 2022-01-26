@@ -4,8 +4,7 @@ This is an example [Temporal Application](https://docs.temporal.io/docs/content/
 
 The application is written using the [Temporal Go SDK](https://github.com/temporalio/sdk-go).
 
-The use case for this application is inspired by the blog post 
-["How Temporal simplified Checkr workflows"](https://docs.temporal.io/blog/how-temporal-simplified-checkr-workflows/)
+This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](./docs/project-narrative.md/#what-is-a-long-running-human-driven-workflow) use case.
 
 ## How to use the application
 
