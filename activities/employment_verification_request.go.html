@@ -1,11 +1,118 @@
-Hello Background Check Researcher, 
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+        #form {
+            text-align: center;
+            position: relative;
+            margin-top: 20px
+        }
+        #form fieldset {
+            background: white;
+            border: 0 none;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding-bottom: 20px;
+            position: relative
+        }
+        #form fieldset:not(:first-of-type) {
+            display: none
+        }
 
-A candidate is undergoing a background check we need to verify their current employer.
-
-To perform the verification please visit:
-
-http://localhost:8083/employment/{{.Token}}
-
-Thanks,
-
-Background Check System
+        #progressbar {
+            margin-bottom: 30px;
+            overflow: hidden;
+            color: lightgrey
+        }
+        #progressbar .active {
+            color: #2F8D46
+        }
+        #progressbar li {
+            list-style-type: none;
+            font-size: 15px;
+            width: 25%;
+            float: left;
+            position: relative;
+            font-weight: 400
+        }
+        #progressbar #step1:before {
+            content: "1"
+        }
+        #progressbar #step2:before {
+            content: "2"
+        }
+        #progressbar #step3:before {
+            content: "3"
+        }
+        #progressbar #step4:before {
+            content: "4"
+        }
+        #progressbar li:before {
+            width: 50px;
+            height: 50px;
+            line-height: 45px;
+            display: block;
+            font-size: 20px;
+            color: #ffffff;
+            background: lightgray;
+            border-radius: 50%;
+            margin: 0 auto 10px auto;
+            padding: 2px
+        }
+        #progressbar li:after {
+            content: '';
+            width: 100%;
+            height: 2px;
+            background: lightgray;
+            position: absolute;
+            left: 0;
+            top: 25px;
+            z-index: -1
+        }
+        #progressbar li.active:before,
+        #progressbar li.active:after {
+            background: #2F8D46
+        }
+    </style>
+</head>
+<body>
+<!-- Image and text -->
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="#">
+        <img src="https://www.dietzgen.com/wp-content/uploads/2020/07/Check-PNG-Transparent-Image.png" width="50" class="d-inline-block align-top" alt="">
+        &nbsp;&nbsp;&nbsp;Background Check Request - Researcher
+    </a>
+</nav>
+<div class="container">
+    <div class="px-0 pt-4 pb-0 mt-3 mb-3">
+        <form id="form">
+            <ul id="progressbar">
+                <li class="active" id="step1">
+                    <strong>Start Employment Verification</strong>
+                </li>
+                <li id="step2"><strong>Confirm Employment Verification</strong></li>
+                <li id="step3"><strong>Verification Submitted</strong></li>
+            </ul>
+        </form>
+    </div>
+    <div class="hero-unit">
+        <h1>Hello Researcher {{.Email}}</h1>
+        <p>A candidate is undergoing a background check and we need to verify their current employer.
+            <br/></p>
+        <p>
+            <a class="btn btn-success btn-large" href="http://localhost:8083/employment/{{.Token}}">
+                Continue
+            </a>
+        </p>
+    </div>
+</div>
+</body>
+</html>
