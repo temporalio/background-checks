@@ -7,7 +7,7 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
-// @@@SNIPSTART background-checks-ssn-trace-workflow-definitio
+// @@@SNIPSTART background-checks-ssn-trace-workflow-definition
 func SSNTrace(ctx workflow.Context, input *types.SSNTraceWorkflowInput) (*types.SSNTraceWorkflowResult, error) {
 	var result types.SSNTraceResult
 
