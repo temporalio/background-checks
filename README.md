@@ -10,7 +10,7 @@ This project showcases how to implement a Temporal Application within the contex
 
 - [Guide to using this application](./docs/how-to-use.md)
 
-## Learn about application cores, requirements, and design/implementation decisions
+## Learn about the application
 
 - [Learning goals & project narrative](./docs/project-narrative.md)
 - [Application requirements](./docs/temporal-application-requirements.md)
