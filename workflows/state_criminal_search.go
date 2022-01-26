@@ -8,6 +8,10 @@ import (
 )
 
 // @@@SNIPSTART background-checks-state-criminal-workflow-definition
+
+// StateCriminalSearch is a Workflow Definition that executes an Activity for
+// each address associated with the Candidate.
+// This is executed as a Child Workflow by the main Background Check.
 func StateCriminalSearch(ctx workflow.Context, input *types.StateCriminalSearchWorkflowInput) (*types.StateCriminalSearchWorkflowResult, error) {
 	var result types.StateCriminalSearchWorkflowResult
 

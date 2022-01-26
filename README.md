@@ -17,7 +17,7 @@ This project showcases how to implement a Temporal Application within the contex
 - [Application design & implementation](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/application-design)
 - [Application deployment](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/application-deployment)
 
-## References
+## Application references
 
 - [CLI reference](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/cli-reference)
 - [API reference](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/api-reference)

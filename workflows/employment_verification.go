@@ -15,6 +15,7 @@ const (
 	ResearchDeadline                       = time.Hour * 24 * 7
 )
 
+// chooseResearcher simply encapsulates the logic that randomly chooses a Researcher using a Side Effect.
 func chooseResearcher(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput) (string, error) {
 	researchers := []string{
 		"researcher1@example.com",
@@ -25,7 +26,6 @@ func chooseResearcher(ctx workflow.Context, input *types.EmploymentVerificationW
 	// Here we just pick a random researcher.
 	// In a real use case you may round-robin, decide based on price or current workload,
 	// or fetch a researcher from a third party API.
-
 	var researcher string
 	r := workflow.SideEffect(ctx, func(ctx workflow.Context) interface{} {
 		return researchers[rand.Intn(len(researchers))]
@@ -35,6 +35,7 @@ func chooseResearcher(ctx workflow.Context, input *types.EmploymentVerificationW
 	return researcher, err
 }
 
+// emailEmploymentVerificationRequest simply encapsulates the logic that executes the Activity.
 func emailEmploymentVerificationRequest(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput, email string) error {
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -47,6 +48,7 @@ func emailEmploymentVerificationRequest(ctx workflow.Context, input *types.Emplo
 	return evsend.Get(ctx, nil)
 }
 
+// waitForEmploymentVerificationSubmission simply encapsulates the logic that waits on the Signal.
 func waitForEmploymentVerificationSubmission(ctx workflow.Context) (*types.EmploymentVerificationSubmission, error) {
 	var response types.EmploymentVerificationSubmission
 	var err error
@@ -74,6 +76,10 @@ func waitForEmploymentVerificationSubmission(ctx workflow.Context) (*types.Emplo
 }
 
 // @@@SNIPSTART background-checks-employment-verification-workflow-definition
+
+// EmploymentVerification is a Workflow Definition that is executes a Side Effect, and an  Activity,
+// but then waits on a Signal. It is also capable of handling a Query to get Candidate Details.
+// This is executed as a Child Workflow by the main Background Check.
 func EmploymentVerification(ctx workflow.Context, input *types.EmploymentVerificationWorkflowInput) (*types.EmploymentVerificationWorkflowResult, error) {
 	var result types.EmploymentVerificationWorkflowResult
 
