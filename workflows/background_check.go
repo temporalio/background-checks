@@ -137,9 +137,11 @@ func (w *backgroundCheckWorkflow) waitForSearches(ctx workflow.Context) {
 }
 
 // @@@SNIPSTART background-checks-main-workflow-definition
-// BackgroundCheck is the main background check workflow.
-// It accepts an email as the input.
-// All other personal information for the candidate is provided by the candidate when accepting the background check.
+
+// BackgroundCheck is a Workflow Definition that calls for the execution of a variable set of Activities and Child Workflows.
+// This is the main entry point of the application.
+// It accepts an email address as the input.
+// All other personal information for the Candidate is provided when they accept the Background Check.
 func BackgroundCheck(ctx workflow.Context, input *types.BackgroundCheckWorkflowInput) (*types.BackgroundCheckWorkflowResult, error) {
 	w := newBackgroundCheckWorkflow(
 		ctx,
