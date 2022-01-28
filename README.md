@@ -4,7 +4,7 @@ This is an example [Temporal Application](https://docs.temporal.io/docs/content/
 
 The application is written using the [Temporal Go SDK](https://github.com/temporalio/sdk-go).
 
-This project showcases how to implement a Temporal Application within the context of a [Long Running Human Driven Workflow](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/project-narrative#what-is-a-long-running-human-driven-workflow) use case.
+This project showcases how to implement a Temporal Application within the context of a [Human-Driven Long-Running Workflow](https://deploy-preview-794--mystifying-fermi-1bc096.netlify.app/docs/learning-paths/background-checks/project-narrative#what-is-a-long-running-human-driven-workflow) use case.
 
 ## How to use the application
 
