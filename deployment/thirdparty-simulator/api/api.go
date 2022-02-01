@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
-	"time"
 
 	"github.com/github/go-fault"
 	"github.com/gorilla/mux"
@@ -104,7 +103,6 @@ func handleMotorVehicleSearch(w http.ResponseWriter, r *http.Request) {
 		"Driving Under the Influence",
 	}
 
-	rand.Seed(time.Now().Unix())
 	rndnum := rand.Intn(100)
 	if rndnum > 25 {
 		motorVehicleIncidents = append(motorVehicleIncidents, possibleMotorVehicleIncidents[rand.Intn(len(possibleMotorVehicleIncidents))])
@@ -138,7 +136,6 @@ func handleFederalCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		"Espionage",
 	}
 
-	rand.Seed(time.Now().Unix())
 	rndnum := rand.Intn(100)
 	if rndnum > 75 {
 		crimes = append(crimes, possibleCrimes[rand.Intn(len(possibleCrimes))])
@@ -168,7 +165,6 @@ func handleStateCriminalSearch(w http.ResponseWriter, r *http.Request) {
 		"Smoking in a Public Place",
 	}
 
-	rand.Seed(time.Now().Unix())
 	rndnum := rand.Intn(100)
 	if rndnum > 75 {
 		crimes = append(crimes, possibleCrimes[rand.Intn(len(possibleCrimes))])
