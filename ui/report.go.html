@@ -115,23 +115,82 @@
             </thead>
             <tr>
                 <th scope="row">1</th>
-                <td>SSN Verification</td><td>{{ .SSNTrace.SSNIsValid }}</td>
+                <td>SSN</td>
+                <td>{{if .SSNTrace.SSNIsValid }}Valid{{else}}Not valid{{end}}</td>
             </tr>
             <tr>
                 <th scope="row">2</th>
-                <td>Employment Verification</td><td>{{ .SearchResults.EmploymentVerification.EmployerVerified }}</td>
+                <td>Employment Verification</td>
+                <td>
+                    {{with .SearchResults.EmploymentVerification}}
+                        {{if .EmployerVerified}}Verified{{else}}Not verified{{end}}
+                    {{else}}
+                        Skipped
+                    {{end}}
+                </td>
             </tr>
             <tr>
                 <th scope="row">3</th>
-                <td>Motor Vehicle Incident Search</td><td>{{ .SearchResults.MotorVehicleIncidentSearch.MotorVehicleIncidents }}</td>
+                <td>Motor Vehicle Incident Search</td>
+                <td>
+                    {{with .SearchErrors.MotorVehicleIncidentSearch}}
+                        Search failed: {{.}}
+                    {{else}}
+                        {{with .SearchResults.MotorVehicleIncidentSearch}}
+                            {{with .MotorVehicleIncidents}}
+                                <ul>
+                                    {{range .}}<li>{{.}}</li>{{end}}
+                                </ul>
+                            {{else}}
+                                No records found
+                            {{end}}
+                        {{else}}
+                            Skipped
+                        {{end}}
+                    {{end}}
+                </td>
             </tr>
             <tr>
                 <th scope="row">4</th>
-                <td>State Criminal Search</td><td>{{ .SearchResults.StateCriminalSearch.Crimes }}</td>
+                <td>State Criminal Search</td>
+                <td>
+                    {{with .SearchErrors.StateCriminalSearch}}
+                        Search failed: {{.}}
+                    {{else}}
+                        {{with .SearchResults.StateCriminalSearch}}
+                            {{with .Crimes}}
+                                <ul>
+                                    {{range .}}<li>{{.}}</li>{{end}}
+                                </ul>
+                            {{else}}
+                                No records found
+                            {{end}}
+                        {{else}}
+                            Skipped
+                        {{end}}
+                    {{end}}
+                </td>
             </tr>
             <tr>
                 <th scope="row">5</th>
-                <td>Federal Criminal Search</td><td>{{ .SearchResults.FederalCriminalSearch.Crimes }}</td>
+                <td>Federal Criminal Search</td>
+                <td>
+                    {{with .SearchErrors.FederalCriminalSearch}}
+                        Search failed: {{.}}
+                    {{else}}
+                        {{with .SearchResults.FederalCriminalSearch}}
+                            {{with .Crimes}}
+                                <ul>
+                                    {{range .}}<li>{{.}}</li>{{end}}
+                                </ul>
+                            {{else}}
+                                No records found
+                            {{end}}
+                        {{else}}
+                            Skipped
+                        {{end}}
+                    {{end}}
+                </td>
             </tr>
         </table>
         </p>
