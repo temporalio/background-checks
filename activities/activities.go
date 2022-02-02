@@ -11,7 +11,6 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/temporalio/background-checks/types"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -99,8 +98,17 @@ func (a *Activities) postJSON(ctx context.Context, url string, input interface{}
 	return client.Do(req)
 }
 
-func (a *Activities) FederalCriminalSearch(ctx context.Context, input *types.FederalCriminalSearchInput) (*types.FederalCriminalSearchResult, error) {
-	var result types.FederalCriminalSearchResult
+type FederalCriminalSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type FederalCriminalSearchResult struct {
+	Crimes []string
+}
+
+func (a *Activities) FederalCriminalSearch(ctx context.Context, input *FederalCriminalSearchInput) (*FederalCriminalSearchResult, error) {
+	var result FederalCriminalSearchResult
 
 	if a.HTTPStub {
 		return &result, nil
@@ -130,8 +138,15 @@ var acceptEmailHTMLTemplate = template.Must(template.New("acceptEmailHTML").Pars
 var acceptEmailText string
 var acceptEmailTextTemplate = template.Must(template.New("acceptEmailText").Parse(acceptEmailText))
 
-func (a *Activities) SendAcceptEmail(ctx context.Context, input *types.SendAcceptEmailInput) (*types.SendAcceptEmailResult, error) {
-	var result types.SendAcceptEmailResult
+type SendAcceptEmailInput struct {
+	Email string
+	Token string
+}
+
+type SendAcceptEmailResult struct{}
+
+func (a *Activities) SendAcceptEmail(ctx context.Context, input *SendAcceptEmailInput) (*SendAcceptEmailResult, error) {
+	var result SendAcceptEmailResult
 
 	err := a.sendMail(CandidateSupportEmail, input.Email, "Background Check Request", acceptEmailHTMLTemplate, acceptEmailTextTemplate, input)
 	return &result, err
@@ -145,8 +160,14 @@ var declineEmailHTMLTemplate = template.Must(template.New("declineEmailHTML").Pa
 var declineEmailText string
 var declineEmailTextTemplate = template.Must(template.New("declineEmailText").Parse(declineEmailText))
 
-func (a *Activities) SendDeclineEmail(ctx context.Context, input *types.SendDeclineEmailInput) (*types.SendDeclineEmailResult, error) {
-	var result types.SendDeclineEmailResult
+type SendDeclineEmailInput struct {
+	Email string
+}
+
+type SendDeclineEmailResult struct{}
+
+func (a *Activities) SendDeclineEmail(ctx context.Context, input *SendDeclineEmailInput) (*SendDeclineEmailResult, error) {
+	var result SendDeclineEmailResult
 
 	err := a.sendMail(HiringSupportEmail, HiringManagerEmail, "Background Check Declined", declineEmailHTMLTemplate, declineEmailTextTemplate, input)
 	return &result, err
@@ -160,8 +181,15 @@ var employmentVerificationRequestEmailHTMLTemplate = template.Must(template.New(
 var employmentVerificationRequestEmailText string
 var employmentVerificationRequestEmailTextTemplate = template.Must(template.New("employmentVerificationRequestEmailText").Parse(employmentVerificationRequestEmailText))
 
-func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input *types.SendEmploymentVerificationEmailInput) (*types.SendEmploymentVerificationEmailResult, error) {
-	var result types.SendEmploymentVerificationEmailResult
+type SendEmploymentVerificationEmailInput struct {
+	Email string
+	Token string
+}
+
+type SendEmploymentVerificationEmailResult struct{}
+
+func (a *Activities) SendEmploymentVerificationRequestEmail(ctx context.Context, input *SendEmploymentVerificationEmailInput) (*SendEmploymentVerificationEmailResult, error) {
+	var result SendEmploymentVerificationEmailResult
 
 	err := a.sendMail(ResearcherSupportEmail, input.Email, "Employment Verification Request", employmentVerificationRequestEmailHTMLTemplate, employmentVerificationRequestEmailTextTemplate, input)
 
@@ -176,18 +204,35 @@ var reportEmailHTMLTemplate = template.Must(template.New("reportEmailHTML").Pars
 var reportEmailText string
 var reportEmailTextTemplate = template.Must(template.New("reportEmailText").Parse(reportEmailText))
 
-func (a *Activities) SendReportEmail(ctx context.Context, input *types.SendReportEmailInput) (*types.SendReportEmailResult, error) {
-	var result types.SendReportEmailResult
+type SendReportEmailInput struct {
+	Email string
+	Token string
+}
+
+type SendReportEmailResult struct{}
+
+func (a *Activities) SendReportEmail(ctx context.Context, input *SendReportEmailInput) (*SendReportEmailResult, error) {
+	var result SendReportEmailResult
 
 	err := a.sendMail(CandidateSupportEmail, HiringManagerEmail, "Background Check Report", reportEmailHTMLTemplate, reportEmailTextTemplate, input)
 	return &result, err
 }
 
-func (a *Activities) SSNTrace(ctx context.Context, input *types.SSNTraceInput) (*types.SSNTraceResult, error) {
-	var result types.SSNTraceResult
+type SSNTraceInput struct {
+	FullName string
+	SSN      string
+}
+
+type SSNTraceResult struct {
+	SSNIsValid     bool
+	KnownAddresses []string
+}
+
+func (a *Activities) SSNTrace(ctx context.Context, input *SSNTraceInput) (*SSNTraceResult, error) {
+	var result SSNTraceResult
 
 	if a.HTTPStub {
-		return &types.SSNTraceResult{
+		return &SSNTraceResult{
 			SSNIsValid: true,
 		}, nil
 	}
@@ -208,8 +253,19 @@ func (a *Activities) SSNTrace(ctx context.Context, input *types.SSNTraceInput) (
 	return &result, err
 }
 
-func (a *Activities) StateCriminalSearch(ctx context.Context, input *types.StateCriminalSearchInput) (*types.StateCriminalSearchResult, error) {
-	var result types.StateCriminalSearchResult
+type StateCriminalSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type StateCriminalSearchResult struct {
+	FullName string
+	Address  string
+	Crimes   []string
+}
+
+func (a *Activities) StateCriminalSearch(ctx context.Context, input *StateCriminalSearchInput) (*StateCriminalSearchResult, error) {
+	var result StateCriminalSearchResult
 
 	if a.HTTPStub {
 		return &result, nil
@@ -231,8 +287,18 @@ func (a *Activities) StateCriminalSearch(ctx context.Context, input *types.State
 	return &result, err
 }
 
-func (a *Activities) MotorVehicleIncidentSearch(ctx context.Context, input *types.MotorVehicleIncidentSearchInput) (*types.MotorVehicleIncidentSearchResult, error) {
-	var result types.MotorVehicleIncidentSearchResult
+type MotorVehicleIncidentSearchInput struct {
+	FullName string
+	Address  string
+}
+
+type MotorVehicleIncidentSearchResult struct {
+	LicenseValid          bool
+	MotorVehicleIncidents []string
+}
+
+func (a *Activities) MotorVehicleIncidentSearch(ctx context.Context, input *MotorVehicleIncidentSearchInput) (*MotorVehicleIncidentSearchResult, error) {
+	var result MotorVehicleIncidentSearchResult
 
 	if a.HTTPStub {
 		return &result, nil

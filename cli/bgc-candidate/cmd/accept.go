@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/api"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/utils"
+	"github.com/temporalio/background-checks/workflows"
 )
 
 // acceptCmd represents the accept command
@@ -25,11 +25,11 @@ var acceptCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		candidatedetails := types.CandidateDetails{
+		candidatedetails := workflows.CandidateDetails{
 			FullName: FullName,
 			SSN:      SSN,
 			Employer: Employer}
-		submission := types.AcceptSubmissionSignal{
+		submission := workflows.AcceptSubmissionSignal{
 			CandidateDetails: candidatedetails,
 		}
 

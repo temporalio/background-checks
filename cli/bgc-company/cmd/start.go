@@ -9,8 +9,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/temporalio/background-checks/api"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/utils"
+	"github.com/temporalio/background-checks/workflows"
 )
 
 // startCmd represents the start command
@@ -26,7 +26,7 @@ var startCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		input := types.BackgroundCheckWorkflowInput{
+		input := workflows.BackgroundCheckWorkflowInput{
 			Email: email,
 			Tier:  pkg,
 		}

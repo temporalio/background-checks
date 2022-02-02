@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/testsuite"
@@ -25,7 +24,7 @@ func TestBackgroundCheckWorkflowStandard(t *testing.T) {
 	env.RegisterActivity(a.FederalCriminalSearch)
 	env.RegisterActivity(a.SendReportEmail)
 
-	details := types.CandidateDetails{
+	details := workflows.CandidateDetails{
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
 		DOB:      "1981-01-01",
@@ -36,15 +35,15 @@ func TestBackgroundCheckWorkflowStandard(t *testing.T) {
 		if workflowInfo.WorkflowExecution.ID == workflows.AcceptWorkflowID("john@example.com") {
 			env.SignalWorkflowByID(
 				workflows.AcceptWorkflowID("john@example.com"),
-				workflows.AcceptSubmissionSignal,
-				types.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
+				workflows.AcceptSubmissionSignalName,
+				workflows.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
 			)
 		}
 	})
 
-	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "standard"})
+	env.ExecuteWorkflow(workflows.BackgroundCheck, &workflows.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "standard"})
 
-	var result types.BackgroundCheckWorkflowResult
+	var result workflows.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 	assert.Empty(t, result.SearchErrors)
@@ -68,7 +67,7 @@ func TestBackgroundCheckWorkflowFull(t *testing.T) {
 	env.RegisterActivity(a.SendEmploymentVerificationRequestEmail)
 	env.RegisterActivity(a.SendReportEmail)
 
-	details := types.CandidateDetails{
+	details := workflows.CandidateDetails{
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
 		DOB:      "1981-01-01",
@@ -79,15 +78,15 @@ func TestBackgroundCheckWorkflowFull(t *testing.T) {
 		if workflowInfo.WorkflowExecution.ID == workflows.AcceptWorkflowID("john@example.com") {
 			env.SignalWorkflowByID(
 				workflows.AcceptWorkflowID("john@example.com"),
-				workflows.AcceptSubmissionSignal,
-				types.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
+				workflows.AcceptSubmissionSignalName,
+				workflows.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
 			)
 		}
 	})
 
-	env.ExecuteWorkflow(workflows.BackgroundCheck, &types.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "full"})
+	env.ExecuteWorkflow(workflows.BackgroundCheck, &workflows.BackgroundCheckWorkflowInput{Email: "john@example.com", Tier: "full"})
 
-	var result types.BackgroundCheckWorkflowResult
+	var result workflows.BackgroundCheckWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 	assert.Empty(t, result.SearchErrors)

@@ -8,6 +8,41 @@ import (
 	"go.temporal.io/sdk/workflow"
 )
 
+type CandidateDetails struct {
+	FullName string
+	Address  string
+	SSN      string
+	DOB      string
+	Employer string
+}
+
+type AcceptSubmission struct {
+	Accepted         bool
+	CandidateDetails CandidateDetails
+}
+
+type AcceptSubmissionSignal struct {
+	Accepted         bool
+	CandidateDetails CandidateDetails
+}
+
+type EmploymentVerificationSubmission struct {
+	EmploymentVerificationComplete bool
+	EmployerVerified               bool
+}
+
+type EmploymentVerificationSubmissionSignal struct {
+	EmploymentVerificationComplete bool
+	EmployerVerified               bool
+}
+
+type KnownAddress struct {
+	Address string
+	City    string
+	State   string
+	ZipCode string
+}
+
 func BackgroundCheckWorkflowID(email string) string {
 	return fmt.Sprintf("BackgroundCheck:%s", email)
 }

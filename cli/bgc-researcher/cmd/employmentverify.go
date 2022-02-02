@@ -8,8 +8,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/temporalio/background-checks/api"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/utils"
+	"github.com/temporalio/background-checks/workflows"
 )
 
 var employmentVerifyCmd = &cobra.Command{
@@ -24,7 +24,7 @@ var employmentVerifyCmd = &cobra.Command{
 			log.Fatalf("cannot create URL: %v", err)
 		}
 
-		submission := types.EmploymentVerificationSubmissionSignal{
+		submission := workflows.EmploymentVerificationSubmissionSignal{
 			EmploymentVerificationComplete: true,
 			EmployerVerified:               true,
 		}

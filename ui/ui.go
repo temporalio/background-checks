@@ -9,8 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/temporalio/background-checks/api"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/utils"
+	"github.com/temporalio/background-checks/workflows"
 )
 
 const (
@@ -84,12 +84,12 @@ func (h *handlers) handleAcceptSubmission(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	candidatedetails := types.CandidateDetails{
+	candidatedetails := workflows.CandidateDetails{
 		FullName: r.FormValue("full_name"),
 		SSN:      r.FormValue("ssn"),
 		Employer: r.FormValue("employer"),
 	}
-	submission := types.AcceptSubmissionSignal{
+	submission := workflows.AcceptSubmissionSignal{
 		CandidateDetails: candidatedetails,
 	}
 
@@ -131,7 +131,7 @@ func (h *handlers) handleEmploymentVerification(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	var candidate types.CandidateDetails
+	var candidate workflows.CandidateDetails
 
 	_, err = utils.GetJSON(requestURL, &candidate)
 	if err != nil {
@@ -162,7 +162,7 @@ func (h *handlers) handleEmploymentVerificationSubmission(w http.ResponseWriter,
 		return
 	}
 
-	submission := types.EmploymentVerificationSubmissionSignal{
+	submission := workflows.EmploymentVerificationSubmissionSignal{
 		EmploymentVerificationComplete: true,
 		EmployerVerified:               r.FormValue("action") == "yes",
 	}
@@ -205,7 +205,7 @@ func (h *handlers) handleReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var status types.BackgroundCheckState
+	var status workflows.BackgroundCheckState
 
 	_, err = utils.GetJSON(requestURL, &status)
 	if err != nil {

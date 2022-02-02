@@ -3,23 +3,33 @@ package workflows
 import (
 	"time"
 
-	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/activities"
 	"go.temporal.io/sdk/workflow"
 )
 
+type MotorVehicleIncidentSearchWorkflowInput struct {
+	FullName string
+	Address  string
+}
+
+type MotorVehicleIncidentSearchWorkflowResult struct {
+	LicenseValid          bool
+	MotorVehicleIncidents []string
+}
+
 // @@@SNIPSTART background-checks-motor-vehicle-workflow-definition
-func MotorVehicleIncidentSearch(ctx workflow.Context, input *types.MotorVehicleIncidentSearchWorkflowInput) (*types.MotorVehicleIncidentSearchWorkflowResult, error) {
-	var result types.MotorVehicleIncidentSearchWorkflowResult
+func MotorVehicleIncidentSearch(ctx workflow.Context, input *MotorVehicleIncidentSearchWorkflowInput) (*MotorVehicleIncidentSearchWorkflowResult, error) {
+	var result MotorVehicleIncidentSearchWorkflowResult
 
 	name := input.FullName
 	address := input.Address
 	var motorvehicleIncidents []string
 
-	activityInput := types.MotorVehicleIncidentSearchInput{
+	activityInput := activities.MotorVehicleIncidentSearchInput{
 		FullName: name,
 		Address:  address,
 	}
-	var activityResult types.MotorVehicleIncidentSearchResult
+	var activityResult activities.MotorVehicleIncidentSearchResult
 
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -33,7 +43,7 @@ func MotorVehicleIncidentSearch(ctx workflow.Context, input *types.MotorVehicleI
 	}
 	result.MotorVehicleIncidents = motorvehicleIncidents
 
-	r := types.MotorVehicleIncidentSearchWorkflowResult(result)
+	r := MotorVehicleIncidentSearchWorkflowResult(result)
 	return &r, nil
 }
 

@@ -12,7 +12,6 @@ COPY activities ./activities
 COPY api ./api
 COPY cli ./cli
 COPY temporal ./temporal
-COPY types ./types
 COPY utils ./utils
 COPY ui ./ui
 COPY workflows ./workflows

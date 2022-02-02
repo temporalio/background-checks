@@ -16,7 +16,6 @@ import (
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 )
 
@@ -194,7 +193,7 @@ func (h *handlers) handleCheckList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
-	var input types.BackgroundCheckWorkflowInput
+	var input workflows.BackgroundCheckWorkflowInput
 
 	err := json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -240,7 +239,7 @@ func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.BackgroundCheckState
+	var result workflows.BackgroundCheckState
 	err = v.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -272,7 +271,7 @@ func (h *handlers) handleCheckReport(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.BackgroundCheckState
+	var result workflows.BackgroundCheckState
 	err = enc.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -293,7 +292,7 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var result types.AcceptSubmissionSignal
+	var result workflows.AcceptSubmissionSignal
 
 	err = json.NewDecoder(r.Body).Decode(&result)
 	if err != nil {
@@ -306,7 +305,7 @@ func (h *handlers) handleAccept(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		wfid,
 		runid,
-		workflows.AcceptSubmissionSignal,
+		workflows.AcceptSubmissionSignalName,
 		result,
 	)
 	if err != nil {
@@ -325,7 +324,7 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result := types.AcceptSubmissionSignal{
+	result := workflows.AcceptSubmissionSignal{
 		Accepted: false,
 	}
 
@@ -333,7 +332,7 @@ func (h *handlers) handleDecline(w http.ResponseWriter, r *http.Request) {
 		r.Context(),
 		wfid,
 		runid,
-		workflows.AcceptSubmissionSignal,
+		workflows.AcceptSubmissionSignalName,
 		result,
 	)
 	if err != nil {
@@ -363,7 +362,7 @@ func (h *handlers) handleEmploymentVerificationDetails(w http.ResponseWriter, r 
 		return
 	}
 
-	var result types.CandidateDetails
+	var result workflows.CandidateDetails
 	err = enc.Get(&result)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -384,7 +383,7 @@ func (h *handlers) handleEmploymentVerificationSubmission(w http.ResponseWriter,
 		return
 	}
 
-	var input types.EmploymentVerificationSubmissionSignal
+	var input workflows.EmploymentVerificationSubmissionSignal
 
 	err = json.NewDecoder(r.Body).Decode(&input)
 	if err != nil {
@@ -399,7 +398,7 @@ func (h *handlers) handleEmploymentVerificationSubmission(w http.ResponseWriter,
 		r.Context(),
 		wfid,
 		runid,
-		workflows.EmploymentVerificationSubmissionSignal,
+		workflows.EmploymentVerificationSubmissionSignalName,
 		result,
 	)
 	if err != nil {

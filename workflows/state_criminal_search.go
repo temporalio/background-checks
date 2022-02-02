@@ -3,28 +3,37 @@ package workflows
 import (
 	"time"
 
-	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/activities"
 	"go.temporal.io/sdk/workflow"
 )
+
+type StateCriminalSearchWorkflowInput struct {
+	FullName       string
+	KnownAddresses []string
+}
+
+type StateCriminalSearchWorkflowResult struct {
+	Crimes []string
+}
 
 // @@@SNIPSTART background-checks-state-criminal-workflow-definition
 
 // StateCriminalSearch is a Workflow Definition that calls for the execution an Activity for
 // each address associated with the Candidate.
 // This is executed as a Child Workflow by the main Background Check.
-func StateCriminalSearch(ctx workflow.Context, input *types.StateCriminalSearchWorkflowInput) (*types.StateCriminalSearchWorkflowResult, error) {
-	var result types.StateCriminalSearchWorkflowResult
+func StateCriminalSearch(ctx workflow.Context, input *StateCriminalSearchWorkflowInput) (*StateCriminalSearchWorkflowResult, error) {
+	var result StateCriminalSearchWorkflowResult
 
 	name := input.FullName
 	knownaddresses := input.KnownAddresses
 	var crimes []string
 
 	for _, address := range knownaddresses {
-		activityInput := types.StateCriminalSearchInput{
+		activityInput := activities.StateCriminalSearchInput{
 			FullName: name,
 			Address:  address,
 		}
-		var activityResult types.StateCriminalSearchResult
+		var activityResult activities.StateCriminalSearchResult
 
 		ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 			StartToCloseTimeout: time.Minute,
@@ -39,7 +48,7 @@ func StateCriminalSearch(ctx workflow.Context, input *types.StateCriminalSearchW
 	}
 	result.Crimes = crimes
 
-	r := types.StateCriminalSearchWorkflowResult(result)
+	r := StateCriminalSearchWorkflowResult(result)
 	return &r, nil
 }
 

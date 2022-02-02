@@ -5,7 +5,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/temporalio/background-checks/activities"
-	"github.com/temporalio/background-checks/types"
 	"github.com/temporalio/background-checks/workflows"
 	"go.temporal.io/sdk/testsuite"
 )
@@ -17,7 +16,7 @@ func TestReturnsAcceptWorkflow(t *testing.T) {
 
 	env.RegisterActivity(a.SendAcceptEmail)
 
-	details := types.CandidateDetails{
+	details := workflows.CandidateDetails{
 		FullName: "John Smith",
 		SSN:      "111-11-1111",
 		DOB:      "1981-01-01",
@@ -27,20 +26,20 @@ func TestReturnsAcceptWorkflow(t *testing.T) {
 	env.RegisterDelayedCallback(
 		func() {
 			env.SignalWorkflow(
-				workflows.AcceptSubmissionSignal,
-				types.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
+				workflows.AcceptSubmissionSignalName,
+				workflows.AcceptSubmissionSignal{Accepted: true, CandidateDetails: details},
 			)
 		},
 		0,
 	)
 
-	env.ExecuteWorkflow(workflows.Accept, &types.AcceptWorkflowInput{})
+	env.ExecuteWorkflow(workflows.Accept, &workflows.AcceptWorkflowInput{})
 
-	var result types.AcceptWorkflowResult
+	var result workflows.AcceptWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 
-	assert.Equal(t, types.AcceptWorkflowResult{Accepted: true, CandidateDetails: details}, result)
+	assert.Equal(t, workflows.AcceptWorkflowResult{Accepted: true, CandidateDetails: details}, result)
 }
 
 func TestReturnsAcceptWorkflowTimeout(t *testing.T) {
@@ -50,11 +49,11 @@ func TestReturnsAcceptWorkflowTimeout(t *testing.T) {
 
 	env.RegisterActivity(a.SendAcceptEmail)
 
-	env.ExecuteWorkflow(workflows.Accept, &types.AcceptWorkflowInput{})
+	env.ExecuteWorkflow(workflows.Accept, &workflows.AcceptWorkflowInput{})
 
-	var result types.AcceptWorkflowResult
+	var result workflows.AcceptWorkflowResult
 	err := env.GetWorkflowResult(&result)
 	assert.NoError(t, err)
 
-	assert.Equal(t, types.AcceptWorkflowResult{Accepted: false, CandidateDetails: types.CandidateDetails{}}, result)
+	assert.Equal(t, workflows.AcceptWorkflowResult{Accepted: false, CandidateDetails: workflows.CandidateDetails{}}, result)
 }

@@ -3,13 +3,22 @@ package workflows
 import (
 	"time"
 
-	"github.com/temporalio/background-checks/types"
+	"github.com/temporalio/background-checks/activities"
 	"go.temporal.io/sdk/workflow"
 )
 
+type FederalCriminalSearchWorkflowInput struct {
+	FullName       string
+	KnownAddresses []string
+}
+
+type FederalCriminalSearchWorkflowResult struct {
+	Crimes []string
+}
+
 // @@@SNIPSTART background-checks-federal-criminal-workflow-definition
-func FederalCriminalSearch(ctx workflow.Context, input *types.FederalCriminalSearchWorkflowInput) (*types.FederalCriminalSearchWorkflowResult, error) {
-	var result types.FederalCriminalSearchResult
+func FederalCriminalSearch(ctx workflow.Context, input *FederalCriminalSearchWorkflowInput) (*FederalCriminalSearchWorkflowResult, error) {
+	var result activities.FederalCriminalSearchResult
 
 	name := input.FullName
 	var address string
@@ -18,11 +27,11 @@ func FederalCriminalSearch(ctx workflow.Context, input *types.FederalCriminalSea
 	}
 	var crimes []string
 
-	activityInput := types.FederalCriminalSearchInput{
+	activityInput := activities.FederalCriminalSearchInput{
 		FullName: name,
 		Address:  address,
 	}
-	var activityResult types.FederalCriminalSearchResult
+	var activityResult activities.FederalCriminalSearchResult
 
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
@@ -36,7 +45,7 @@ func FederalCriminalSearch(ctx workflow.Context, input *types.FederalCriminalSea
 	}
 	result.Crimes = crimes
 
-	r := types.FederalCriminalSearchWorkflowResult(result)
+	r := FederalCriminalSearchWorkflowResult(result)
 	return &r, nil
 }
 
