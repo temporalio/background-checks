@@ -189,6 +189,37 @@ func (h *handlers) handleEmploymentVerificationSubmission(w http.ResponseWriter,
 	}
 }
 
+//go:embed status.go.html
+var statusHTML string
+var statusHTMLTemplate = template.Must(template.New("status").Parse(statusHTML))
+
+func (h *handlers) handleStatus(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	token := vars["token"]
+
+	router := api.Router(nil)
+
+	requestURL, err := router.Get("check_status").Host(APIEndpoint).URL("token", token)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	var status workflows.BackgroundCheckState
+
+	_, err = utils.GetJSON(requestURL, &status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = statusHTMLTemplate.Execute(w, status)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
 //go:embed report.go.html
 var reportHTML string
 var reportHTMLTemplate = template.Must(template.New("report").Parse(reportHTML))
@@ -199,7 +230,7 @@ func (h *handlers) handleReport(w http.ResponseWriter, r *http.Request) {
 
 	router := api.Router(nil)
 
-	requestURL, err := router.Get("check_report").Host(APIEndpoint).URL("token", token)
+	requestURL, err := router.Get("check_status").Host(APIEndpoint).URL("token", token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -231,6 +262,7 @@ func Router() *mux.Router {
 	r.HandleFunc("/employment/{token}", h.handleEmploymentVerification).Methods("GET")
 	r.HandleFunc("/employment/{token}", h.handleEmploymentVerificationSubmission).Methods("POST")
 
+	r.HandleFunc("/status/{token}", h.handleStatus).Methods("GET")
 	r.HandleFunc("/report/{token}", h.handleReport).Methods("GET")
 
 	return r

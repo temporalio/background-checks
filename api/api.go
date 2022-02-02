@@ -225,39 +225,21 @@ func (h *handlers) handleCheckCreate(w http.ResponseWriter, r *http.Request) {
 
 func (h *handlers) handleCheckStatus(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	email := vars["email"]
-
-	v, err := h.temporalClient.QueryWorkflow(
-		r.Context(),
-		workflows.BackgroundCheckWorkflowID(email),
-		"",
-		workflows.BackgroundCheckStatusQuery,
-	)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	var result workflows.BackgroundCheckState
-	err = v.Get(&result)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(result)
-}
-
-func (h *handlers) handleCheckReport(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
 	token := vars["token"]
 
-	wfid, runid, err := workflows.WorkflowFromToken(token)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	var wfid string
+	var runid string
+	var err error
+
+	if token != "" {
+		wfid, runid, err = workflows.WorkflowFromToken(token)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+	} else {
+		wfid = workflows.BackgroundCheckWorkflowID(email)
 	}
 
 	enc, err := h.temporalClient.QueryWorkflow(
@@ -440,7 +422,7 @@ func Router(c client.Client) *mux.Router {
 	r.HandleFunc("/checks/{token}/employment", h.handleEmploymentVerificationDetails).Methods("GET").Name("employmentverify_details")
 	r.HandleFunc("/checks/{token}/employment", h.handleEmploymentVerificationSubmission).Methods("POST").Name("employmentverify")
 
-	r.HandleFunc("/checks/{token}/report", h.handleCheckReport).Methods("GET").Name("check_report")
+	r.HandleFunc("/checks/{token}/status", h.handleCheckStatus).Methods("GET").Name("check_status")
 
 	return r
 }

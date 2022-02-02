@@ -19,10 +19,11 @@ type BackgroundCheckWorkflowInput struct {
 
 type BackgroundCheckState struct {
 	Email            string
+	Status           string
 	Tier             string
-	Accepted         bool
-	CandidateDetails CandidateDetails
+	AcceptSubmission *AcceptSubmission
 	SSNTrace         *SSNTraceWorkflowResult
+	SearchSet        []string
 	SearchResults    map[string]interface{}
 	SearchErrors     map[string]string
 }
@@ -49,6 +50,7 @@ func newBackgroundCheckWorkflow(ctx workflow.Context, state *BackgroundCheckStat
 
 // pushStatus updates the BackgroundCheckStatus search attribute for a background check workflow execution.
 func (w *backgroundCheckWorkflow) pushStatus(ctx workflow.Context, status string) error {
+	w.Status = status
 	return workflow.UpsertSearchAttributes(
 		ctx,
 		map[string]interface{}{
@@ -62,18 +64,13 @@ func (w *backgroundCheckWorkflow) pushStatus(ctx workflow.Context, status string
 func (w *backgroundCheckWorkflow) waitForAccept(ctx workflow.Context, email string) (*AcceptSubmission, error) {
 	var r AcceptSubmission
 
-	err := w.pushStatus(ctx, "pending_accept")
-	if err != nil {
-		return &r, err
-	}
-
 	ctx = workflow.WithChildOptions(ctx, workflow.ChildWorkflowOptions{
 		WorkflowID: AcceptWorkflowID(email),
 	})
 	consentWF := workflow.ExecuteChildWorkflow(ctx, Accept, AcceptWorkflowInput{
 		Email: email,
 	})
-	err = consentWF.Get(ctx, &r)
+	err := consentWF.Get(ctx, &r)
 
 	return &r, err
 }
@@ -81,13 +78,13 @@ func (w *backgroundCheckWorkflow) waitForAccept(ctx workflow.Context, email stri
 // ssnTrace runs an SSN trace.
 // This will tell us if the SSN the candidate gave us is valid.
 // It also provides us with a list of addresses that the candidate is linked to in the SSN system.
-func (w *backgroundCheckWorkflow) ssnTrace(ctx workflow.Context) (*SSNTraceWorkflowResult, error) {
+func (w *backgroundCheckWorkflow) ssnTrace(ctx workflow.Context, name string, ssn string) (*SSNTraceWorkflowResult, error) {
 	var r SSNTraceWorkflowResult
 
 	ssnTrace := workflow.ExecuteChildWorkflow(
 		ctx,
 		SSNTrace,
-		SSNTraceWorkflowInput{FullName: w.CandidateDetails.FullName, SSN: w.CandidateDetails.SSN},
+		SSNTraceWorkflowInput{FullName: name, SSN: ssn},
 	)
 
 	err := ssnTrace.Get(ctx, &r)
@@ -100,8 +97,6 @@ func (w *backgroundCheckWorkflow) ssnTrace(ctx workflow.Context) (*SSNTraceWorkf
 
 // sendDeclineEmail sends an email to the Hiring Manager informing them the candidate declined the background check.
 func (w *backgroundCheckWorkflow) sendDeclineEmail(ctx workflow.Context, email string) error {
-	w.pushStatus(ctx, "declined")
-
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
@@ -112,8 +107,6 @@ func (w *backgroundCheckWorkflow) sendDeclineEmail(ctx workflow.Context, email s
 
 // sendReportEmail sends an email to the Hiring Manager with a link to the report page for the background check.
 func (w *backgroundCheckWorkflow) sendReportEmail(ctx workflow.Context, email string) error {
-	w.pushStatus(ctx, "completed")
-
 	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
@@ -131,24 +124,37 @@ func (w *backgroundCheckWorkflow) startSearch(ctx workflow.Context, name string,
 		searchWorkflow,
 		searchInputs...,
 	)
+	// Add the name of the search to the search set. This is used by the UI so it can tell what is outstanding.
+	w.SearchSet = append(w.SearchSet, name)
 	// Record the future for the search so we can collect the results later
 	w.searchFutures[name] = f
 }
 
 // waitForSearches waits for all of our searches to complete and collects the results.
 func (w *backgroundCheckWorkflow) waitForSearches(ctx workflow.Context) {
+	s := workflow.NewSelector(ctx)
 	for name, f := range w.searchFutures {
-		var r interface{}
+		name := name
 
-		err := f.Get(ctx, &r)
-		if err != nil {
-			w.logger.Error("Search failed", "name", name, "error", err)
-			// Record an error for the search so we can include it in the report.
-			w.SearchErrors[name] = err.Error()
-			continue
-		}
-		// Record the result of the search so we can use it in the report.
-		w.SearchResults[name] = r
+		s.AddFuture(f, func(rf workflow.Future) {
+			var r interface{}
+
+			err := rf.Get(ctx, &r)
+
+			if err != nil {
+				w.logger.Error("Search failed", "name", name, "error", err)
+				// Record an error for the search so we can include it in the report.
+				w.SearchErrors[name] = err.Error()
+				return
+			}
+
+			// Record the result of the search so we can use it in the report.
+			w.SearchResults[name] = r
+		})
+	}
+
+	for range w.searchFutures {
+		s.Select(ctx)
 	}
 }
 
@@ -177,20 +183,28 @@ func BackgroundCheck(ctx workflow.Context, input *BackgroundCheckWorkflowInput) 
 		return &w.BackgroundCheckState, err
 	}
 
-	// Send the candidate an email asking them to accept or decline the background check.
-	response, err := w.waitForAccept(ctx, w.Email)
+	err = w.pushStatus(ctx, "pending_accept")
 	if err != nil {
 		return &w.BackgroundCheckState, err
 	}
 
-	w.Accepted = response.Accepted
+	// Send the candidate an email asking them to accept or decline the background check.
+	w.AcceptSubmission, err = w.waitForAccept(ctx, w.Email)
+	if err != nil {
+		return &w.BackgroundCheckState, err
+	}
 
 	// If the candidate declined the check, let the hiring manager know and then end the workflow.
-	if !w.Accepted {
+	if !w.AcceptSubmission.Accepted {
+		err = w.pushStatus(ctx, "declined")
+		if err != nil {
+			return &w.BackgroundCheckState, err
+		}
+
 		return &w.BackgroundCheckState, w.sendDeclineEmail(ctx, activities.HiringManagerEmail)
 	}
 
-	w.CandidateDetails = response.CandidateDetails
+	candidateDetails := w.AcceptSubmission.CandidateDetails
 
 	// Update our status search attribute. This is used by our API to filter the background check list if requested.
 	err = w.pushStatus(ctx, "running")
@@ -199,7 +213,7 @@ func BackgroundCheck(ctx workflow.Context, input *BackgroundCheckWorkflowInput) 
 	}
 
 	// Run an SSN trace on the SSN the candidate provided when accepting the background check.
-	w.SSNTrace, err = w.ssnTrace(ctx)
+	w.SSNTrace, err = w.ssnTrace(ctx, candidateDetails.FullName, candidateDetails.SSN)
 	if err != nil {
 		return &w.BackgroundCheckState, err
 	}
@@ -207,6 +221,11 @@ func BackgroundCheck(ctx workflow.Context, input *BackgroundCheckWorkflowInput) 
 	// If the SSN the candidate gave us was not valid then send a report email to the Hiring Manager and end the workflow.
 	// In this case all the searches are skipped.
 	if !w.SSNTrace.SSNIsValid {
+		err = w.pushStatus(ctx, "completed")
+		if err != nil {
+			return &w.BackgroundCheckState, err
+		}
+
 		return &w.BackgroundCheckState, w.sendReportEmail(ctx, activities.HiringManagerEmail)
 	}
 
@@ -222,7 +241,7 @@ func BackgroundCheck(ctx workflow.Context, input *BackgroundCheckWorkflowInput) 
 		ctx,
 		"FederalCriminalSearch",
 		FederalCriminalSearch,
-		FederalCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
+		FederalCriminalSearchWorkflowInput{FullName: candidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
 	)
 
 	// If the background check is on the full tier we run more searches
@@ -231,28 +250,33 @@ func BackgroundCheck(ctx workflow.Context, input *BackgroundCheckWorkflowInput) 
 			ctx,
 			"StateCriminalSearch",
 			StateCriminalSearch,
-			StateCriminalSearchWorkflowInput{FullName: w.CandidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
+			StateCriminalSearchWorkflowInput{FullName: candidateDetails.FullName, KnownAddresses: w.SSNTrace.KnownAddresses},
 		)
 		w.startSearch(
 			ctx,
 			"MotorVehicleIncidentSearch",
 			MotorVehicleIncidentSearch,
-			MotorVehicleIncidentSearchWorkflowInput{FullName: w.CandidateDetails.FullName, Address: primaryAddress},
+			MotorVehicleIncidentSearchWorkflowInput{FullName: candidateDetails.FullName, Address: primaryAddress},
 		)
 
 		// Verify their employment if they provided an employer
-		if w.CandidateDetails.Employer != "" {
+		if candidateDetails.Employer != "" {
 			w.startSearch(
 				ctx,
 				"EmploymentVerification",
 				EmploymentVerification,
-				EmploymentVerificationWorkflowInput{CandidateDetails: w.CandidateDetails},
+				EmploymentVerificationWorkflowInput{CandidateDetails: candidateDetails},
 			)
 		}
 	}
 
 	// Wait for all of our searches to complete.
 	w.waitForSearches(ctx)
+
+	err = w.pushStatus(ctx, "completed")
+	if err != nil {
+		return &w.BackgroundCheckState, err
+	}
 
 	// Send the report email to the Hiring Manager.
 	return &w.BackgroundCheckState, w.sendReportEmail(ctx, activities.HiringManagerEmail)
