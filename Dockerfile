@@ -1,5 +1,11 @@
 FROM golang:1.17 AS base
 
+WORKDIR /go/src/tctl
+
+COPY deployment/tctl/go.mod deployment/tctl/go.sum ./
+
+RUN go mod download
+
 WORKDIR /go/src/background-checks
 
 COPY go.mod go.sum ./
@@ -7,6 +13,14 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 FROM base AS build
+
+WORKDIR /go/src/tctl
+
+COPY deployment/tctl ./
+
+RUN make
+
+WORKDIR /go/src/background-checks
 
 COPY activities ./activities
 COPY api ./api
@@ -21,13 +35,15 @@ RUN go install -v ./cli/bgc-company
 RUN go install -v ./cli/bgc-candidate
 RUN go install -v ./cli/bgc-researcher
 RUN go install -v ./temporal/dataconverter-plugin
+RUN go install -v ./temporal/dataconverter-server
 
 FROM golang:1.17 AS app
 
 ENV TEMPORAL_CLI_PLUGIN_DATA_CONVERTER=dataconverter-plugin
 
-COPY --from=temporalio/admin-tools:1.14.0 /usr/local/bin/tctl /usr/local/bin/tctl
+COPY --from=build /go/src/tctl/tctl /usr/local/bin/tctl
 COPY --from=build /go/bin/dataconverter-plugin /usr/local/bin/dataconverter-plugin
+COPY --from=build /go/bin/dataconverter-server /usr/local/bin/dataconverter-server
 
 COPY --from=build /go/bin/bgc-backend /usr/local/bin/bgc-backend
 COPY --from=build /go/bin/bgc-company /usr/local/bin/bgc-company

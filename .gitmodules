@@ -1,0 +1,6 @@
+[submodule "deployment/ui-server"]
+	path = deployment/ui-server
+	url = https://github.com/temporalio/ui-server.git
+[submodule "deployment/tctl"]
+	path = deployment/tctl
+	url = https://github.com/temporalio/tctl
