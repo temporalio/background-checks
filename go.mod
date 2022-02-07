@@ -2,7 +2,7 @@ module github.com/temporalio/background-checks
 
 go 1.16
 
-replace go.temporal.io/sdk => github.com/temporalio/sdk-go v1.13.1-0.20220207092801-8db667a54a86
+replace go.temporal.io/sdk => github.com/temporalio/sdk-go v1.13.1-0.20220207161017-b2a682807bad
 
 require (
 	github.com/gorilla/mux v1.8.0

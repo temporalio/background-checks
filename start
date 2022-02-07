@@ -24,13 +24,29 @@ echo
 echo " * All services are up"
 echo
 
+urlencode() {
+    old_lc_collate=$LC_COLLATE
+    LC_COLLATE=C
+
+    local length="${#1}"
+    for (( i = 0; i < length; i++ )); do
+        local c="${1:$i:1}"
+        case $c in
+            [a-zA-Z0-9.~_-]) printf '%s' "$c" ;;
+            *) printf '%%%02X' "'$c" ;;
+        esac
+    done
+
+    LC_COLLATE=$old_lc_collate
+}
+
 echo
 echo " * The Background Check application is now running."
 echo
 echo "The following URLs are available to explore the sytem:"
 echo
 echo -e "\tTemporal Web:"
-echo -e "\t\thttp://localhost:8080/data-converter/$(echo http://localhost:8081 | base64)"
+echo -e "\t\thttp://localhost:8080/data-converter/$(urlencode http://localhost:8081)"
 echo -e "\tMail Server (mailhog):"
 echo -e "\t\thttp://localhost:8025/"
 echo -e "\tGrafana:"
