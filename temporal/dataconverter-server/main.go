@@ -36,7 +36,12 @@ func main() {
 	})
 
 	encoder := dataconverter.Encoder{}
-	http.Handle("/", converter.NewPayloadEncoderHTTPHandler(&encoder))
+	handler := converter.NewPayloadEncoderHTTPHandler(&encoder)
+
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", frontend)
+		handler.ServeHTTP(w, r)
+	})
 
 	srv := &http.Server{
 		Addr: "0.0.0.0:8081",
