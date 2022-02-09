@@ -46,9 +46,11 @@ services:
     environment:
       - TEMPORAL_GRPC_ENDPOINT=temporal:7233
       - TEMPORAL_PERMIT_WRITE_API=true
-    image: temporalio/web:1.13.0
+    image: temporalio/temporal-web:rob-dataconverter
     ports:
       - 8088:8088
+    volumes:
+      - ${PWD}/web-v1-config.yaml:/usr/app/server/config.yml
   temporal-ui:
     depends_on:
       - temporal
@@ -112,5 +114,7 @@ services:
       target: app
     command: dataconverter-server http://localhost:8080
     restart: unless-stopped
+    environment:
+      - DATACONVERTER_ENCRYPTION_KEY_ID=secret
     ports:
       - 8081:8081

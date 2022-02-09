@@ -4,3 +4,6 @@
 [submodule "deployment/tctl"]
 	path = deployment/tctl
 	url = https://github.com/temporalio/tctl
+[submodule "deployment/web"]
+	path = deployment/web
+	url = https://github.com/temporalio/web
