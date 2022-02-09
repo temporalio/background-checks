@@ -49,8 +49,6 @@ services:
     image: temporalio/temporal-web:rob-dataconverter
     ports:
       - 8088:8088
-    volumes:
-      - ${PWD}/web-v1-config.yaml:/usr/app/server/config.yml
   temporal-ui:
     depends_on:
       - temporal
