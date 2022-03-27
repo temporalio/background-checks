@@ -1,24 +1,53 @@
 #!/bin/bash
 
+local="true"
+withtemporal="false"
+
+while getopts lrt flag
+do
+    case "${flag}" in
+        l) local="true" ;;
+        r) local="false" ;;
+        t) withtemporal="true" ;;
+    esac
+done
+
 echo
 echo " * Bringing services up, (re)building as required..."
-echo
+echo "Local environment:" $local
+echo "With Temporal Server:" $withtemporal
 
-docker compose up --build -d
+if [ $local == "true" ]; then
+    if [ $withtemporal == "true" ]; then
+        echo "Starting up Temporal and Background Check app together"
+        docker compose --profile withtemporal up --build -d
+    elif [ $withtemporal == "false" ]; then
+        echo "Starting up Background Check app to point to existing local Temporal endpoint"
+        docker compose up --build -d
+    fi
+elif [ $local == "false" ]; then
+    echo "Starting up Background Check application to point to remote Temporal endpoint with mTLS"
+    docker compose --env-file .env.mtls up --build -d
+fi
+    
 
-echo
-echo " * Checking for custom search attributes..."
-echo
 
-until docker compose exec tools tctl --auto_confirm admin cluster add-search-attributes --name CandidateEmail --type keyword; do 
+
+
+if [ $local == "true" ]; then
+    echo
+    echo " * Checking for custom search attributes..."
+    echo
+    until docker compose exec tools tctl --auto_confirm admin cluster add-search-attributes --name CandidateEmail --type keyword; do 
     echo "Waiting for Temporal Frontend to be up"
     sleep 1
-done
+    done
 
-until docker compose exec tools tctl --auto_confirm admin cluster add-search-attributes --name BackgroundCheckStatus --type keyword; do
+    until docker compose exec tools tctl --auto_confirm admin cluster add-search-attributes --name BackgroundCheckStatus --type keyword; do
     echo "Waiting for Temporal Frontend to be up"
     sleep 1
-done
+    done
+fi
 
 echo
 echo " * All services are up"

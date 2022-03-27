@@ -6,3 +6,7 @@
 .DS_Store
 test
 test.log
+secrets/*.key
+secrets/*.pem
+secrets/*.crt
+.env.mtls.*

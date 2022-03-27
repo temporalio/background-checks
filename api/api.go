@@ -20,7 +20,8 @@ import (
 )
 
 const (
-	TaskQueue = "background-checks-main"
+	TaskQueue       = "background-checks-main"
+	DefaultEndpoint = "0.0.0.0:8081"
 )
 
 type handlers struct {
