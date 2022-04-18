@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/temporalio/background-checks/activities"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -424,6 +426,55 @@ func (h *handlers) handleCheckCancel(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+type SendEmail struct {
+	SendAcceptEmailInput            *activities.SendAcceptEmailInput                 `json:"send_accept_email_input,omitempty"`
+	SendDeclineEmailInput           *activities.SendDeclineEmailInput                `json:"send_decline_email_input,omitempty"`
+	SendEmploymentVerificationInput *activities.SendEmploymentVerificationEmailInput `json:"send_employment_verification_input,omitempty"`
+	SendReportEmailInput            *activities.SendReportEmailInput                 `json:"send_report_email_input,omitempty"`
+}
+
+func (h *handlers) sendEmail(w http.ResponseWriter, r *http.Request) {
+	acts := &activities.Activities{SMTPHost: "mailhog", SMTPPort: 1025}
+
+	// from string, to string, subject string, htmlTemplate *template.Template, textTemplate *template.Template, input interface{}
+	sendEmail := &SendEmail{}
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	err = json.Unmarshal(data, sendEmail)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// poor man's validation
+	if sendEmail.SendDeclineEmailInput == nil &&
+		sendEmail.SendAcceptEmailInput == nil &&
+		sendEmail.SendReportEmailInput == nil &&
+		sendEmail.SendEmploymentVerificationInput == nil {
+		http.Error(w, "missing email input", http.StatusBadRequest)
+		return
+	}
+	ctx := r.Context()
+	var emailErr error
+	if sendEmail.SendDeclineEmailInput != nil {
+		_, emailErr = acts.SendDeclineEmail(ctx, sendEmail.SendDeclineEmailInput)
+	} else if sendEmail.SendReportEmailInput != nil {
+		_, emailErr = acts.SendReportEmail(ctx, sendEmail.SendReportEmailInput)
+	} else if sendEmail.SendEmploymentVerificationInput != nil {
+		_, emailErr = acts.SendEmploymentVerificationRequestEmail(ctx, sendEmail.SendEmploymentVerificationInput)
+	} else if sendEmail.SendAcceptEmailInput != nil {
+		_, emailErr = acts.SendAcceptEmail(ctx, sendEmail.SendAcceptEmailInput)
+	}
+	if emailErr != nil {
+		http.Error(w, fmt.Errorf("failed to send email: %w", emailErr).Error(), http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
 func Router(c client.Client) *mux.Router {
 	r := mux.NewRouter()
 
@@ -442,5 +493,7 @@ func Router(c client.Client) *mux.Router {
 
 	r.HandleFunc("/checks/{token}/report", h.handleCheckReport).Methods("GET").Name("check_report")
 
+	// expose email delivery on API to simplify activity migration
+	r.HandleFunc("/emails", h.sendEmail).Methods("POST").Name("send_email")
 	return r
 }

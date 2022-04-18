@@ -6,3 +6,15 @@
 .DS_Store
 test
 test.log
+
+Thumbs.db
+
+# Ignore built ts files
+dist/**/*
+
+# ignore yarn.lock
+yarn.lock
+node_modules
+
+# Coverage reports
+coverage
