@@ -8,5 +8,11 @@
     "rootDir": "./src",
     "outDir": "./lib"
   },
+  "paths": {
+    "@typings/*": [
+      "typings/*"
+    ],
+  },
+
   "include": ["src/**/*.ts"]
 }
