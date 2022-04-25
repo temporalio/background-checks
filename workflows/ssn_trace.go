@@ -24,11 +24,14 @@ type SSNTraceWorkflowResult struct {
 func SSNTrace(ctx workflow.Context, input *SSNTraceWorkflowInput) (*SSNTraceWorkflowResult, error) {
 	var result activities.SSNTraceResult
 
-	ctx = workflow.WithActivityOptions(ctx, workflow.ActivityOptions{
+	ctx = workflow.WithLocalActivityOptions(ctx, workflow.LocalActivityOptions{
 		StartToCloseTimeout: time.Minute,
 	})
 
-	f := workflow.ExecuteActivity(ctx, a.SSNTrace, SSNTraceWorkflowInput(*input))
+	f := workflow.ExecuteLocalActivity(ctx, a.SSNTrace, &activities.SSNTraceInput{
+		FullName: input.FullName,
+		SSN:      input.SSN,
+	})
 
 	err := f.Get(ctx, &result)
 	r := SSNTraceWorkflowResult(result)
