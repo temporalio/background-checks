@@ -1,6 +1,6 @@
 # Background Check application
 
-This is an example [Temporal Application](https://docs.temporal.io/content/what-is-a-temporal-application) project.
+This is an example [Temporal Application](https://docs.temporal.io/temporal#temporal-application) project.
 
 The application is written using the [Temporal Go SDK](https://github.com/temporalio/sdk-go).
 
