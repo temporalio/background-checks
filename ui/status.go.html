@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0
+        }
+        #form {
+            text-align: center;
+            position: relative;
+            margin-top: 20px
+        }
+        #form fieldset {
+            background: white;
+            border: 0 none;
+            border-radius: 0.5rem;
+            box-sizing: border-box;
+            width: 100%;
+            margin: 0;
+            padding-bottom: 20px;
+            position: relative
+        }
+        #form fieldset:not(:first-of-type) {
+            display: none
+        }
+
+        #progressbar {
+            margin-bottom: 30px;
+            overflow: hidden;
+            color: lightgrey
+        }
+        #progressbar .active {
+            color: #2F8D46
+        }
+        #progressbar li {
+            list-style-type: none;
+            font-size: 15px;
+            width: 25%;
+            float: left;
+            position: relative;
+            font-weight: 400
+        }
+        #progressbar #step1:before {
+            content: "1"
+        }
+        #progressbar #step2:before {
+            content: "2"
+        }
+        #progressbar #step3:before {
+            content: "3"
+        }
+        #progressbar #step4:before {
+            content: "4"
+        }
+        #progressbar li:before {
+            width: 50px;
+            height: 50px;
+            line-height: 45px;
+            display: block;
+            font-size: 20px;
+            color: #ffffff;
+            background: lightgray;
+            border-radius: 50%;
+            margin: 0 auto 10px auto;
+            padding: 2px
+        }
+        #progressbar li:after {
+            content: '';
+            width: 100%;
+            height: 2px;
+            background: lightgray;
+            position: absolute;
+            left: 0;
+            top: 25px;
+            z-index: -1
+        }
+        #progressbar li.active:before,
+        #progressbar li.active:after {
+            background: #2F8D46
+        }
+    </style>
+</head>
+<body>
+<!-- Image and text -->
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="#">
+        <img src="https://www.dietzgen.com/wp-content/uploads/2020/07/Check-PNG-Transparent-Image.png" width="50" class="d-inline-block align-top" alt="">
+        &nbsp;&nbsp;&nbsp;Background Check Status - Hiring Manager
+    </a>
+</nav>
+<div class="container">
+    <div class="px-0 pt-4 pb-Check Status-3 mb-3">
+        <form id="form">
+            <ul id="progressbar">
+                <li id="step1">
+                    <strong>Candidate Report Confirmation</strong>
+                </li>
+                <li class="active" id="step2"><strong>View Check Status</strong></li>
+            </ul>
+        </form>
+    </div>
+    <div class="hero-unit">
+        <h1>View Check Status</h1>
+        <div class="mermaid">
+            {{$results := .SearchResults}}
+            {{$errors := .SearchErrors}}
+
+            flowchart TD
+                request[Request] --> candidate{Candidate}
+                {{with .AcceptSubmission}}
+                    style candidate fill:{{if .Accepted}}green{{else}}red{{end}}
+                {{else}}
+                    style candidate fill:blue
+                {{end}}
+                candidate -{{with .AcceptSubmission}}{{if .Accepted}}.{{end}}{{end}}->|Decline| finish
+                candidate -{{with .AcceptSubmission}}{{if not .Accepted}}.{{end}}{{end}}->|Accept| ssn
+                ssn{SSN Trace}
+                {{with .SSNTrace}}
+                    style ssn fill:{{if .SSNIsValid}}green{{else}}red{{end}}
+                {{end}}
+                ssn -{{with .SSNTrace}}{{if .SSNIsValid}}.{{end}}{{end}}->|Invalid| finish
+                ssn -{{with .SSNTrace}}{{if not .SSNIsValid}}.{{end}}{{end}}->|Valid| searches
+                subgraph searches[Searches]
+                    {{range $i, $name := .SearchSet}}
+                        search{{$i}}[{{$name}}]
+                        {{if (index $errors $name)}}
+                            style search{{$i}} fill:red
+                        {{else if (index $results $name)}}
+                            style search{{$i}} fill:green
+                        {{else}}
+                            style search{{$i}} fill:blue
+                        {{end}}
+                    {{end}}
+                end
+                searches --> finish
+                finish[Finish]
+        </div>
+    </div>
+</div>
+</body>
+</html>
