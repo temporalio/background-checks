@@ -9,11 +9,17 @@ services:
       - discovery.type=single-node
       - ES_JAVA_OPTS=-Xms100m -Xmx100m
     image: elasticsearch:7.16.2
+    profiles: 
+      - "withtemporal"
   postgresql:
     environment:
       POSTGRES_PASSWORD: temporal
       POSTGRES_USER: temporal
     image: postgres:13
+    ports:
+      - 5432:5432
+    profiles: 
+      - "withtemporal"
   temporal:
     depends_on:
       - postgresql
@@ -30,6 +36,10 @@ services:
       - ES_VERSION=v7
       - PROMETHEUS_ENDPOINT=0.0.0.0:8000
     image: temporalio/auto-setup:1.14.0
+    ports:
+      - 7233:7233
+    profiles: 
+      - "withtemporal"
   temporal-admin-tools:
     depends_on:
       - temporal
@@ -38,6 +48,8 @@ services:
     image: temporalio/admin-tools:1.14.0
     stdin_open: true
     tty: true
+    profiles: 
+      - "withtemporal"
   temporal-web:
     depends_on:
       - temporal
@@ -47,6 +59,8 @@ services:
     image: temporalio/web:1.13.0
     ports:
       - 8088:8088
+    profiles: 
+      - "withtemporal"
   prometheus:
     image: prom/prometheus
     ports:
@@ -72,37 +86,69 @@ services:
     command: -invite-jim
     ports:
       - 8025:8025
+      - 1025:1025
   thirdparty:
     build: deployment/thirdparty-simulator
     command: thirdparty-simulator api
     restart: unless-stopped
-    environment:
-      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+    ports:
+      - 8082:8082
   api:
     restart: unless-stopped
     environment:
-      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=${TEMPORAL_CLI_ADDRESS}
+      - TEMPORAL_CLI_NAMESPACE=${TEMPORAL_CLI_NAMESPACE}
+      - TEMPORAL_CLI_TLS_SERVERNAME=${TEMPORAL_CLI_TLS_SERVERNAME}
+      - TEMPORAL_CLI_TLS_CERT=${TEMPORAL_CLI_TLS_CERT}
+      - TEMPORAL_CLI_TLS_KEY=${TEMPORAL_CLI_TLS_KEY}
       - DATACONVERTER_ENCRYPTION_KEY_ID=secret
+    secrets:
+      - mTLS_Private_Key
+      - mTLS_Cert
   ui:
     restart: unless-stopped
-    environment:
-      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
   worker:
     restart: unless-stopped
     environment:
-      - TEMPORAL_GRPC_ENDPOINT=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=${TEMPORAL_CLI_ADDRESS}
+      - TEMPORAL_CLI_NAMESPACE=${TEMPORAL_CLI_NAMESPACE}
+      - TEMPORAL_CLI_TLS_SERVERNAME=${TEMPORAL_CLI_TLS_SERVERNAME}
+      - TEMPORAL_CLI_TLS_CERT=${TEMPORAL_CLI_TLS_CERT}
+      - TEMPORAL_CLI_TLS_KEY=${TEMPORAL_CLI_TLS_KEY}
       - DATACONVERTER_ENCRYPTION_KEY_ID=secret
+    secrets:
+      - mTLS_Private_Key
+      - mTLS_Cert
   tools:
     environment:
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=${TEMPORAL_CLI_ADDRESS}
+      - TEMPORAL_CLI_NAMESPACE=${TEMPORAL_CLI_NAMESPACE}
+      - TEMPORAL_CLI_TLS_SERVERNAME=${TEMPORAL_CLI_TLS_SERVERNAME}
+      - TEMPORAL_CLI_TLS_CERT=${TEMPORAL_CLI_TLS_CERT}
+      - TEMPORAL_CLI_TLS_KEY=${TEMPORAL_CLI_TLS_KEY}
+    secrets:
+      - mTLS_Private_Key
+      - mTLS_Cert
   dataconverter:
     build:
       context: .
       target: app
-    command: tctl dc web --web_ui_url http://localhost:8088
+    command: tctl dc web --web_ui_url ${TEMPORAL_WEB_UI_URL}
     restart: unless-stopped
     ports:
       - 8086:8086
     environment:
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
+      - TEMPORAL_CLI_ADDRESS=${TEMPORAL_CLI_ADDRESS}
+      - TEMPORAL_CLI_NAMESPACE=${TEMPORAL_CLI_NAMESPACE}
+      - TEMPORAL_CLI_TLS_SERVERNAME=${TEMPORAL_CLI_TLS_SERVERNAME}
+      - TEMPORAL_CLI_TLS_CERT=${TEMPORAL_CLI_TLS_CERT}
+      - TEMPORAL_CLI_TLS_KEY=${TEMPORAL_CLI_TLS_KEY}
       - TEMPORAL_CLI_DATA_CONVERTER_PORT=8086
+    secrets:
+      - mTLS_Private_Key
+      - mTLS_Cert
+secrets:
+  mTLS_Private_Key:
+    file: ./secrets/mtls.key
+  mTLS_Cert:
+    file: ./secrets/mtls.pem

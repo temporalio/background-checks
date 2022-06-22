@@ -5,6 +5,8 @@ services:
       context: .
       target: app
     command: bgc-backend api
+    ports:
+      - 8081:8081
   ui:
     build:
       context: .

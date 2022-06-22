@@ -25,7 +25,7 @@ var apiCmd = &cobra.Command{
 
 		srv := &http.Server{
 			Handler: api.Router(c),
-			Addr:    "0.0.0.0:8081",
+			Addr:    api.DefaultEndpoint,
 		}
 
 		errCh := make(chan error, 1)
