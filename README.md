@@ -19,6 +19,5 @@ This project showcases how to implement a Temporal Application within the contex
 
 ## Application references
 
-https://learn.temporal.io/examples/go/background-checks/cli-reference
 - [CLI reference](https://learn.temporal.io/examples/go/background-checks/cli-reference)
 - [API reference](https://learn.temporal.io/examples/go/background-checks/api-reference)
