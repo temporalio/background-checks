@@ -4,7 +4,7 @@ This is an example [Temporal Application](https://docs.temporal.io/temporal#temp
 
 The application is written using the [Temporal Go SDK](https://github.com/temporalio/sdk-go).
 
-This project showcases how to implement a Temporal Application within the context of a [Human-Driven Long-Running Workflow](https://docs.temporal.io/learning-paths/background-checks/project-narrative#what-is-a-long-running-human-driven-workflow) use case.
+This project showcases how to implement a Temporal Application within the context of a [Human-Driven Long-Running Workflow](https://learn.temporal.io/examples/go/background-checks/#what-is-a-human-driven-long-running-workflow) use case.
 
 ## How to use the application
 
@@ -12,12 +12,13 @@ This project showcases how to implement a Temporal Application within the contex
 
 ## Learn about the application
 
-- [Learning goals & project narrative](https://docs.temporal.io/learning-paths/background-checks/project-narrative)
-- [Application requirements](https://docs.temporal.io/learning-paths/background-checks/application-requirements)
-- [Application design & implementation](https://docs.temporal.io/learning-paths/background-checks/application-design)
-- [Application deployment](https://docs.temporal.io/learning-paths/background-checks/application-deployment)
+- [Learning goals & project narrative](https://learn.temporal.io/examples/go/background-checks)
+- [Application requirements](https://learn.temporal.io/examples/go/background-checks/application-requirements)
+- [Application design & implementation](https://learn.temporal.io/examples/go/background-checks/application-design)
+- [Application deployment](https://learn.temporal.io/examples/go/background-checks/application-deployment)
 
 ## Application references
 
-- [CLI reference](https://docs.temporal.io/learning-paths/background-checks/cli-reference)
-- [API reference](https://docs.temporal.io/learning-paths/background-checks/api-reference)
+https://learn.temporal.io/examples/go/background-checks/cli-reference
+- [CLI reference](https://learn.temporal.io/examples/go/background-checks/cli-reference)
+- [API reference](https://learn.temporal.io/examples/go/background-checks/api-reference)
