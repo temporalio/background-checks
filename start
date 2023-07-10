@@ -30,7 +30,7 @@ echo
 echo "The following URLs are available to explore the sytem:"
 echo
 echo -e "\tTemporal Web:"
-echo -e "\t\thttp://localhost:8088/data-converter/8086"
+echo -e "\t\thttp://localhost:8080"
 echo -e "\tMail Server (mailhog):"
 echo -e "\t\thttp://localhost:8025/"
 echo -e "\tGrafana:"

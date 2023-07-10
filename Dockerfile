@@ -1,4 +1,4 @@
-FROM golang:1.17 AS base
+FROM golang:1.20 AS base
 
 WORKDIR /go/src/background-checks
 
@@ -20,14 +20,13 @@ RUN go install -v ./cli/bgc-backend
 RUN go install -v ./cli/bgc-company
 RUN go install -v ./cli/bgc-candidate
 RUN go install -v ./cli/bgc-researcher
-RUN go install -v ./temporal/dataconverter-plugin
+RUN go install -v ./temporal/dataconverter-server
 
-FROM golang:1.17 AS app
+FROM golang:1.20 AS app
 
-ENV TEMPORAL_CLI_PLUGIN_DATA_CONVERTER=dataconverter-plugin
-
-COPY --from=temporalio/admin-tools:1.14.0 /usr/local/bin/tctl /usr/local/bin/tctl
-COPY --from=build /go/bin/dataconverter-plugin /usr/local/bin/dataconverter-plugin
+COPY --from=temporalio/admin-tools:1.21.1 /usr/local/bin/tctl /usr/local/bin/tctl
+COPY --from=temporalio/admin-tools:1.21.1 /usr/local/bin/temporal /usr/local/bin/temporal
+COPY --from=build /go/bin/dataconverter-server /usr/local/bin/dataconverter-server
 
 COPY --from=build /go/bin/bgc-backend /usr/local/bin/bgc-backend
 COPY --from=build /go/bin/bgc-company /usr/local/bin/bgc-company

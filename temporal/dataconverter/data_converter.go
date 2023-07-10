@@ -9,84 +9,97 @@ import (
 )
 
 const (
-	// MetadataEncodingEncrypted is "binary/encrypted"
 	MetadataEncodingEncrypted = "binary/encrypted"
-
-	// MetadataEncryptionKeyID is "encryption-key-id"
-	MetadataEncryptionKeyID = "encryption-key-id"
+	MetadataEncryptionKeyID   = "encryption-key-id"
 )
+
+type DataConverter struct {
+	parent converter.DataConverter
+	converter.DataConverter
+	options DataConverterOptions
+}
 
 type DataConverterOptions struct {
 	KeyID string
 }
 
-// Encoder implements PayloadEncoder using AES Crypt.
-type Encoder struct {
+type Codec struct {
 	KeyID string
 }
 
-func (e *Encoder) getKey(keyID string) (key []byte) {
-	// Key must be fetched from secure storage in production (such as a KMS).
-	// For testing here we just hard code a key.
+func (e *Codec) getKey(keyID string) (key []byte) {
 	return []byte("test-key-test-key-test-key-test!")
 }
 
 // NewEncryptionDataConverter creates a new instance of EncryptionDataConverter wrapping a DataConverter
-func NewEncryptionDataConverter(dataConverter converter.DataConverter, options DataConverterOptions) converter.DataConverter {
-	encoders := []converter.PayloadEncoder{
-		&Encoder{KeyID: options.KeyID},
+func NewEncryptionDataConverter(dataConverter converter.DataConverter, options DataConverterOptions) *DataConverter {
+	codecs := []converter.PayloadCodec{
+		&Codec{KeyID: options.KeyID},
 	}
 
-	return converter.NewEncodingDataConverter(dataConverter, encoders...)
+	return &DataConverter{
+		parent:        dataConverter,
+		DataConverter: converter.NewCodecDataConverter(dataConverter, codecs...),
+		options:       options,
+	}
 }
 
-// Encode implements converter.PayloadEncoder.Encode.
-func (e *Encoder) Encode(p *commonpb.Payload) error {
-	// Ensure that we never send plaintext Payloads to Temporal
-	if e.KeyID == "" {
-		return fmt.Errorf("no encryption key ID configured for data converter")
+// Encode implements converter.PayloadCodec.Encode.
+func (e *Codec) Encode(payloads []*commonpb.Payload) ([]*commonpb.Payload, error) {
+	result := make([]*commonpb.Payload, len(payloads))
+	for i, p := range payloads {
+		origBytes, err := p.Marshal()
+		if err != nil {
+			return payloads, err
+		}
+
+		key := e.getKey(e.KeyID)
+
+		b, err := encrypt(origBytes, key)
+		if err != nil {
+			return payloads, err
+		}
+
+		result[i] = &commonpb.Payload{
+			Metadata: map[string][]byte{
+				converter.MetadataEncoding: []byte(MetadataEncodingEncrypted),
+				MetadataEncryptionKeyID:    []byte(e.KeyID),
+			},
+			Data: b,
+		}
 	}
 
-	origBytes, err := p.Marshal()
-	if err != nil {
-		return err
-	}
-
-	key := e.getKey(e.KeyID)
-
-	b, err := encrypt(origBytes, key)
-	if err != nil {
-		return err
-	}
-
-	p.Metadata = map[string][]byte{
-		converter.MetadataEncoding: []byte(MetadataEncodingEncrypted),
-		MetadataEncryptionKeyID:    []byte(e.KeyID),
-	}
-	p.Data = b
-
-	return nil
+	return result, nil
 }
 
-// Decode implements converter.PayloadEncoder.Decode.
-func (e *Encoder) Decode(p *commonpb.Payload) error {
-	// Only if it's encrypted
-	if string(p.Metadata[converter.MetadataEncoding]) != MetadataEncodingEncrypted {
-		return nil
+// Decode implements converter.PayloadCodec.Decode.
+func (e *Codec) Decode(payloads []*commonpb.Payload) ([]*commonpb.Payload, error) {
+	result := make([]*commonpb.Payload, len(payloads))
+	for i, p := range payloads {
+		// Only if it's encrypted
+		if string(p.Metadata[converter.MetadataEncoding]) != MetadataEncodingEncrypted {
+			result[i] = p
+			continue
+		}
+
+		keyID, ok := p.Metadata[MetadataEncryptionKeyID]
+		if !ok {
+			return payloads, fmt.Errorf("no encryption key id")
+		}
+
+		key := e.getKey(string(keyID))
+
+		b, err := decrypt(p.Data, key)
+		if err != nil {
+			return payloads, err
+		}
+
+		result[i] = &commonpb.Payload{}
+		err = result[i].Unmarshal(b)
+		if err != nil {
+			return payloads, err
+		}
 	}
 
-	keyID, ok := p.Metadata[MetadataEncryptionKeyID]
-	if !ok {
-		return fmt.Errorf("no encryption key id")
-	}
-
-	key := e.getKey(string(keyID))
-
-	b, err := decrypt(p.Data, key)
-	if err != nil {
-		return err
-	}
-
-	p.Reset()
-	return p.Unmarshal(b)
+	return result, nil
 }
