@@ -20,7 +20,7 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-    image: temporalio/admin-tools:latest
+    image: temporalio/admin-tools:1.32
     stdin_open: true
     tty: true
   temporal-ui:
