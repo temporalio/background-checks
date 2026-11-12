@@ -1,5 +1,5 @@
 ARG BASE_BUILDER_IMAGE=golang:1.27-alpine3.24
-ARG TEMPORAL_TAG=latest
+ARG TEMPORAL_TAG=1.10.0
 
 FROM ${BASE_BUILDER_IMAGE} AS base
 
@@ -35,3 +35,6 @@ COPY --from=build /go/bin/bgc-backend /usr/local/bin/bgc-backend
 COPY --from=build /go/bin/bgc-company /usr/local/bin/bgc-company
 COPY --from=build /go/bin/bgc-candidate /usr/local/bin/bgc-candidate
 COPY --from=build /go/bin/bgc-researcher /usr/local/bin/bgc-researcher
+
+ENTRYPOINT ["/usr/bin/env"]
+CMD ["/bin/sh"]
