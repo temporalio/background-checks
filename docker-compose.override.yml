@@ -20,7 +20,6 @@ services:
       - temporal
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
     image: temporalio/admin-tools:latest
     stdin_open: true
     tty: true
@@ -80,9 +79,7 @@ services:
   tools:
     environment:
       - TEMPORAL_ADDRESS=temporal:7233
-      - TEMPORAL_CLI_ADDRESS=temporal:7233
       - TEMPORAL_CODEC_ENDPOINT=http://dataconverter:8081/
-      - TEMPORAL_CLI_CODEC_ENDPOINT=http://dataconverter:8081/
   dataconverter:
     build:
       context: .
