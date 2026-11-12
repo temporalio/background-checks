@@ -1,6 +1,11 @@
-FROM golang:1.20 AS base
+ARG BASE_BUILDER_IMAGE=golang:1.27-alpine3.24
+ARG TEMPORAL_TAG=latest
+
+FROM ${BASE_BUILDER_IMAGE} AS base
 
 WORKDIR /go/src/background-checks
+
+RUN apk upgrade
 
 COPY go.mod go.sum ./
 
@@ -22,10 +27,8 @@ RUN go install -v ./cli/bgc-candidate
 RUN go install -v ./cli/bgc-researcher
 RUN go install -v ./temporal/dataconverter-server
 
-FROM golang:1.20 AS app
+FROM temporalio/temporal:${TEMPORAL_TAG} AS app
 
-COPY --from=temporalio/admin-tools:1.21.1 /usr/local/bin/tctl /usr/local/bin/tctl
-COPY --from=temporalio/admin-tools:1.21.1 /usr/local/bin/temporal /usr/local/bin/temporal
 COPY --from=build /go/bin/dataconverter-server /usr/local/bin/dataconverter-server
 
 COPY --from=build /go/bin/bgc-backend /usr/local/bin/bgc-backend
